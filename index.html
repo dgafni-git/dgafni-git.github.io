@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>buckshot.sbs</title>
+<style>
+  :root{
+    --paper:#faf6ec; --ink:#1e3a2f; --shade:#e8e1d0; --accent:#b06e2a;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{
+    background:var(--paper); color:var(--ink);
+    font:17px/1.6 Georgia,"Times New Roman",serif;
+    min-height:100vh; display:flex; flex-direction:column;
+  }
+  .wrap{max-width:640px; width:100%; margin:0 auto; padding:64px 24px 40px; flex:1}
+  h1{font-size:42px; letter-spacing:-.5px; margin-bottom:6px}
+  .sub{font-family:var(--mono); font-size:13px; text-transform:uppercase; letter-spacing:.14em; color:var(--accent); margin-bottom:48px}
+  ul{list-style:none}
+  li{border-top:1px solid var(--shade)}
+  li:last-child{border-bottom:1px solid var(--shade)}
+  a.proj{display:block; padding:20px 4px; text-decoration:none; color:inherit}
+  a.proj:hover{background:#f3edda}
+  .pname{font-size:22px; font-weight:bold}
+  .pdesc{color:#5a6b60; font-size:15.5px; margin-top:2px}
+  .who{font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); margin-top:6px}
+  footer{padding:24px; text-align:center; font-family:var(--mono); font-size:12px; color:#8a8574}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>buckshot</h1>
+  <div class="sub">scattered projects, occasionally on target</div>
+  <ul>
+    <li>
+      <a class="proj" href="/recipe-grids/">
+        <div class="pname">Recipe Grids</div>
+        <div class="pdesc">Recipes as dependency grids — ingredients as rows, merged cells showing what combines with what, in what order.</div>
+        <div class="who">David</div>
+      </a>
+    </li>
+  </ul>
+</div>
+<footer>buckshot.sbs</footer>
+</body>
+</html>
