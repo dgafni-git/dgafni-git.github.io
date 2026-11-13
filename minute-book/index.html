@@ -3,19 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <title>Minute Book</title>
-<meta name="description" content="A corporate governance game for real estate lending, development and private equity.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Courier+Prime:wght@400;700&family=Libre+Franklin:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/book.css">
+<link rel="stylesheet" href="book.css">
 </head>
-<body>
+<body class="locked">
 <div class="binding">
   <header class="cover">
-    <a class="wordmark" href="#contents" aria-label="Minute Book, contents">
-      <span class="wm-1">Minute</span><span class="wm-2">Book</span>
-    </a>
+    <a class="wordmark" href="#contents" aria-label="Minute Book"><span class="wm-1">Minute</span><span class="wm-2">Book</span></a>
     <div class="standing" id="standing" aria-live="polite"></div>
   </header>
   <nav class="tabs" aria-label="Sections">
@@ -24,26 +22,71 @@
     <a href="#about" data-tab="about">About</a>
   </nav>
   <main class="sheet" id="sheet" tabindex="-1">
-    <noscript><p>Minute Book needs JavaScript to run.</p></noscript>
+    <div class="folio"><span>Private</span><span>By invitation</span></div>
+    <form class="gate" id="gate" novalidate>
+      <h1 class="display small">This book is closed.</h1>
+      <label for="gate-pw">Password</label>
+      <input type="password" id="gate-pw" name="password" autocomplete="current-password" aria-describedby="gate-err">
+      <div class="row">
+        <button class="btn" type="submit" id="gate-go">Open the book</button>
+        <label class="check" for="gate-keep"><input type="checkbox" id="gate-keep" checked> Keep it open on this device</label>
+      </div>
+      <p class="err" id="gate-err" role="alert"></p>
+      <noscript><p>Minute Book needs JavaScript to open.</p></noscript>
+    </form>
   </main>
-  <footer class="colophon">
-    A learning game. It teaches general principles and is not legal advice. All names and entities are invented.
-  </footer>
+  <footer class="colophon">A private work in progress.</footer>
 </div>
-<script src="js/engine.js"></script>
-<script src="js/numerics.js"></script>
-<script src="js/content/level01.js"></script>
-<script src="js/content/level02.js"></script>
-<script src="js/content/level03.js"></script>
-<script src="js/content/level04.js"></script>
-<script src="js/content/level05.js"></script>
-<script src="js/content/level06.js"></script>
-<script src="js/content/level07.js"></script>
-<script src="js/content/level08.js"></script>
-<script src="js/content/level09.js"></script>
-<script src="js/content/level10.js"></script>
-<script src="js/content/level11.js"></script>
-<script src="js/content/level12.js"></script>
-<script src="js/content/level13.js"></script>
+<script src="book.lock.js"></script>
+<script>
+/* The game ships encrypted (AES-256-GCM, key from PBKDF2). This page only holds the lock. */
+(function () {
+  'use strict';
+  var L = window.MB_LOCK, KEEP = 'minute-book-key-v1';
+  var form = document.getElementById('gate'), err = document.getElementById('gate-err'), go = document.getElementById('gate-go');
+  function bytes(b64) { var s = atob(b64), a = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a; }
+  function b64(a) { var s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); return btoa(s); }
+  function derive(pw) {
+    return crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']).then(function (base) {
+      return crypto.subtle.deriveBits({ name: 'PBKDF2', salt: bytes(L.salt), iterations: L.iter, hash: 'SHA-256' }, base, 256);
+    }).then(function (bits) { return new Uint8Array(bits); });
+  }
+  function unlock(raw) {
+    return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']).then(function (key) {
+      return crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes(L.iv) }, key, bytes(L.data));
+    }).then(function (plain) { return new TextDecoder().decode(plain); });
+  }
+  function open(code) {
+    document.body.classList.remove('locked');
+    document.querySelector('.colophon').textContent = 'A learning game. It teaches general principles and is not legal advice. All names and entities are invented.';
+    document.getElementById('sheet').innerHTML = '';
+    var s = document.createElement('script'); s.textContent = code; document.body.appendChild(s);
+  }
+  function fail(msg) { err.textContent = msg; go.disabled = false; go.textContent = 'Open the book'; }
+
+  if (!L || !window.crypto || !crypto.subtle) { fail('This page must be opened over a secure (https) connection.'); go.disabled = true; return; }
+
+  var kept = null;
+  try { kept = JSON.parse(window.localStorage.getItem(KEEP) || 'null'); } catch (e) { kept = null; }
+  if (kept && kept.salt === L.salt) {
+    unlock(bytes(kept.key)).then(open, function () { try { window.localStorage.removeItem(KEEP); } catch (e) {} });
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var pw = document.getElementById('gate-pw').value;
+    if (!pw) { fail('Enter the password.'); return; }
+    err.textContent = ''; go.disabled = true; go.textContent = 'Opening…';
+    derive(pw).then(function (raw) {
+      return unlock(raw).then(function (code) {
+        if (document.getElementById('gate-keep').checked) {
+          try { window.localStorage.setItem(KEEP, JSON.stringify({ salt: L.salt, key: b64(raw) })); } catch (e2) {}
+        }
+        open(code);
+      });
+    }).catch(function () { fail('That is not the password.'); });
+  });
+})();
+</script>
 </body>
 </html>

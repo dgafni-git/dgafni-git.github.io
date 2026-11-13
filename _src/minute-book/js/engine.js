@@ -1,4 +1,4 @@
-/* Minute Book: engine. State, seeded scenario generation, rendering. */
+/* Minute Book: engine. State, seeded scenario generation, money, rendering. */
 (function () {
   'use strict';
 
@@ -7,12 +7,15 @@
 
   var ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV'];
   var GRADE = {
-    s: { label: 'Sound', pts: 2, mark: '✓', standing: 3, exposure: -2 },
-    g: { label: 'Grey', pts: 1, mark: '~', standing: -1, exposure: 5 },
-    p: { label: 'Poor', pts: 0, mark: '✕', standing: -6, exposure: 10 }
+    s: { label: 'Sound', pts: 2, mark: '✓' },
+    g: { label: 'Grey', pts: 1, mark: '~', chance: 0.35, times: 2.5, name: 'loose end' },
+    p: { label: 'Poor', pts: 0, mark: '✕', chance: 0.7, times: 4, name: 'liability' }
   };
+  /* What a decision pays today, as a multiple of the meeting's stake. Ranges overlap on purpose. */
+  var PAY = { s: [0.7, 1.3], g: [0.9, 1.7], p: [1.1, 2.4] };
   var START_RANK = 'Analyst';
-  var KEY = 'minute-book-v1';
+  var SEED_EQUITY = 100000;
+  var KEY = 'minute-book-v2';
 
   /* ---------- formatting ---------- */
 
@@ -21,7 +24,18 @@
     if (a >= 1e6) return sign + '$' + String(Math.round(a / 1e3) / 1e3) + ' million';
     return sign + '$' + Math.round(a).toLocaleString('en-US');
   };
+  MB.cash = function (n) {
+    var a = Math.abs(n), sign = n < 0 ? '−' : '';
+    if (a >= 1e6) return sign + '$' + String(Math.round(a / 1e4) / 100) + 'M';
+    return sign + '$' + Math.round(a).toLocaleString('en-US');
+  };
+  function plus(n) { return (n >= 0 ? '+' : '') + MB.cash(n); }
   MB.fix = function (n, dp) { return (Math.round(n * Math.pow(10, dp)) / Math.pow(10, dp)).toFixed(dp); };
+  function round2(x) {
+    if (!x) return 0;
+    var a = Math.abs(x), p = Math.pow(10, Math.floor(Math.log(a) / Math.LN10 + 1e-9) - 1);
+    return (x < 0 ? -1 : 1) * Math.round(a / p) * p;
+  }
 
   function paras(text) {
     return String(text).split(/\n\s*\n/).map(function (p) { return '<p>' + p.trim() + '</p>'; }).join('');
@@ -55,7 +69,7 @@
     { name: 'Calgary, Alberta', short: 'Calgary', ca: true }, { name: 'Halifax, Nova Scotia', short: 'Halifax', ca: true },
     { name: 'Ottawa, Ontario', short: 'Ottawa', ca: true }, { name: 'Winnipeg, Manitoba', short: 'Winnipeg', ca: true }
   ];
-  var ASSETS = ['a half-built 48-unit townhouse site', 'a stalled six-storey condominium project', 'a 12-acre serviced subdivision', 'a vacant retail plaza slated for redevelopment', 'a 90-unit rental conversion', 'a mixed-use infill site with an approved site plan'];
+  var ASSETS = ['a half-built townhouse site', 'a stalled condominium project', 'a serviced subdivision', 'a vacant retail plaza', 'a rental conversion', 'a mixed-use infill site'];
 
   function makeGen(seed) {
     var r = mulberry32(seed >>> 0);
@@ -86,7 +100,7 @@
       city: function (which) {
         var pool = CITIES.filter(function (c) { return which === 'ca' ? c.ca : which === 'us' ? !c.ca : true; });
         var c = g.pick(pool);
-        return { name: c.name, short: c.short, ca: c.ca, toString: function () { return c.name; } };
+        return { name: c.name, short: c.short, ca: c.ca, toString: function () { return c.short; } };
       },
       asset: function () { return g.pick(ASSETS); },
       street: function () { return uniq(STREETS, usedS); },
@@ -97,12 +111,11 @@
     g.fund = g.pick(FUNDS);
     return g;
   }
-  MB._makeGen = makeGen;
 
   /* ---------- state ---------- */
 
   var S = fresh();
-  function fresh() { return { passed: {}, standing: 50, exposure: 10, unlockAll: false, run: null }; }
+  function fresh() { return { passed: {}, bestEquity: null, unlockAll: false, run: null }; }
 
   function load() {
     try {
@@ -125,16 +138,29 @@
     for (var i = 1; i <= MB.levels.length; i++) if (!S.passed[i]) return i;
     return null;
   }
-  function clamp(v) { return Math.max(0, Math.min(100, v)); }
+  function passedCount() { return Object.keys(S.passed).length; }
+  function equity() {
+    var e = SEED_EQUITY;
+    Object.keys(S.passed).forEach(function (k) { e += S.passed[k].net || 0; });
+    return e;
+  }
+  /* Standing is the average quality of the sittings on record. It starts unproven at 50. */
+  function standing() {
+    var ks = Object.keys(S.passed);
+    if (!ks.length) return 50;
+    return Math.round(ks.reduce(function (t, k) { return t + S.passed[k].pct; }, 0) / ks.length * 100);
+  }
+  function trustOf(st) { return 0.75 + st / 200; }
+  function stake(n) { return round2(20000 * Math.pow(1.4, n - 1)); }
 
   /* ---------- runs ---------- */
 
   var cache = { key: '', items: [] };
 
   function buildItems(run) {
-    var key = run.n + ':' + run.seed;
+    var key = run.n + ':' + run.seed + ':' + run.trust;
     if (cache.key === key) return cache.items;
-    var L = level(run.n), g0 = makeGen(run.seed);
+    var L = level(run.n), g0 = makeGen(run.seed), B = stake(run.n), trust = run.trust || 1;
     var authored = L.fixed ? L.scenarios.slice() : g0.shuffle(L.scenarios).slice(0, L.draw.authored);
     var nums = g0.shuffle(L.numerics || []).slice(0, L.draw.numeric || 0);
     var order = authored.map(function (sc) { return { kind: 'choice', def: sc }; });
@@ -147,14 +173,19 @@
       if (o.kind === 'numeric') {
         var gn = makeGen(run.seed ^ hash('n:' + o.key));
         var inst = MB.numerics[o.key](gn);
-        inst.kind = 'numeric'; inst.id = o.key;
+        inst.kind = 'numeric'; inst.id = o.key; inst.stake = round2(B * trust);
         return inst;
       }
       var gc = makeGen(run.seed ^ hash(o.def.id));
       gc.story = story;
       var made = o.def.make(gc);
+      var gm = makeGen(run.seed ^ hash('cash:' + o.def.id));
       made.kind = 'choice'; made.id = o.def.id; made.title = o.def.title; made.builds = o.def.builds || [];
-      made.options = gc.shuffle(made.options.map(function (a) { return { g: a[0], t: a[1], why: a[2] }; }));
+      made.options = gc.shuffle(made.options.map(function (a) {
+        var range = PAY[a[0]], m = range[0] + gm.rnd() * (range[1] - range[0]);
+        var cash = round2(B * m * (a[0] === 's' ? trust : 1));
+        return { g: a[0], t: a[1], why: a[2], cash: cash, risk: a[0] === 's' ? 0 : round2(cash * GRADE[a[0]].times) };
+      }));
       return made;
     });
     cache = { key: key, items: items };
@@ -163,13 +194,8 @@
   MB._buildItems = buildItems;
 
   function startRun(n) {
-    S.run = { n: n, seed: (Math.random() * 4294967296) >>> 0, phase: 'brief', step: 0, answers: [], result: null };
+    S.run = { n: n, seed: (Math.random() * 4294967296) >>> 0, trust: trustOf(standing()), practice: !!S.passed[n], phase: 'brief', step: 0, answers: [], result: null };
     save();
-  }
-
-  function applyGrade(k) {
-    S.standing = clamp(S.standing + GRADE[k].standing);
-    S.exposure = clamp(S.exposure + GRADE[k].exposure);
   }
 
   function gradeNumeric(item, raw) {
@@ -198,19 +224,34 @@
     count: 'A whole number'
   };
 
+  function tally(run) {
+    var t = { cash: 0, open: 0, risk: 0 };
+    run.answers.forEach(function (a) { t.cash += a.cash; if (a.risk) { t.open++; t.risk += a.risk; } });
+    return t;
+  }
+
   function finishRun() {
     var run = S.run, items = buildItems(run), L = level(run.n);
     var pts = run.answers.reduce(function (t, a) { return t + GRADE[a.g].pts; }, 0);
     var max = items.length * 2, pct = pts / max;
     var passed = pct >= L.pass - 1e-9;
-    var before = rank(), first = false;
-    if (passed) {
-      var prev = S.passed[run.n];
-      first = !prev;
-      S.passed[run.n] = { best: Math.max(prev ? prev.best : 0, pct), gold: (prev && prev.gold) || pct === 1 };
+    var before = rank(), first = false, gross = 0, losses = 0, reckon = [];
+    run.answers.forEach(function (a, i) {
+      gross += a.cash;
+      if (passed && a.risk) {
+        var due = makeGen(run.seed ^ hash('reckon:' + i)).rnd() < GRADE[a.g].chance;
+        if (due) losses += a.risk;
+        reckon.push({ i: i, g: a.g, due: due, cost: a.risk });
+      }
+    });
+    var net = passed ? gross - losses : 0;
+    if (passed && !S.passed[run.n]) {
+      first = true;
+      S.passed[run.n] = { pct: pct, net: net, gold: pct === 1 };
+      if (passedCount() === MB.levels.length) S.bestEquity = Math.max(S.bestEquity === null ? -Infinity : S.bestEquity, equity());
     }
     run.phase = 'done';
-    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, promoted: rank() !== before ? rank() : null };
+    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, net: net, reckon: reckon, promoted: rank() !== before ? rank() : null };
     save();
   }
 
@@ -238,40 +279,37 @@
   }
 
   function viewContents() {
-    var nx = nextLevel(), run = S.run;
-    var done = Object.keys(S.passed).length;
+    var nx = nextLevel(), run = S.run, done = passedCount();
     var cta;
-    if (run && run.phase !== 'done') {
-      cta = '<a class="btn" href="#meeting-' + run.n + '">Return to Meeting ' + ROMAN[run.n] + '</a>';
-    } else if (nx) {
-      cta = '<a class="btn" href="#meeting-' + nx + '">' + (done ? 'Attend Meeting ' + ROMAN[nx] : 'Attend your first meeting') + '</a>';
-    } else {
-      cta = '<span class="held">You hold the chair. Every meeting is open for another sitting.</span>';
-    }
+    if (run && run.phase !== 'done') cta = '<a class="btn" href="#meeting-' + run.n + '">Return to Meeting ' + ROMAN[run.n] + '</a>';
+    else if (nx) cta = '<a class="btn" href="#meeting-' + nx + '">' + (done ? 'Attend Meeting ' + ROMAN[nx] : 'Attend your first meeting') + '</a>';
+    else cta = '<button class="btn" data-act="career-ask">Start a new career</button>';
     var rows = MB.levels.map(function (L) {
       var p = S.passed[L.n], open = isOpen(L.n);
-      var st = p ? '<span class="m-status passed">' + (p.gold ? 'Gold seal' : 'Sealed') + ' · ' + Math.round(p.best * 100) + '%</span>'
+      var st = p ? '<span class="m-status passed">' + plus(p.net) + '</span>'
         : open ? '<span class="m-status open">Open</span>' : '<span class="m-status locked">Locked</span>';
       var inner = '<span class="m-num">' + ROMAN[L.n] + '</span><span class="m-main"><span class="m-title">' + L.title + '</span><span class="m-topics">' + L.topics + '</span></span>' + st;
       return open ? '<li class="meeting"><a href="#meeting-' + L.n + '">' + inner + '</a></li>'
         : '<li class="meeting is-locked"><div aria-disabled="true">' + inner + '</div></li>';
     }).join('');
-    return folio('Contents', done + ' of ' + MB.levels.length + ' meetings sealed') +
-      '<h1 class="display">Thirteen meetings between you and the chair.</h1>' +
-      '<p class="lede">Each meeting puts real decisions from lending, development and private equity on the agenda. Every item has a sound course, a grey one and a poor one. Choose, see what follows, and the book records it. Pass a meeting and the next one opens.</p>' +
-      '<div class="career"><div><span class="label">Your seat</span><span class="career-rank">' + rank() + '</span></div>' + cta + '</div>' +
+    var best = S.bestEquity !== null ? '<span class="career-best">Best career ' + MB.cash(S.bestEquity) + '</span>' : '';
+    return folio('Contents', done + ' of ' + MB.levels.length + ' meetings on record') +
+      '<h1 class="display">Get rich. Stay out of court.</h1>' +
+      '<p class="lede">A corporate equity and governance game. Thirteen meetings, a few decisions each. Every decision pays today. Some come back for the money later.</p>' +
+      '<div class="career"><div><span class="label">Your equity</span><span class="career-rank">' + MB.cash(equity()) + '</span>' + best + '</div><div id="career-zone">' + cta + '</div></div>' +
       '<ol class="meetings">' + rows + '</ol>';
   }
 
-  function viewBrief(L) {
+  function viewBrief(L, run) {
     var terms = L.concepts.map(function (c) { return '<div class="term"><dt>' + c[0] + '</dt><dd>' + c[1] + '</dd></div>'; }).join('');
     var n = (L.fixed ? L.scenarios.length : L.draw.authored + (L.draw.numeric || 0));
-    return folio('Meeting ' + ROMAN[L.n], 'Before the meeting') +
+    return folio('Meeting ' + ROMAN[L.n], run.practice ? 'Practice sitting' : 'Before the meeting') +
       '<h1 class="display">' + L.title + '</h1>' +
       '<p class="lede">' + L.blurb + '</p>' +
-      '<p class="terms-line"><span class="label">On the agenda</span> ' + n + ' items. Pass with ' + Math.round(L.pass * 100) + '% of the points to take the seat of <b>' + L.rank + '</b>.</p>' +
-      '<h2 class="section">Terms you will need</h2><dl class="terms">' + terms + '</dl>' +
-      '<div class="actions"><button class="btn" data-act="order">Call the meeting to order</button><a class="btn quiet" href="#contents">Back to contents</a></div>';
+      '<ul class="stakes"><li><b>' + n + '</b> decisions</li><li>about <b>' + MB.cash(stake(L.n)) + '</b> each</li><li>pass at <b>' + Math.round(L.pass * 100) + '%</b></li></ul>' +
+      (run.practice ? '<p class="note">This meeting is already on your record. Sit it again for practice. Nothing is banked.</p>' : '') +
+      '<div class="actions"><button class="btn" data-act="order">Call the meeting to order</button><a class="btn quiet" href="#contents">Back to contents</a></div>' +
+      '<details class="more"><summary>Terms for this meeting (' + L.concepts.length + ')</summary><dl class="terms">' + terms + '</dl></details>';
   }
 
   function pips(items, run) {
@@ -282,75 +320,97 @@
     }).join('') + '</ol>';
   }
 
-  function notes(it) {
-    var out = '<div class="rule-box"><span class="label">The principle</span>' + paras(it.rule) + '</div>';
-    if (it.us || it.ca) {
-      out += '<div class="juris">' +
-        (it.us ? '<div><span class="label">United States</span><p>' + it.us + '</p></div>' : '') +
-        (it.ca ? '<div><span class="label">Canada</span><p>' + it.ca + '</p></div>' : '') + '</div>';
+  function tallyRow(run) {
+    var t = tally(run);
+    return '<div class="tally"><span><span class="label">On the table</span> <b>' + plus(t.cash) + '</b></span>' +
+      '<span class="' + (t.open ? 'has-risk' : '') + '"><span class="label">Loose ends</span> <b>' + t.open + '</b>' + (t.open ? ' <span class="at-risk">' + MB.cash(t.risk) + ' at risk</span>' : '') + '</span></div>';
+  }
+
+  function moneyLine(o) {
+    if (o.g === 's') return '<b>' + plus(o.cash) + '</b> banked. Nothing follows you.';
+    return '<b>' + plus(o.cash) + '</b> today, and a ' + GRADE[o.g].name + ' that could cost <b>' + MB.cash(o.risk) + '</b>.';
+  }
+
+  function moreBlock(it, ans) {
+    var parts = '';
+    if (it.kind === 'choice') {
+      parts += '<ul class="others">' + it.options.map(function (o, i) {
+        if (i === ans.pick) return '';
+        return '<li>' + chip(o.g) + ' <span><b>(' + 'abcdef'.charAt(i) + ')</b> ' + o.why + '</span></li>';
+      }).join('') + '</ul>';
     }
-    return out;
+    if (it.us) parts += '<div class="juris-one"><span class="label">United States</span><p>' + it.us + '</p></div>';
+    if (it.ca) parts += '<div class="juris-one"><span class="label">Canada</span><p>' + it.ca + '</p></div>';
+    return parts ? '<details class="more"><summary>The other motions, and country notes</summary>' + parts + '</details>' : '';
   }
 
   function viewPlay(L, run) {
     var items = buildItems(run), it = items[run.step], ans = run.answers[run.step];
     var last = run.step === items.length - 1;
-    var body = '';
+    var body = '', ruling = '';
     if (it.kind === 'choice') {
       body = '<div class="opts" role="group" aria-label="Motions">' + it.options.map(function (o, i) {
         var letter = 'abcdef'.charAt(i);
-        if (!ans) return '<button class="opt" data-act="choose" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span></button>';
+        var pay = '<span class="opt-pay">' + plus(o.cash) + '</span>';
+        if (!ans) return '<button class="opt" data-act="choose" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span>' + pay + '</button>';
         var mine = ans.pick === i;
-        return '<div class="opt done g-' + o.g + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t +
-          '<span class="opt-why">' + o.why + '</span></span><span class="opt-tags">' + chip(o.g) + (mine ? '<span class="yours">Your motion</span>' : '') + '</span></div>';
+        return '<div class="opt done g-' + o.g + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span><span class="opt-tags">' + chip(o.g) + '</span></div>';
       }).join('') + '</div>';
+      if (ans) {
+        var mineO = it.options[ans.pick];
+        ruling = '<div class="ruling g-' + mineO.g + '"><p class="ruling-money">' + moneyLine(mineO) + '</p><p>' + mineO.why + '</p></div>';
+      }
     } else if (!ans) {
-      body = '<form class="ledger-form" data-act="figure" novalidate><label for="figure">Your figure</label>' +
+      body = '<form class="ledger-form" data-act="figure" novalidate><label for="figure">Your figure <span class="opt-pay">' + plus(it.stake) + ' if right</span></label>' +
         '<div class="ledger-row"><input id="figure" name="figure" inputmode="decimal" autocomplete="off" aria-describedby="figure-hint figure-err"><button class="btn" type="submit">Enter in the ledger</button></div>' +
         '<p class="hint" id="figure-hint">' + UNIT_HINT[it.unit] + '</p><p class="err" id="figure-err" role="alert"></p></form>';
     } else {
-      body = '<div class="worked g-' + ans.g + '"><p class="worked-head">' + chip(ans.g) + ' You entered <b>' + fmtAnswer(it, ans.value) + '</b>. The figure is <b>' + fmtAnswer(it, it.answer) + '</b>.' +
-        (ans.g === 'g' ? ' Close, but a step or a rounding went astray.' : '') + '</p><ol class="work">' + it.work.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ol></div>';
+      ruling = '<div class="ruling g-' + ans.g + '"><p class="ruling-money">' + chip(ans.g) + ' <b>' + plus(ans.cash) + '</b>. You entered ' + fmtAnswer(it, ans.value) + '. The figure is <b>' + fmtAnswer(it, it.answer) + '</b>.</p>' +
+        '<ol class="work">' + it.work.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ol></div>';
     }
-    var builds = it.builds && it.builds.length ? '<p class="builds"><span class="label">Draws on</span> ' + it.builds.join(' · ') + '</p>' : '';
-    return folio('Meeting ' + ROMAN[L.n] + ' · ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length) + pips(items, run) +
-      '<h1 class="item-title">' + it.title + '</h1>' + builds +
-      '<div class="scene">' + paras(it.scene) + '</div><p class="ask">' + it.ask + '</p>' + body +
-      (ans ? '<div class="review" id="review" tabindex="-1">' + notes(it) + '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div></div>' : '');
+    return folio('Meeting ' + ROMAN[L.n] + ' · ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + (run.practice ? ' · practice' : '')) + pips(items, run) + tallyRow(run) +
+      '<h1 class="item-title">' + it.title + '</h1>' +
+      '<div class="scene">' + paras(it.scene) + '</div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
+      (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
+        '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
+        '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
+        moreBlock(it, ans) + '</div>' : '');
   }
 
   function viewDone(L, run) {
     var items = buildItems(run), res = run.result;
     var minutes = items.map(function (it, i) {
-      var a = run.answers[i], extra = '';
-      if (it.kind === 'choice') {
-        if (a.g !== 's') {
-          var sound = it.options.filter(function (o) { return o.g === 's'; })[0];
-          extra = '<span class="min-sound"><span class="label">Sound course</span> ' + sound.t + '</span>';
-        }
-      } else if (a.g !== 's') {
-        extra = '<span class="min-sound"><span class="label">The figure</span> ' + fmtAnswer(it, it.answer) + '</span>';
-      }
-      return '<li><span class="min-n">' + (i + 1) + '.</span><span class="min-body"><b>' + it.title + '</b>' + extra + '</span>' + chip(a.g) + '</li>';
+      var a = run.answers[i];
+      return '<li><span class="min-n">' + (i + 1) + '.</span><span class="min-body">' + it.title + '</span><span class="min-cash">' + plus(a.cash) + '</span>' + chip(a.g) + '</li>';
     }).join('');
     var nxt = L.n < MB.levels.length ? L.n + 1 : null;
-    var head, sub;
+    var head, sub, money = '';
     if (res.passed) {
-      head = res.pct === 1 ? 'Carried without dissent.' : 'The meeting is adjourned. Motion carried.';
-      sub = 'You took ' + res.pts + ' of ' + res.max + ' points. ' +
-        (res.promoted ? 'You now sit as <b>' + res.promoted + '</b>. ' : '') +
-        (res.first ? 'The terms from this meeting are entered in your Registers.' : '') +
-        (L.n === MB.levels.length ? ' You have chaired the hardest meeting in the book.' : '');
+      head = res.pct === 1 ? 'Carried without dissent.' : 'Motion carried.';
+      sub = res.pts + ' of ' + res.max + ' points. ' +
+        (run.practice ? 'A practice sitting. Nothing is banked.' : (res.promoted ? 'You now sit as <b>' + res.promoted + '</b>.' : ''));
+      var reck = res.reckon.length
+        ? '<ul class="reckon">' + res.reckon.map(function (r) {
+          return '<li class="' + (r.due ? 'due' : 'quiet') + '"><span>Item ' + (r.i + 1) + ', ' + items[r.i].title + '</span><b>' + (r.due ? 'Came due ' + MB.cash(-r.cost) : 'Never surfaced') + '</b></li>';
+        }).join('') + '</ul>'
+        : '<p class="note">No loose ends. Nothing came back.</p>';
+      money = '<h2 class="section">The reckoning</h2>' + reck +
+        '<dl class="ledger"><div><dt>Taken at the table</dt><dd>' + plus(res.gross) + '</dd></div><div><dt>Came due</dt><dd>' + MB.cash(-res.losses) + '</dd></div>' +
+        '<div class="total"><dt>Net for the meeting</dt><dd>' + plus(res.net) + '</dd></div>' +
+        (run.practice ? '' : '<div><dt>Your equity</dt><dd>' + MB.cash(equity()) + '</dd></div>') + '</dl>';
+      if (!run.practice && L.n === MB.levels.length && passedCount() === MB.levels.length) {
+        sub += ' Your career closes at <b>' + MB.cash(equity()) + '</b>.';
+      }
     } else {
-      head = 'The meeting is adjourned. The motion failed.';
-      sub = 'You took ' + res.pts + ' of ' + res.max + ' points and needed ' + Math.ceil(L.pass * res.max - 1e-9) + '. Read the minutes below, then sit the meeting again. The agenda will not be the same.';
+      head = 'The motion failed.';
+      sub = res.pts + ' of ' + res.max + ' points, and you needed ' + Math.ceil(L.pass * res.max - 1e-9) + '. The deals died with the vote, so nothing is banked. Sit it again.';
     }
     var acts = '';
     if (res.passed && nxt) acts += '<a class="btn" href="#meeting-' + nxt + '">Go to Meeting ' + ROMAN[nxt] + '</a>';
-    acts += '<button class="btn ' + (res.passed && nxt ? 'quiet' : '') + '" data-act="again">Sit this meeting again</button><a class="btn quiet" href="#contents">Contents</a>';
+    acts += '<button class="btn ' + (res.passed && nxt ? 'quiet' : '') + '" data-act="again">' + (res.passed ? 'Sit it again for practice' : 'Sit this meeting again') + '</button><a class="btn quiet" href="#contents">Contents</a>';
     return folio('Meeting ' + ROMAN[L.n] + ' · ' + L.title, 'Adjourned') +
       '<div class="verdict' + (res.passed ? ' passed' : '') + '">' + (res.passed ? sealSVG(L.n, res.pct === 1) : '') +
-      '<div><h1 class="display small">' + head + '</h1><p class="lede">' + sub + '</p></div></div>' +
+      '<div><h1 class="display small">' + head + '</h1><p class="lede">' + sub + '</p></div></div>' + money +
       '<h2 class="section">Minutes</h2><ol class="minutes">' + minutes + '</ol>' +
       '<div class="actions">' + acts + '</div>';
   }
@@ -367,25 +427,28 @@
     }).join('');
     return folio('Registers', count + ' terms entered') +
       '<h1 class="display small">What the book now holds.</h1>' +
-      '<p class="lede">A minute book keeps registers of directors, officers and securities. This one keeps a register of what you have learned. Each meeting you pass enters its terms here.</p>' + groups;
+      '<p class="lede">Each meeting you pass enters its terms here.</p>' + groups;
   }
 
   function viewAbout() {
     return folio('About', 'How the book works') +
       '<h1 class="display small">How the book works.</h1>' +
       '<div class="prose">' +
-      '<p>Minute Book is a learning game about corporate governance in real estate lending, development and private equity. It starts with what a legal entity is and ends with you chairing a board through a related-party investigation.</p>' +
-      '<h2 class="section">Scoring</h2>' +
-      '<p>Each agenda item offers motions. ' + chip('s') + ' is the course a careful board and its counsel would take and earns 2 points. ' + chip('g') + ' is common practice that leaves a gap and earns 1. ' + chip('p') + ' earns nothing. Some items ask for a figure instead, and the book shows the working. A meeting passes at 70% of its points. The last one needs 80%.</p>' +
-      '<p>Scenarios are drawn and filled in fresh each sitting, so names, places, amounts and the order of the motions change.</p>' +
-      '<h2 class="section">Standing and exposure</h2>' +
-      '<p><b>Standing</b> is how far investors, partners and regulators trust you. <b>Exposure</b> is the legal risk you have left lying around. Sound choices raise the first and lower the second. Neither one blocks your progress, but they are the two things a governance career is measured by.</p>' +
+      '<p>Minute Book is a corporate equity and governance game set in real estate lending, development and private equity. Finish with as much equity as you can.</p>' +
+      '<h2 class="section">Money</h2>' +
+      '<p>You start with ' + MB.cash(SEED_EQUITY) + '. Every motion shows what it pays today. ' + chip('s') + ' motions pay and nothing follows you. ' + chip('g') + ' motions leave a loose end: about one in three comes due, at two and a half times what you took. ' + chip('p') + ' motions leave a liability: most come due, at four times. You are not told which is which until you choose.</p>' +
+      '<p>The reckoning happens when the meeting adjourns. The stakes grow with every meeting.</p>' +
+      '<h2 class="section">Standing</h2>' +
+      '<p>Standing is the quality of the sittings on your record. The better it is, the more your sound work pays, up to a quarter more. Trust compounds.</p>' +
+      '<h2 class="section">Passing</h2>' +
+      '<p>A meeting passes at 70% of its points: 2 for sound, 1 for grey, 0 for poor. The last needs 80%. Fail and nothing is banked. Your first passed sitting goes on the record for good. After that, a meeting can only be sat for practice. To try for a better number, start a new career.</p>' +
       '<h2 class="section">What this is not</h2>' +
-      '<p>It is not legal advice. The law differs by state, province and country, and the agreement in front of you usually matters more than the general rule. The notes for the United States and Canada point to common differences and leave out a great deal. Use the game to learn what to ask, then ask a lawyer.</p>' +
+      '<p>It is not legal advice. The law differs by state, province and country, and the agreement in front of you usually matters more than the general rule. All names and entities are invented.</p>' +
       '<h2 class="section">Settings</h2>' +
       '<div class="settings">' +
       '<label class="check" for="unlock-all"><input type="checkbox" id="unlock-all" data-act="unlock"' + (S.unlockAll ? ' checked' : '') + '> Open every meeting and the full Registers, skipping the progression</label>' +
-      '<div id="reset-zone"><button class="btn quiet" data-act="reset-ask">Erase my progress</button></div>' +
+      '<div id="career-zone"><button class="btn quiet" data-act="career-ask">Start a new career</button></div>' +
+      (window.MB_LOCK ? '<button class="btn quiet" data-act="lock">Lock the book on this device</button>' : '') +
       '</div></div>';
   }
 
@@ -393,15 +456,12 @@
 
   var sheet, standingEl;
 
-  function band(v, labels) { return labels[v <= 25 ? 0 : v <= 50 ? 1 : v <= 75 ? 2 : 3]; }
-
   function renderStanding() {
-    var st = band(S.standing, ['Doubted', 'Unproven', 'Trusted', 'Relied upon']);
-    var ex = band(S.exposure, ['Clean file', 'Loose ends', 'Counsel is uneasy', 'Claims are likely']);
+    var st = standing(), label = !passedCount() ? 'Unproven' : st >= 85 ? 'Relied upon' : 'Trusted';
     standingEl.innerHTML =
       '<div class="who"><span class="label">Seat</span><b>' + rank() + '</b></div>' +
-      '<div class="meter"><span class="label">Standing</span><span class="bar"><i style="width:' + S.standing + '%"></i></span><span class="meter-v">' + st + '</span></div>' +
-      '<div class="meter exposure"><span class="label">Exposure</span><span class="bar"><i style="width:' + S.exposure + '%"></i></span><span class="meter-v">' + ex + '</span></div>';
+      '<div class="who"><span class="label">Equity</span><b class="eq">' + MB.cash(equity()) + '</b></div>' +
+      '<div class="meter"><span class="label">Standing</span><span class="bar"><i style="width:' + st + '%"></i></span><span class="meter-v">' + label + ' · sound work pays ×' + MB.fix(trustOf(st), 2) + '</span></div>';
   }
 
   function route() {
@@ -418,7 +478,7 @@
       if (!isOpen(r.n)) { window.location.hash = 'contents'; return; }
       if (!S.run || S.run.n !== r.n) startRun(r.n);
       var L = level(r.n), run = S.run;
-      html = run.phase === 'brief' ? viewBrief(L) : run.phase === 'play' ? viewPlay(L, run) : viewDone(L, run);
+      html = run.phase === 'brief' ? viewBrief(L, run) : run.phase === 'play' ? viewPlay(L, run) : viewDone(L, run);
     } else if (r.view === 'registers') html = viewRegisters();
     else if (r.view === 'about') html = viewAbout();
     else html = viewContents();
@@ -438,22 +498,29 @@
     var act = el.getAttribute('data-act'), run = S.run;
     if (act === 'order' && run) { run.phase = 'play'; save(); render(); }
     else if (act === 'choose' && run && run.phase === 'play' && !run.answers[run.step]) {
-      var i = parseInt(el.getAttribute('data-i'), 10), it = buildItems(run)[run.step];
-      var k = it.options[i].g;
-      run.answers[run.step] = { pick: i, g: k };
-      applyGrade(k); save(); render('review');
+      var i = parseInt(el.getAttribute('data-i'), 10), o = buildItems(run)[run.step].options[i];
+      run.answers[run.step] = { pick: i, g: o.g, cash: o.cash, risk: o.risk };
+      save(); render('review');
     }
     else if (act === 'next' && run && run.answers[run.step]) {
       if (run.step >= buildItems(run).length - 1) finishRun(); else { run.step++; save(); }
       render();
     }
     else if (act === 'again' && run) { startRun(run.n); render(); }
-    else if (act === 'unlock') { S.unlockAll = el.checked; save(); renderStanding(); }
-    else if (act === 'reset-ask') {
-      document.getElementById('reset-zone').innerHTML = '<p class="confirm">Erase every seal, register entry and score?</p><div class="actions"><button class="btn danger" data-act="reset-yes">Yes, erase it all</button><button class="btn quiet" data-act="reset-no">Keep my progress</button></div>';
+    else if (act === 'unlock') { S.unlockAll = el.checked; save(); }
+    else if (act === 'career-ask') {
+      document.getElementById('career-zone').innerHTML = '<p class="confirm">Close the book on this career and start again at ' + MB.cash(SEED_EQUITY) + '?</p><div class="actions"><button class="btn danger" data-act="career-yes">Yes, start again</button><button class="btn quiet" data-act="career-no">Keep this career</button></div>';
     }
-    else if (act === 'reset-no') { render(false); }
-    else if (act === 'reset-yes') { S = fresh(); cache = { key: '', items: [] }; save(); window.location.hash = 'contents'; render(); }
+    else if (act === 'career-no') { render(false); }
+    else if (act === 'career-yes') {
+      var keep = { bestEquity: S.bestEquity, unlockAll: S.unlockAll };
+      S = Object.assign(fresh(), keep); cache = { key: '', items: [] }; save();
+      if (route().view !== 'contents') window.location.hash = 'contents'; else render();
+    }
+    else if (act === 'lock') {
+      try { window.localStorage.removeItem('minute-book-key-v1'); } catch (err) { /* ignore */ }
+      window.location.reload();
+    }
   }
 
   function onSubmit(e) {
@@ -469,8 +536,9 @@
       form.elements.figure.focus();
       return;
     }
-    run.answers[run.step] = { value: res.value, g: res.g };
-    applyGrade(res.g); save(); render('review');
+    var cash = res.g === 's' ? it.stake : res.g === 'g' ? round2(it.stake / 2) : -round2(it.stake / 2);
+    run.answers[run.step] = { value: res.value, g: res.g, cash: cash, risk: 0 };
+    save(); render('review');
   }
 
   function boot(data) {
@@ -478,7 +546,7 @@
     standingEl = document.getElementById('standing');
     MB.levels.sort(function (a, b) { return a.n - b.n; });
     if (data && data.state) S = Object.assign(fresh(), data.state); else load();
-    if (S.run && !level(S.run.n)) S.run = null;
+    if (S.run && (!level(S.run.n) || !S.run.trust)) S.run = null;
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
     window.addEventListener('hashchange', function () { render(); });
@@ -486,10 +554,12 @@
   }
 
   MB._state = function () { return S; };
+  MB._equity = equity;
 
-  document.addEventListener('DOMContentLoaded', function () {
+  /* Called once, after every content script has registered its level. */
+  MB.start = function () {
     var hot = window.claude && window.claude.hot;
     if (hot && hot.snapshot) hot.snapshot(function () { return { state: S }; });
     if (hot && hot.ready) hot.ready(boot); else boot((hot && hot.data) || {});
-  });
+  };
 })();
