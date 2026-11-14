@@ -319,3 +319,12 @@ body.locked .tabs, body.locked .standing { visibility: hidden; }
 /* ---------- the insight shown after an answer ---------- */
 .behind { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 12px 0; display: grid; gap: 4px; max-width: 66ch; }
 .behind p { font-size: 16px; color: #25332b; }
+details.deep { margin-top: 6px; }
+details.deep > summary { cursor: pointer; display: inline-block; font: 600 14.5px/1.2 var(--body); padding: 8px 14px; border: 1px solid var(--ink-2); border-radius: 2px; list-style: none; }
+details.deep > summary::-webkit-details-marker { display: none; }
+details.deep > summary::after { content: " +"; font-family: var(--typed); }
+details.deep[open] > summary::after { content: " \2212"; }
+details.deep > summary:hover { background: var(--paper-2); }
+details.deep ul { list-style: none; padding: 0; margin-top: 12px; display: grid; gap: 10px; }
+details.deep li { font-size: 15.5px; color: #25332b; padding-left: 12px; border-left: 2px solid var(--rule); max-width: 64ch; }
+details.deep li b { color: var(--ink); }

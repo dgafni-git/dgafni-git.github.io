@@ -23,6 +23,11 @@ MB.level({
           scene: `${a}'s firm managed the properties until ${a.first} retired. ${b}'s company took over, and its ${MB.usd(fee)} monthly invoices are being paid. No assignment was signed, and the contract forbids one without consent.`,
           who: `${b.first}`,
           behind: `Nobody wanted anything improper. One manager retired, another carried on, and paying the invoices was easier than raising it. The gap matters only when something goes wrong, which is when it matters most.`,
+          deep: [
+            [`What an assignment does`, `It moves a contract's rights to someone new. The obligations move only if the new party takes them on, and the old party is released only if you agree.`],
+            [`What is at risk without it`, `Insurance requirements, indemnities, service standards and the notice clause all sit in a contract the new firm never signed.`],
+            [`The cheap fix`, `A one-page assignment and assumption, signed by both firms and approved by the partnership.`]
+          ],
           options: [
             ['s', `Sign an assignment or a new contract, approved by whoever has authority.`, `Until then the partnership is paying a stranger and may be unable to enforce anything.`],
             ['g', `Email ${b.first} to confirm "same terms as before."`, `It shows an understanding. It does not show consent or that anyone took on the obligations.`],
@@ -49,6 +54,11 @@ MB.level({
         return {
           scene: `The entity ended ${a}'s management contract early, which triggers a ${MB.usd(fee)} termination fee. ${a.first} left on good terms, never asked for it, and nothing was signed. Accounts are now being prepared for a lender, who will ask what the entity owes.`,
           behind: `${a.first} may simply have forgotten. The exposure is with the lender. It will lend against accounts that say nothing is owed, while a signed contract says a fee is.`,
+          deep: [
+            [`Silence does not end a claim`, `A contractual right lasts until it is paid, waived in writing, or the limitation period runs out, which usually takes years.`],
+            [`Why the lender cares`, `It lends against what the entity owns less what it owes. A fee that surfaces later changes the numbers it relied on.`],
+            [`Who signs`, `Officers usually certify the accounts to the lender. A known liability left out makes that certificate untrue.`]
+          ],
           options: [
             ['s', `Get a signed release or agree payment, and disclose it until then.`, `An unreleased right stays alive. The lender is entitled to know.`],
             ['g', `Assume the friendly exit settled it, and note the file.`, `Probably the understanding. An assumption in a file binds nobody.`],
@@ -77,6 +87,11 @@ MB.level({
           scene: `${a} is an officer of the general partner and owns a construction management firm. The firm is the obvious choice for a ${MB.usd(amt)} contract on the next phase.`,
           who: `${a.first}`,
           behind: `${a.first} wants the contract and may deserve it. The problem is standing on both sides: helping decide who is hired while owning the firm that gets paid.`,
+          deep: [
+            [`Two hats`, `As an officer, the person owes the partnership the best deal. As the vendor's owner, the person wants the highest fee. Nobody can negotiate against themselves.`],
+            [`What fixes it`, `Written disclosure, stepping out of the decision, competing quotes, and approval by people with no stake.`],
+            [`Why bother if the firm is good`, `Because then the partnership can prove it. Without the process, a fair fee and an inflated one look identical.`]
+          ],
           options: [
             ['s', `${a.first} discloses and steps out. Others compare independent quotes and approve.`, `The best firm can still win, on tested terms, approved by people who do not profit.`],
             ['g', `${a.first} negotiates the terms, then abstains from the vote.`, `The terms were set by the person who benefits. The vote only blessed them.`],
@@ -104,6 +119,11 @@ MB.level({
           scene: `A company has a contract to buy a ${MB.usd(amt)} site and wants a new joint venture to take title. The contract bars assignment without consent. ${a} suggests selling the company's shares instead.`,
           who: `${a.first}`,
           behind: `${a.first} wants to avoid asking the seller, who might want something in return. Selling the company instead keeps the same buyer on paper while changing who really owns it.`,
+          deep: [
+            [`Why sellers restrict assignment`, `They chose a buyer they believed could close. A different buyer is a different risk.`],
+            [`The share-sale workaround`, `The party to the contract stays the same while its owner changes. Many contracts treat that as an assignment for exactly this reason.`],
+            [`The hidden cost`, `Buying a company means taking on its debts and its history, not only its contract.`]
+          ],
           options: [
             ['s', `Ask the seller for written consent well before closing.`, `It is what the contract calls for, and sellers usually agree when asked early.`],
             ['g', `Sell the shares without checking the change-of-control clause.`, `It can work, but many contracts treat a change of control as an assignment.`],
@@ -122,6 +142,11 @@ MB.level({
           scene: `${a} mentions that half of their partnership interest is really held for ${b}, a consultant the partnership pays. Nothing is written. The agreement requires consent to transfers of any beneficial interest.`,
           who: `${a.first}`,
           behind: `${b.first} is paid as a consultant and shares the profit as a secret owner. While it is hidden, the people approving ${b.first}'s fees do not know they are paying one of the partners.`,
+          deep: [
+            [`What a nominee is`, `One person holds an interest in their own name for someone else. It is lawful when disclosed.`],
+            [`Why it matters here`, `The consultant's fees are approved by people who think they are dealing with an outsider. In truth one of the owners is setting their own pay.`],
+            [`Who else asks`, `Lenders, tax authorities and regulators increasingly require the real owners to be named. A false answer is a problem of its own.`]
+          ],
           options: [
             ['s', `Insist it is disclosed, documented and put through consent.`, `The partnership is paying someone who secretly shares its profits.`],
             ['g', `Note it privately and suggest they keep it to themselves.`, `You now know of a hidden related-party interest, and your note proves it.`],
@@ -151,6 +176,11 @@ MB.level({
           scene: `A firm tied to one director proposes a development fee of ${pct} of hard costs, with its own survey calling that "below market." ${a}, the chair, wants to approve it today.`,
           who: `${a.first}`,
           behind: `${a.first} wants to use the building season, and the firm wants the job without competition. A survey written by the bidder answers the price question in the bidder's favour.`,
+          deep: [
+            [`What one point is worth`, `On $30 million of hard costs, the gap between a 4% fee and a 5% fee is $300,000.`],
+            [`Why the bidder's survey fails`, `It chooses its own comparisons. Pick large, complex projects and any fee looks low.`],
+            [`What a week buys`, `Two outside quotes turn a belief that the fee was fair into evidence, which is what protects the directors who vote.`]
+          ],
           options: [
             ['s', `Get two independent proposals this week, then decide without that director.`, `A week buys price evidence from someone with no interest in the answer.`],
             ['g', `Approve today on the firm's survey, with the director abstaining.`, `The only price evidence came from the party being paid.`],
@@ -168,6 +198,11 @@ MB.level({
           scene: `A maintenance contract renews for three more years unless written notice goes to the vendor's head office 90 days before expiry. That deadline is in ${days} days. The vendor has been poor. Its rep, ${a}, says: "No need for letters. Just tell me."`,
           who: `${a.first}`,
           behind: `${a.first} would like the deadline to pass. If notice is not given the way the contract says, the contract renews, and three more years of fees are locked in whatever was said on the phone.`,
+          deep: [
+            [`Why vendors like auto-renewal`, `Customers forget dates. A missed deadline locks in years of revenue with no sales effort.`],
+            [`Why form matters`, `Courts generally enforce notice clauses as written. A phone call, or an email to the wrong person, may not count.`],
+            [`The habit that prevents it`, `A contract register listing every renewal and notice date, checked monthly.`]
+          ],
           options: [
             ['s', `Send written notice to the head office address now.`, `Notice counts only if it is given the way the contract requires.`],
             ['g', `Email ${a.first} that you plan to rebid.`, `An email to the rep is not notice to the head office. The contract may still renew.`],
@@ -195,6 +230,11 @@ MB.level({
           scene: `An engineering consultant's contract makes the partnership cover any claim against the consultant, including claims caused by the consultant's own mistakes, and caps the consultant's liability at its fee. ${a}, the project lead, needs it signed today.`,
           who: `${a.first}`,
           behind: `The consultant wants to be paid for advice without standing behind it. ${a.first} wants the work to start. If the design is wrong, these clauses mean the partnership pays for the consultant's error.`,
+          deep: [
+            [`What an indemnity does`, `It decides who pays when something goes wrong, whatever the fee was.`],
+            [`Why this one is lopsided`, `You would cover the consultant even for its own mistakes, while its exposure stops at its fee. That could be a $60,000 fee against a $2 million design error.`],
+            [`The usual position`, `Each side answers for its own negligence, and the cap is tied to the insurance the consultant carries.`]
+          ],
           options: [
             ['s', `Negotiate: each side covers its own negligence, with liability tied to insurance.`, `Risk should sit with whoever can prevent it and insure it.`],
             ['g', `Sign. Nobody ever gets sued on these.`, `True until the one time it matters, when the clause decides who pays.`],
@@ -212,6 +252,11 @@ MB.level({
           scene: `Last year you reviewed a rival's finances under a confidentiality agreement, for a deal that never happened. Now you are bidding against that rival for a site. ${a}, a colleague, says: "We know their costs. Use them."`,
           who: `${a.first}`,
           behind: `Knowing a rival's costs tells you how high they can bid. The agreement let you see those numbers for one purpose only. Using them to beat the rival is the misuse it was written to stop.`,
+          deep: [
+            [`Two promises in one`, `Not to disclose the information, and not to use it for any other purpose. The second is the one people forget.`],
+            [`Why it can be proved`, `A bid that sits just above a rival's known break-even is strong evidence, and emails get read in litigation.`],
+            [`What firms do`, `Keep the people who saw the information away from the new bid, and record that they did.`]
+          ],
           options: [
             ['s', `Do not use it. Keep anyone who saw the file out of the bid.`, `The agreement limits use, not only disclosure.`],
             ['g', `Use only your "general impressions" of their position.`, `An impression formed from their confidential numbers is still their information.`],
@@ -229,6 +274,11 @@ MB.level({
           scene: `${a}, the managing principal, asks the project company to lend ${a.first} ${MB.usd(amt)} for six months at a low rate. "The cash is sitting idle anyway, and you know I am good for it."`,
           who: `${a.first}`,
           behind: `${a.first} wants cheap money without going to a bank. The company's cash belongs to all its owners and stands behind its lender. A loan to the person in charge is approved by people who report to the borrower.`,
+          deep: [
+            [`Whose money it is`, `The company's cash belongs to all its owners and stands behind its lender. It is the cushion, not spare change.`],
+            [`Why approval is hollow`, `The people who would approve the loan report to the borrower. Saying no is a career risk.`],
+            [`What proper looks like`, `The other owners approve, the rate matches a bank's, there is security, and the lender consents if the loan agreement requires it.`]
+          ],
           options: [
             ['s', `Treat it as a related-party deal: owners' approval, market rate, security. Or decline.`, `It can be done properly. It cannot be done on a nod.`],
             ['g', `Approve it at the bank deposit rate as cash management.`, `A below-market loan to an insider is a gift from the other owners.`],
@@ -248,6 +298,11 @@ MB.level({
           scene: `A bank lending to your tenant asks you to certify that the lease has no defaults and no side agreements. In fact you let the tenant defer three months of rent on a handshake. ${a}, the tenant's owner, says: "Just sign. It is a form."`,
           who: `${a.first}`,
           behind: `${a.first} needs the bank to see a clean lease. The bank will lend on your word. If you certify there is no side deal, you may later be unable to collect the deferred rent at all.`,
+          deep: [
+            [`What the certificate is`, `A statement a third party relies on. Having made it, you cannot later say otherwise. That is the meaning of estoppel.`],
+            [`The trap in signing`, `Certify that there are no side agreements and you may be unable to enforce the deferral, or to collect that rent ahead of the bank.`],
+            [`The easy fix`, `Describe the deferral in the certificate. Banks see this constantly and price it in.`]
+          ],
           options: [
             ['s', `Correct the certificate to show the deferral, then sign.`, `You are bound by what you certify. The bank lends on it.`],
             ['g', `Sign, adding "to our knowledge," and leave the deferral out.`, `You do know about it. The qualifier does not cover what you chose to omit.`],
@@ -275,6 +330,11 @@ MB.level({
           scene: `${a}, an insurance broker, offers the general partner's affiliate a ${MB.usd(fee)} "marketing fee" for every policy the partnership buys through the brokerage. The partnership pays the premiums.`,
           who: `${a.first}`,
           behind: `${a.first} wants the partnership's business and is paying the people who choose the broker. The partnership pays full premium, and part of it comes back to the general partner's side, not to the investors.`,
+          deep: [
+            [`Follow the money`, `The partnership pays the premium. Part of it comes back to the general partner's affiliate. Investors are funding a payment to their own manager.`],
+            [`How it distorts the choice`, `The broker paying the fee may not be the cheapest or the best. The fee gives the affiliate a reason to choose it anyway.`],
+            [`The clean version`, `Any rebate goes to the partnership as a lower premium.`]
+          ],
           options: [
             ['s', `Credit the fee to the partnership, or get the investors' approval to keep it.`, `Money earned from spending the partnership's money belongs to the partnership.`],
             ['g', `Keep it in the affiliate and disclose it in the annual report.`, `Telling investors afterward is not asking them.`],

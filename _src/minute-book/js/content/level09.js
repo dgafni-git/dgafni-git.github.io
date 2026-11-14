@@ -23,6 +23,11 @@ MB.level({
           scene: `A borrower has paid ${days} days late for three months, accepted each time without comment. It is late again. ${a}, a credit officer, wants to call the loan today.`,
           who: `${a.first}`,
           behind: `The borrower pays when its own tenants pay. ${a.first} wants to use the lateness for leverage. But three months of silence gave the borrower fair reason to think late was accepted.`,
+          deep: [
+            [`Waiver by conduct`, `Accept late payment repeatedly without objection and a court may find that you agreed to it.`],
+            [`How to restore the terms`, `Written notice that, from a stated date, the loan will be enforced as written.`],
+            [`Why it matters`, `Enforcement begun without that notice can be thrown out, and the borrower may claim damages.`]
+          ],
           options: [
             ['s', `Send notice: rights reserved, strict terms from the next due date.`, `Silent acceptance built a waiver argument. Notice resets the position.`],
             ['g', `Accept it and warn the borrower by phone.`, `A call changes nothing on the record. The pattern is now four months.`],
@@ -53,6 +58,11 @@ MB.level({
           scene: `A ${MB.usd(amt)} loan matured unpaid. ${a}, the borrower, has a buyer and asks for ninety days. The credit committee is inclined to agree.`,
           who: `${a.first}`,
           behind: `${a.first} wants time and would rather keep it informal, since paper means admitting the default and the amount. Those admissions are what the lender needs if the sale falls through.`,
+          deep: [
+            [`What the lender gives`, `Time.`],
+            [`What it should get`, `A written admission of the default and the amount, guarantors signing again, deadlines, and a release of claims against the lender.`],
+            [`Why the release matters`, `Borrowers in trouble often say the lender caused the trouble. A release closes that door while the borrower still wants something.`]
+          ],
           options: [
             ['s', `Sign a forbearance agreement: debt acknowledged, milestones, guarantees reaffirmed, a release.`, `The lender gives time and gets certainty. On day ninety-one it can act.`],
             ['g', `Email: "We will hold off for ninety days."`, `A written promise with no acknowledgement, milestones, guarantors or release.`],
@@ -80,6 +90,11 @@ MB.level({
           scene: `The lender and borrower agree to extend the loan a year and raise the rate. The guarantor, ${a}, has fallen out with the borrower. The guarantee says the guarantor consents in advance to amendments.`,
           who: `The borrower`,
           behind: `The borrower wants to avoid a hostile former partner. But ${a.first} agreed to back the original loan, not a longer and costlier one. Change it without asking and the guarantee may fall away.`,
+          deep: [
+            [`What a guarantor promised`, `To back one specific deal. Change that deal materially and the law may free the guarantor.`],
+            [`The clause`, `Guarantees often say the guarantor consents to changes in advance. Courts read those clauses narrowly.`],
+            [`The cheap insurance`, `One signature. If the guarantor refuses, you find out before extending the loan, not when you sue.`]
+          ],
           options: [
             ['s', `Make ${a.first}'s signed consent a condition of the amendment.`, `A guarantor who confirms the new deal cannot later claim to be released by it.`],
             ['g', `Close on the advance consent clause, after counsel reads it.`, `It may hold, but courts read guarantees narrowly and a rate increase is material.`],
@@ -110,6 +125,11 @@ MB.level({
           scene: `A borrower is in default and in workout talks. ${a}, the workout officer, wants the lender to approve every payment the borrower makes and replace its contractor.`,
           who: `${a.first}`,
           behind: `${a.first} wants to stop money leaking. The more the lender decides for the borrower, the more it looks like the one running the business. The borrower's unpaid suppliers will say exactly that.`,
+          deep: [
+            [`The line`, `A lender may refuse, consent and monitor. Choosing which suppliers get paid is managing.`],
+            [`The consequences`, `Unpaid creditors can argue that the lender ran the business, and should bear its debts or be paid after them.`],
+            [`The tool built for this`, `A receiver, appointed under the security or by a court, who controls the business with legal authority.`]
+          ],
           options: [
             ['s', `Tighten reporting and consent rights. If control is needed, seek a receiver.`, `The lender can watch and refuse. A receiver takes control with legal authority.`],
             ['g', `Join weekly calls and "strongly recommend" who gets paid.`, `A recommendation from the party that can foreclose reads as an instruction.`],
@@ -129,6 +149,11 @@ MB.level({
           scene: `Yesterday you talked through a discounted payoff with ${a}, a borrower in default, and said "I think we could live with that." This morning ${a.first} emails: "Thanks for agreeing to the discount." What should you have done before that call?`,
           who: `${a.first}`,
           behind: `${a.first} wants a discount and will treat any warm remark as a yes. Borrowers in default often claim a deal was struck, because the claim alone delays enforcement.`,
+          deep: [
+            [`The risk`, `Oral agreements can bind. A borrower only needs to persuade a court that terms were agreed.`],
+            [`The standard protection`, `A short letter signed before talks begin: nothing binds until a written agreement is signed by named people.`],
+            [`Who should talk`, `Only someone with authority to commit the lender should say what it can live with.`]
+          ],
           options: [
             ['s', `A signed pre-negotiation agreement: nothing binds until authorized people sign.`, `Both sides can talk freely, and a hopeful remark cannot become a settlement.`],
             ['g', `Marking the emails "without prejudice."`, `The label keeps talks out of evidence. It does not stop a claim that a deal was reached.`],
@@ -147,6 +172,11 @@ MB.level({
           scene: `You hold the senior mortgage. ${a}, from the mezzanine lender, emails that they will foreclose on the ownership pledge and asks you to confirm no objection.`,
           who: `${a.first}`,
           behind: `${a.first}'s firm wants to take over the borrower and needs you not to object. A casual yes may give up conditions you were owed, such as having your own arrears paid first.`,
+          deep: [
+            [`Two lenders, one project`, `The senior lender is secured on the property. The mezzanine lender is secured on ownership of the company that owns it.`],
+            [`What the agreement trades`, `The mezzanine lender may take over the borrower if it fixes the senior defaults and is a suitable owner. The senior lender gets notice and protection.`],
+            [`Why not to improvise`, `A casual consent can give those conditions away.`]
+          ],
           options: [
             ['s', `Read the intercreditor agreement and reply in writing on its terms.`, `The two lenders already agreed what each may do. Following it protects the senior position.`],
             ['g', `Reply "no objection" to stay cooperative.`, `A casual consent may waive conditions the agreement gave you, like cure of your default.`],
@@ -174,6 +204,11 @@ MB.level({
           scene: `A borrower has two loans with you. One is in default. The other is paid up, and its documents say nothing linking it to the first. ${a}, a credit officer, wants to call both. "It doubles our leverage."`,
           who: `${a.first}`,
           behind: `${a.first} wants the borrower desperate enough to settle the bad loan fast. Calling a loan that is not in default has no basis in its documents, and gives the borrower a claim worth more than the leverage.`,
+          deep: [
+            [`What cross-default is`, `A clause making default on one loan a default on another. It has to be written in.`],
+            [`Why lenders want it`, `Leverage, and the ability to act before the second loan goes bad.`],
+            [`Without it`, `Each loan stands alone. Calling a performing loan is the lender's own breach.`]
+          ],
           options: [
             ['s', `Enforce the defaulted loan only.`, `Each loan's remedies come from its own documents. The second has no default.`],
             ['g', `Send a letter on the good loan "reserving rights" and hinting at default.`, `Implying a default that does not exist is a threat you cannot back up.`],
@@ -191,6 +226,11 @@ MB.level({
           scene: `A fire damages part of a building. The insurer pays ${MB.usd(amt)} to you as lender. The loan documents say that, absent a default, the money is released to rebuild. ${a}, in credit, would rather apply it to the loan. "We wanted out of this one anyway."`,
           who: `${a.first}`,
           behind: `${a.first} sees a chance to shrink a loan the lender no longer likes. The borrower paid the premiums and needs the money to rebuild. Keeping it leaves a damaged building that cannot earn the rent to pay you.`,
+          deep: [
+            [`Why the lender gets the cheque`, `It is named on the policy so the money cannot disappear.`],
+            [`What the documents decide`, `Whether insurance money rebuilds the property or repays the loan. Most let the borrower rebuild if it is not in default.`],
+            [`The lender's real interest`, `A rebuilt, rent-paying building is better security than a damaged one with a smaller loan.`]
+          ],
           options: [
             ['s', `Release it for rebuilding, in stages, as the documents provide.`, `The documents already decided this. There is no default.`],
             ['g', `Hold the money while the file is "under review."`, `An open-ended review is a refusal that has not been admitted.`],
@@ -218,6 +258,11 @@ MB.level({
           scene: `A loan requires the property to stay above a set value, tested by an appraisal you order. ${a}, a senior officer, wants the appraiser told to assume a forced sale within 30 days. "That gets us a default, and we get our money back."`,
           who: `${a.first}`,
           behind: `${a.first} wants out of the loan, and a default is the door. A forced-sale assumption produces a low number on purpose. The loan agreement sets the basis for the test, and it is not that one.`,
+          deep: [
+            [`How a value covenant works`, `If the loan exceeds a set share of the property's value, the borrower must pay it down or is in default.`],
+            [`Why the basis matters`, `Market value assumes a normal selling period. A 30-day forced sale can come in 20% to 40% lower.`],
+            [`The record`, `Instructions to appraisers are in writing, and they are the first thing a borrower's lawyer asks for.`]
+          ],
           options: [
             ['s', `Order the appraisal on the basis the loan agreement specifies.`, `The test is whatever the agreement says it is. Nothing else counts.`],
             ['g', `Pick the most conservative appraiser on the panel and say nothing more.`, `No instruction was given, but the choice was made to get a result.`],
@@ -235,6 +280,11 @@ MB.level({
           scene: `A borrower is refinancing elsewhere and asks for a payoff statement. Every extra month earns you ${MB.usd(amt)} in interest. ${a}, in servicing, suggests answering "in the normal course," meaning three weeks.`,
           who: `${a.first}`,
           behind: `${a.first} is adding income by being slow. The borrower's new lender has a closing date, and a late statement can cost the borrower its rate or the whole deal.`,
+          deep: [
+            [`The incentive`, `A lender earns interest every day a loan stays outstanding.`],
+            [`The borrower's exposure`, `Its new lender's rate commitment expires. Lose it, and the refinancing may cost more or fail.`],
+            [`The legal backdrop`, `Many places set a deadline for payoff statements and releases, with penalties for missing it.`]
+          ],
           options: [
             ['s', `Send an accurate statement within the time the law and documents allow.`, `A borrower entitled to repay is entitled to be told how much.`],
             ['g', `Send it in three weeks.`, `Slow on purpose, to earn interest the borrower is trying to stop paying.`],
@@ -254,6 +304,11 @@ MB.level({
           scene: `You sold ${pct}% of a loan to another lender. That lender's consent is needed for any material change. The borrower asks for a lower rate and another year. ${a}, the relationship manager, says: "We run the loan. Tell them after."`,
           who: `${a.first}`,
           behind: `${a.first} wants to please the borrower quickly and thinks the co-lender will object. The co-lender owns part of the loan. Changing the rate changes its income without asking.`,
+          deep: [
+            [`What a participation is`, `The lead lender keeps the relationship and sells a share of the loan's income to another lender.`],
+            [`What the participant keeps`, `A vote on changes to the rate, term, amount and security.`],
+            [`Why the lead is tempted`, `It wants to keep the borrower happy, and often earns fees the participant does not share.`]
+          ],
           options: [
             ['s', `Get the co-lender's consent before agreeing.`, `Part of the loan is theirs. The agreement gives them a say.`],
             ['g', `Agree with the borrower and inform the co-lender afterward.`, `They learn their income changed after it was too late to object.`],
@@ -271,6 +326,11 @@ MB.level({
           scene: `A borrower is late delivering financial statements but has never missed a payment. The documents allow a higher default rate after written notice and a 30-day chance to fix it. ${a}, in finance, wants ${MB.usd(amt)} of default interest booked from the due date, with no notice.`,
           who: `${a.first}`,
           behind: `${a.first} sees income in a technicality. Notice and time to fix it are what the documents require before the higher rate applies. Skipping them makes the charge uncollectable and sours a borrower who pays on time.`,
+          deep: [
+            [`Two kinds of default`, `Missing a payment, and breaking another promise such as delivering statements. The second usually comes with notice and time to fix it.`],
+            [`Why sequence matters`, `The higher rate begins only once those steps are complete.`],
+            [`The business sense`, `A borrower that pays on time is an asset. A surprise charge sends it to refinance elsewhere.`]
+          ],
           options: [
             ['s', `Give the notice. Charge the rate only if the period passes unfixed.`, `The right to the higher rate starts when the documents say it does.`],
             ['g', `Accrue it quietly and raise it at payoff.`, `A surprise charge at payoff, with no notice, is a dispute waiting to happen.`],

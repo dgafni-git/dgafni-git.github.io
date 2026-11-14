@@ -492,7 +492,8 @@
       (it.role ? '<p class="role"><span class="label">You</span> ' + it.role + '</p>' : '') +
       '<div class="scene">' + tipify(paras(it.scene)) + '</div><div class="tip-box" id="tip-box" hidden></div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
       (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
-        (it.behind ? '<div class="behind"><span class="label">What was going on</span><p>' + it.behind + '</p></div>' : '') +
+        (it.behind ? '<div class="behind"><span class="label">What was going on</span><p>' + it.behind + '</p>' +
+          (it.deep ? '<details class="deep"><summary>Go deeper</summary><ul>' + it.deep.map(function (d) { return '<li><b>' + d[0] + '.</b> ' + d[1] + '</li>'; }).join('') + '</ul></details>' : '') + '</div>' : '') +
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
         '<div class="actions"><button class="btn" data-act="next">' + (pending ? 'One more thing' : last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
         moreBlock(it) + '</div>' : '');
