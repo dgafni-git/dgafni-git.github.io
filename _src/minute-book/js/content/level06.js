@@ -22,6 +22,7 @@ MB.level({
         return {
           scene: `${a} holds ${pct}% of the units and is unhappy with construction. ${a.first} wants to approve every contract and give the contractor instructions directly.`,
           who: `${a.first}`,
+          behind: `${a.first} has the most money at risk and feels powerless, which is understandable. Taking control would make ${a.first} liable like a manager, and leave the other investors with a second boss they never chose.`,
           options: [
             ['s', `Offer fuller reporting and an advisory committee seat, and explain the liability risk.`, `A real voice through the channel built for it, and the investor stays an investor.`],
             ['g', `Let ${a.first} join management calls and weigh in informally.`, `One investor now steers decisions the others cannot see, and looks like a manager.`],
@@ -51,6 +52,7 @@ MB.level({
         return {
           scene: `The fund must sell its last property. ${a}, who runs the general partner, also runs a newer fund that would pay ${MB.usd(amt)}. "No broker, quick close. Everyone wins."`,
           who: `${a.first}`,
+          behind: `${a.first} controls both funds. A low price helps the buying fund, where the fees and promote ahead may be richer. A quick private sale also means nobody else can name a higher price.`,
           options: [
             ['s', `Disclose to both advisory committees, get an independent valuation, and seek approval.`, `The general partner is seller and buyer. Independent pricing makes the deal sound.`],
             ['g', `Close at one broker's opinion of value and report it afterward.`, `Some price support, but chosen by the conflicted party and disclosed too late.`],
@@ -80,6 +82,7 @@ MB.level({
         return {
           scene: `The general partner runs three partnerships and splits ${MB.usd(amt)} of shared office costs among them "in its sole discretion." It earns a promote in two. ${a}, the controller, proposes charging most of the cost to the third, where it earns none.`,
           who: `${a.first}`,
+          behind: `Costs charged to a partnership reduce its profit, and a promote is a share of profit. Loading costs onto the one partnership with no promote costs the general partner nothing, and raises its promote in the other two.`,
           options: [
             ['s', `Allocate on a consistent, reasonable basis and disclose the policy.`, `Discretion picks among reasonable methods. It does not pick the one that pays you.`],
             ['g', `Load the third and describe the method in its statement notes.`, `Disclosing a self-serving choice does not make it a good-faith one.`],
@@ -98,6 +101,7 @@ MB.level({
         return {
           scene: `Unhappy investors can remove the general partner by a two-thirds vote. ${a} asks for the partner list, which the agreement entitles any partner to. ${b}, the principal, says: "They are organizing. Take your time."`,
           who: `${b.first}`,
+          behind: `${b.first} wants to stay in control and sees the list as ammunition. Investors who cannot find each other cannot reach a two-thirds vote. Delay keeps them apart.`,
           options: [
             ['s', `Provide the list on time and tell ${b.first} to answer the concerns.`, `The right belongs to the partners. A confident general partner answers its critics.`],
             ['g', `Ask for clarifications and let the deadline drift.`, `The delay will be the first exhibit when investors argue there is cause.`],
@@ -124,6 +128,7 @@ MB.level({
         return {
           scene: `${a}, a named key person, resigned last week. The agreement requires notice to investors in ten days and no new investments until they approve a replacement. A ${MB.usd(amt)} acquisition signs in twelve days.`,
           who: `Your remaining partners`,
+          behind: `The remaining principals want the acquisition and the fees that come with it. Giving notice lets investors pause everything. Closing first turns their right to decide into a complaint after the fact.`,
           options: [
             ['s', `Give notice now, pause, and ask investors to approve the deal.`, `Investors backed named people. The clause is their agreed protection.`],
             ['g', `Sign the deal, since it predates the departure, then give notice.`, `Arguable, but the general partner is deciding the investors' question in its own favour.`],
@@ -149,12 +154,146 @@ MB.level({
         var pct = g.pick([18, 22, 30]);
         return {
           scene: `Audited statements are due in 120 days. They will be a month late because the auditors insist on a ${pct}% writedown. Investor relations drafts an upbeat newsletter that mentions neither.`,
+          behind: `Investor relations wants the bad number to arrive after some good news. The investors deciding whether to fund the next capital call are the ones who need it now.`,
           options: [
             ['s', `Tell investors now about the delay and the writedown.`, `Bad news from the sponsor, on time, costs comfort. Found later, it costs credibility.`],
             ['g', `Send the newsletter and deliver the audit when ready.`, `Nothing false, but investors are left with a picture the numbers contradict.`],
             ['p', `Hold the statements until a refinancing improves the story.`, `Deliberately withholding required information can be a securities problem too.`]
           ],
           rule: `Reporting runs on the agreement's timetable, and matters most when the news is bad.`
+        };
+      }
+    },
+    {
+      id: 'l6-recycle', title: 'Reinvesting the proceeds',
+      make: function (g) {
+        var a = g.person(), amt = g.m(4, 12, 1);
+        return {
+          scene: `An early sale returns ${MB.usd(amt)} to the fund. The agreement lets the general partner reinvest sale proceeds only in the first three years. It is year four. ${a}, a principal, has a new deal and wants to use the money.`,
+          who: `${a.first}`,
+          behind: `The general partner's fee is charged on money that is invested. Returning capital shrinks the fee. Keeping it at work keeps the fee, and gives the promote more to grow on.`,
+          options: [
+            ['s', `Distribute it, or ask investors to approve the reinvestment.`, `The time limit is the investors' right to get their money back. Only they can extend it.`],
+            ['g', `Reinvest and report it as within the spirit of the agreement.`, `The agreement set a date, not a spirit. Reporting it does not make it permitted.`],
+            ['p', `Reinvest and describe it as a follow-on to an old deal.`, `Mislabelling a new investment to get around a limit is a breach dressed as bookkeeping.`]
+          ],
+          rule: `Limits on what a general partner may do with returned capital belong to the investors.`,
+          deal: {
+            setup: `You tell investors the money is coming back, and mention the new deal. Several ask whether they could take part in it.`,
+            asks: [
+              ['m', `Offer each investor the choice to reinvest their share in the new deal.`, `Those who want in opt in. Those who want cash get cash.`],
+              ['r', `Ask for a vote to extend the reinvestment period by two years.`, `It needs the majority the agreement requires, and some investors want out.`],
+              ['x', `Hold the distribution until enough investors agree to reinvest.`, `Withholding money they are owed to pressure a consent is a breach.`],
+              ['n', `Distribute and say no more.`, `Clean. The new deal needs other money.`]
+            ],
+            rule: `Ask investors to choose. Never hold their money while they do.`
+          }
+        };
+      }
+    },
+    {
+      id: 'l6-transfer', title: 'The partner who wants out',
+      make: function (g) {
+        var a = g.person(), b = g.person();
+        return {
+          scene: `${b}, a limited partner, wants to sell their units. The general partner's consent is required and may not be unreasonably withheld. ${a}, who runs the general partner, dislikes the buyer, who "asks too many questions."`,
+          who: `${a.first}`,
+          behind: `${a.first} wants quiet investors. A buyer who asks questions is a buyer who reads the reports. That is not a ground for refusing, and ${b.first} is stuck holding units until someone agrees.`,
+          options: [
+            ['s', `Assess the buyer on proper grounds and answer promptly, with reasons.`, `Money, eligibility and real harm to the partnership are grounds. Being inconvenient is not.`],
+            ['g', `Sit on the request until ${b.first} gives up.`, `Delay with no reason is a refusal with no reason. It is still unreasonable.`],
+            ['p', `Agree only if ${b.first} pays a transfer fee the agreement does not mention.`, `Charging for a consent you owe is using your position to take money from a partner.`]
+          ],
+          rule: `A consent right is used for the partnership's reasons, never for the general partner's comfort.`,
+          deal: {
+            setup: `The buyer checks out. ${b.first} is keen to close and asks if there is anything you need.`,
+            asks: [
+              ['m', `Ask the buyer to sign the agreement and cover the partnership's legal costs.`, `The agreement allows cost recovery, and every new partner signs on.`],
+              ['r', `Ask the buyer to prefund its share of the next capital call.`, `Useful certainty for the partnership. The buyer has no duty to give it.`],
+              ['x', `Ask for a personal fee to speed things up.`, `A payment to you for doing your job is a bribe.`],
+              ['n', `Consent and wish them both well.`, `Nothing gained, nothing owed.`]
+            ],
+            rule: `Ask on behalf of the partnership. Ask nothing for yourself.`
+          }
+        };
+      }
+    },
+    {
+      id: 'l6-valuation', burn: 2, title: 'Marking your own homework',
+      make: function (g) {
+        var a = g.person(), pct = g.pick([12, 15, 20]);
+        return {
+          scene: `The general partner values the fund's properties each year, and its fee is a percentage of that value. A sale process just failed with the best bid ${pct}% below last year's value. ${a}, a principal, wants to keep last year's number.`,
+          who: `${a.first}`,
+          behind: `A higher value means a higher fee this year. It also flatters the track record ${a.first} will show investors when raising the next fund. A real bid from a real buyer is better evidence than last year's estimate.`,
+          options: [
+            ['s', `Mark to the evidence, with an independent valuer, and disclose it.`, `The failed sale is the best evidence there is. Investors rely on the number.`],
+            ['g', `Keep the value and add a cautious note to the report.`, `The note admits the doubt while the fee is still charged on the higher number.`],
+            ['p', `Keep the value. One failed sale proves nothing.`, `Ignoring a market bid to protect your own fee is a self-serving valuation.`]
+          ],
+          rule: `When your fee depends on your valuation, someone independent should check it.`
+        };
+      }
+    },
+    {
+      id: 'l6-coinvest', title: 'Who gets the extra?',
+      make: function (g) {
+        var a = g.person(), amt = g.m(5, 15, 1);
+        return {
+          scene: `A strong deal is too big for the fund, leaving ${MB.usd(amt)} for co-investors. The agreement says existing investors are offered it first, in proportion. ${a}, a principal, wants to give it to a prospect for the next fund, and to the principals.`,
+          who: `${a.first}`,
+          behind: `Co-investment usually carries low fees, so it is a gift. ${a.first} wants to spend that gift on winning a new investor and on the principals themselves, when it was promised to the people already in the fund.`,
+          options: [
+            ['s', `Offer it to existing investors in proportion, then to others.`, `They were promised first look. What is left can go where you like.`],
+            ['g', `Give investors 48 hours over a holiday weekend to respond.`, `A window nobody can use is a refusal with paperwork.`],
+            ['p', `Allocate it to the prospect and the principals.`, `That takes an opportunity the agreement gave the investors and hands it to insiders.`]
+          ],
+          rule: `An opportunity promised to investors is theirs to decline before anyone else gets it.`
+        };
+      }
+    },
+    {
+      id: 'l6-expenses', title: 'Whose legal bill?',
+      make: function (g) {
+        var a = g.person(), amt = g.pick([180000, 240000, 320000]);
+        return {
+          scene: `A former employee is suing the general partner over a bonus. Legal fees have reached ${MB.usd(amt)}. The fund must cover claims arising from the fund's business, but not the general partner's own overhead. ${a}, the controller, wants the fund to pay.`,
+          who: `${a.first}`,
+          behind: `Every dollar the fund pays is a dollar the general partner keeps. An employment dispute is the general partner's own cost of doing business, so charging it to the fund moves it onto the investors.`,
+          options: [
+            ['s', `The general partner pays. If it is unclear, ask the advisory committee.`, `The agreement draws the line, and doubt is resolved by the investors.`],
+            ['g', `Split it evenly with the fund without asking anyone.`, `Half of a charge you are not entitled to is still not yours to take.`],
+            ['p', `Charge it all to the fund as "legal."`, `A vague label hides a general partner expense inside the fund's costs.`]
+          ],
+          rule: `Costs are split between a general partner and its fund as the agreement says. Doubt goes to the investors.`
+        };
+      }
+    },
+    {
+      id: 'l6-extension', title: 'One more year',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `The fund's term ends next month with two properties unsold in a weak market. The agreement allows a one-year extension with the advisory committee's consent. ${a}, a principal, says: "Just keep going. Nobody wants a fire sale."`,
+          who: `${a.first}`,
+          behind: `Fees continue for as long as the fund does. ${a.first} is probably right that selling now is bad. But carrying on without consent means the general partner alone decides to keep being paid.`,
+          options: [
+            ['s', `Ask the committee for the extension, with a plan to sell.`, `The investors agreed to a term. Extending it is their decision.`],
+            ['g', `Carry on "in wind-down" without a vote, citing the market.`, `Sensible reasoning, wrong decision-maker. The agreement said who decides.`],
+            ['p', `Carry on and keep charging full fees.`, `An expired fund paying full fees with no consent is the general partner serving itself.`]
+          ],
+          rule: `A fund's term is a promise about when investors get their money back.`,
+          deal: {
+            setup: `The committee agrees that selling now would be a mistake. They ask what terms you propose for the extra year.`,
+            asks: [
+              ['m', `One year at half fees.`, `It shares the pain of the delay. Committees say yes to this.`],
+              ['r', `Two years at full fees.`, `More time and no fee cut. They may think you are in no hurry.`],
+              ['v', `One year with no fee at all.`, `It costs you real income and proves you want the properties sold.`],
+              ['x', `Say the properties will be dumped unless they agree today.`, `Threatening to harm the fund to win a vote is a breach of your duty to it.`],
+              ['n', `One year on the existing terms.`, `What the agreement provides, nothing more.`]
+            ],
+            rule: `Extra time is something to pay for, not something to extract.`
+          }
         };
       }
     }

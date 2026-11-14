@@ -21,6 +21,7 @@ MB.level({
         return {
           scene: `The entity has ${MB.usd(cash)}. It owes ${MB.usd(trade)} to trades and more to its parent, unsecured. It cannot pay both. ${a}, the parent's finance chief, calls: "Send the cash up today."`,
           who: `${a.first}`,
+          behind: `${a.first} wants the fund repaid before other creditors act. For an insolvent company, paying its owner ahead of the trades is the payment courts are quickest to reverse.`,
           options: [
             ['s', `Refuse, preserve the cash, and get insolvency advice for the entity.`, `An insolvent entity's directors must consider all its creditors.`],
             ['g', `Split it: half to the parent, half to the trades.`, `Still a large insider payment by an insolvent company. A trustee would recover it.`],
@@ -40,6 +41,7 @@ MB.level({
         return {
           scene: `The entity will probably lose a contractor's lawsuit. ${a}, who controls it, wants to move its ${MB.usd(val)} land parcel to a sister company at book value, "to keep it out of the litigation."`,
           who: `${a.first}`,
+          behind: `${a.first} wants the land out of the contractor's reach before a judgment. Book value makes the transfer look ordinary. The timing shows what it is for.`,
           options: [
             ['s', `Refuse. Any sale is at market value, with proceeds kept in the entity.`, `An entity may sell for fair value. It may not put assets beyond a creditor's reach.`],
             ['g', `Transfer it a little above book, on a management memo.`, `Still an insider transfer below market by an entity facing judgment.`],
@@ -58,6 +60,7 @@ MB.level({
         return {
           scene: `A sale in two weeks will fix the cash problem. Until then the company cannot pay both ${MB.usd(amt)} of payroll tax and its concrete supplier. ${a} suggests paying the supplier. "Two weeks. Nobody will notice."`,
           who: `${a.first}`,
+          behind: `${a.first} wants the concrete poured and treats the tax money as a short loan. That money was taken from employees' pay to hand to the government. Directors answer for it personally.`,
           options: [
             ['s', `Remit the tax. Find the supplier's money elsewhere.`, `Withheld tax was never the company's money. It can follow directors home.`],
             ['g', `Delay the tax, with a board resolution recording the plan.`, `The resolution proves the directors knowingly used trust money.`],
@@ -77,6 +80,7 @@ MB.level({
         return {
           scene: `You are a director of an insolvent company. Management ignores your questions. ${a}, a lawyer friend, says: "Stop going to meetings. If you are not there, you approved nothing."`,
           who: `${a.first}`,
+          behind: `${a.first} means well and is wrong. Absence is no defence. Directors answer for what they should have known and prevented, whether or not they were in the room.`,
           options: [
             ['s', `Put your concerns in writing, take advice, and resign formally if nothing changes.`, `While you hold the seat you have its duties. A record and a proper exit protect you.`],
             ['g', `Stay on but stop attending.`, `An absent director is still a director, and liability keeps building.`],
@@ -93,6 +97,7 @@ MB.level({
         var a = g.person();
         return {
           scene: `Investors' lawyers threaten a claim over fund fees. That afternoon ${a} mentions "clearing out old email on that file." Someone asks whether the insurer needs to know yet.`,
+          behind: `${a.first} may only be tidying up. After a claim letter, intent stops mattering. Missing documents are assumed to have been damaging, and an insurer can refuse a claim reported late.`,
           options: [
             ['s', `Issue a litigation hold, brief counsel, and notify the insurer today.`, `The duty to preserve began with the letter, and insurers deny late-notified claims.`],
             ['g', `Keep your own files and wait to see if a claim is filed.`, `Others' files may vanish, and waiting may breach the policy.`],
@@ -110,6 +115,7 @@ MB.level({
         return {
           scene: `A condo developer has run out of financing and no investor is in sight. ${a}, the sales director, has ${n} buyers ready to pay deposits this weekend. "That keeps the lights on."`,
           who: `${a.first}`,
+          behind: `${a.first} is paid on sales and wants the company alive. The buyers would be lending to a company that already knows it cannot finish, without being told.`,
           options: [
             ['s', `Pause sales unless deposits are protected and buyers are told. Get restructuring advice.`, `Do not take money from people who would not pay if they knew the facts.`],
             ['g', `Stop deposits but keep ordering materials on credit.`, `Suppliers are funding the rescue search without having agreed to.`],

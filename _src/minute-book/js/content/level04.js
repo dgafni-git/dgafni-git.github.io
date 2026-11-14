@@ -22,6 +22,7 @@ MB.level({
         return {
           scene: `A distressed loan can be bought for ${MB.usd(amt)} within three weeks. ${a}, a partner, wants to raise it from ${n} friends and relatives. "They trust us. Collect the wires and paper it after closing."`,
           who: `${a.first}`,
+          behind: `${a.first} fears losing the deal to the deadline, and friends rarely ask for documents. That is what makes them the investors most likely to feel misled later.`,
           options: [
             ['s', `Confirm an exemption for each investor, sign subscriptions, and disclose risks and conflicts first.`, `Selling partnership units is selling securities, even to friends.`],
             ['g', `Take the money on a one-page receipt, with terms to follow.`, `Investors paid for something undefined, and an exemption cannot be confirmed after the sale.`],
@@ -49,6 +50,7 @@ MB.level({
         var a = g.person(), amt = g.m(0.3, 1.2, 0.05);
         return {
           scene: `Last spring ${a} wired ${MB.usd(amt)} into a cash-short project. Nothing was signed. The project sold at a profit. ${a.first} says it was equity. The others say it was a loan. Nobody can prove either. What rule stops this happening again?`,
+          behind: `${a.first} wants equity now because the project made money. Had it lost money, ${a.first} would be calling it a loan. Unlabelled money lets everyone choose the label afterward.`,
           options: [
             ['s', `No owner money is accepted until a signed note or subscription says what it is.`, `The only time everyone agrees on debt or equity is before the outcome is known.`],
             ['g', `Accounting classifies each advance and emails the owner.`, `An email is evidence. It is not an agreement on rate, repayment or dilution.`],
@@ -66,6 +68,7 @@ MB.level({
         return {
           scene: `The partnership needs ${MB.usd(amt)} for an overrun. The agreement requires capital calls from all partners in proportion. ${a}, who runs the general partner, says: "Call it from the four we know best and give them extra units."`,
           who: `${a.first}`,
+          behind: `${a.first} wants to avoid telling every investor about the overrun. Calling only friendly partners hides the bad news and rewards them with extra units, taken from everyone not asked.`,
           options: [
             ['s', `Call every partner in proportion, with the required notice.`, `Every partner gets the same chance to protect their percentage.`],
             ['g', `Borrow it from one friendly partner at 15% instead.`, `Possibly allowed, but it is a related-party loan ranking ahead of everyone, and nobody checked the agreement.`],
@@ -82,6 +85,7 @@ MB.level({
         return {
           scene: `Six partners funded the capital call. ${a} did not, and the cure period has ended. The agreement dilutes a defaulting partner by formula. ${b}, who runs the general partner, says: "Leave it. ${a.first} is good for it."`,
           who: `${b.first}`,
+          behind: `${b.first} is protecting a friend. But every partner who funded on time did so partly because the penalty for not funding was real. A quiet exception takes that from them.`,
           options: [
             ['s', `Apply the formula, or put a waiver to the other partners.`, `The six who funded relied on the remedy. Leniency is theirs to give.`],
             ['g', `Quietly give ${a.first} sixty more days.`, `A private favour to a friend, paid for by the partners who funded on time.`],
@@ -108,6 +112,7 @@ MB.level({
         return {
           scene: `Your project needs ${MB.usd(amt)} more to finish. Its main loan forbids any new borrowing without that lender's consent. ${a} suggests calling the money preferred equity, with a fixed repayment date and takeover rights. "Then we do not need to ask."`,
           who: `${a.first}`,
+          behind: `${a.first} wants the money without a slow conversation with the main lender. Renaming the debt as equity is meant to step around the ban on new borrowing. The lender wrote the ban to prevent exactly that.`,
           options: [
             ['s', `Ask the senior lender for consent and negotiate an intercreditor agreement.`, `The covenant gives the senior lender a say. Consent makes the new money safe.`],
             ['g', `Use the preferred equity structure and stay quiet.`, `Equity with a repayment date and takeover rights behaves like debt, and may breach anyway.`],
@@ -137,6 +142,7 @@ MB.level({
         return {
           scene: `${a} will invest ${MB.usd(amt)} but wants a side letter with a lower fee. The agreement permits side letters and lets two other investors elect any better terms granted.`,
           who: `${a.first}`,
+          behind: `${a.first} is the biggest investor and wants a better price for size. That is normal. The catch is the two investors who were promised any better terms given to anyone else.`,
           options: [
             ['s', `Document it and offer the same terms to the two investors.`, `Side letters are normal when authorized, written and disclosed to those entitled.`],
             ['g', `Agree verbally so the election right is not triggered.`, `An unwritten term is still a term. Dodging the others' rights makes it a breach.`],

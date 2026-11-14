@@ -315,3 +315,7 @@ body.locked .tabs, body.locked .standing { visibility: hidden; }
 .peek-hint { font-family: var(--typed); font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; border-bottom: 1px dashed var(--ink-2); }
 .opt.done.chosen { scroll-margin: 16px; }
 .opt.done.chosen:focus { outline: none; }
+
+/* ---------- the insight shown after an answer ---------- */
+.behind { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 12px 0; display: grid; gap: 4px; max-width: 66ch; }
+.behind p { font-size: 16px; color: #25332b; }

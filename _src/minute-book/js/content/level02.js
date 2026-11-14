@@ -20,6 +20,7 @@ MB.level({
         return {
           scene: `Your committee votes this afternoon on a ${MB.usd(amt)} servicing contract. The lowest bid is from a company owned by your brother-in-law, ${a}. Nobody else knows.`,
           who: `Your brother-in-law`,
+          behind: `Your brother-in-law wants the contract, and you would like him to have it. The bid may truly be the best. Nobody can know that once a decision-maker's relative wins in silence.`,
           options: [
             ['s', `Disclose the relationship, leave the room, and have both minuted.`, `The committee can still pick the best bid, and the record shows the decision was untainted.`],
             ['g', `Tell the chair privately, then vote. It is the lowest bid anyway.`, `One person knows, the rest do not, and you voted on a relative's contract.`],
@@ -38,6 +39,7 @@ MB.level({
         return {
           scene: `${g.fund} put you on the board of ${spe}. Its chief executive, ${a}, calls: "Send ${MB.usd(amt)} up to the fund this week. Vote it through." The entity has unpaid trades and tax due.`,
           who: `${a.first}`,
+          behind: `${a.first} needs cash at the fund. The fund owns the entity, so it feels like moving money between pockets. But the entity's unpaid trades and tax bill are owed from that pocket first.`,
           options: [
             ['s', `Check whether the entity can pay it and still meet its debts. Tell ${a.first} what you find.`, `Your duty runs to the entity whose board you sit on, not to whoever appointed you.`],
             ['g', `Vote yes and minute your reservations.`, `Reservations do not undo a yes vote. You approved it knowingly.`],
@@ -56,6 +58,7 @@ MB.level({
         return {
           scene: `You are an officer of ${spe}, which is assembling land. A broker calls you personally: the adjoining lot is quietly for sale at ${MB.usd(amt)}. "You could flip it to the project in a year."`,
           who: `The broker`,
+          behind: `The broker wants a quick sale to a buyer who will not shop the price. Offering it to you personally, with a resale to the project built in, hands you a profit the project would pay for.`,
           options: [
             ['s', `Take it to the board. Buy it yourself only if the board declines in writing.`, `The chance came through your role and fits the entity's business. It is the entity's to refuse.`],
             ['g', `Buy it now so it is not lost, and offer it to the entity at cost.`, `Good motive, but you took the entity's opportunity and now sit across the table as seller.`],
@@ -74,6 +77,7 @@ MB.level({
         return {
           scene: `An hour before the board meets, management sends sixty pages recommending a ${MB.usd(amt)} sale of the main property. The offer expires at midnight. "It is a good price," says ${a}, the chief executive. "I need a motion."`,
           who: `${a.first}`,
+          behind: `${a.first} negotiated the deal and wants it closed before the offer lapses. A short fuse also stops the board testing the price. Deadlines are sometimes real and sometimes a tactic.`,
           options: [
             ['s', `Ask how the price was tested and why the deadline is real, then vote.`, `A fast decision can still be an informed one. The record of questions is what protects it.`],
             ['g', `Vote yes on the chief executive's assurance.`, `Directors may rely on management, but not blindly on the company's biggest decision.`],
@@ -91,6 +95,7 @@ MB.level({
         var a = g.person();
         return {
           scene: `As a director you learn the anchor tenant is about to stop paying rent. At dinner an old friend, ${a}, mentions lending to another landlord with the same tenant.`,
+          behind: `${a.first} wants nothing from you, and that is the trap. Saving a friend from a loss feels harmless. The information is not yours to give, and it has value.`,
           options: [
             ['s', `Say nothing about the tenant.`, `You hold the information only because of your seat. It belongs to the entity.`],
             ['g', `Say, "I would look hard at your tenant list."`, `A hint is a disclosure with deniability. A court would read it as plainly as your friend does.`],
@@ -107,6 +112,7 @@ MB.level({
         return {
           scene: `You are running a construction tender that closes in ten days. ${a}, who owns one of the bidders, offers you two playoff tickets. "No strings."`,
           who: `${a.first}`,
+          behind: `${a.first} wants the contract and knows you decide. Tickets buy warmth, a longer conversation, and perhaps a hint about the other bids. 'No strings' is the string.`,
           options: [
             ['s', `Decline while the tender is open and note the offer in the file.`, `Your decision has to be yours alone, and has to look that way.`],
             ['g', `Go, and tell your manager the next morning.`, `Better than silence, but a losing bidder who hears of it has a ready complaint.`],

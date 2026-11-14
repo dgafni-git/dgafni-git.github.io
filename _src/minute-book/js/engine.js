@@ -25,7 +25,7 @@
     v: { label: 'A gift', tone: 's', pay: [0.25, 0.45], gw: 10 },
     n: { label: 'No ask', tone: 'n', pay: [0, 0], gw: 1, gwRight: 3 }
   };
-  var RUN_V = 3;
+  var RUN_V = 4;
   var START_RANK = 'Analyst';
   var SEED_EQUITY = 100000;
   var KEY = 'minute-book-v2';
@@ -164,7 +164,7 @@
   /* ---------- state ---------- */
 
   var S = fresh();
-  function fresh() { return { passed: {}, bestEquity: null, unlockAll: false, run: null }; }
+  function fresh() { return { passed: {}, seen: {}, bestEquity: null, unlockAll: false, run: null }; }
 
   function load() {
     try {
@@ -221,10 +221,16 @@
   var cache = { key: '', items: [] };
 
   function buildItems(run) {
-    var key = run.n + ':' + run.seed + ':' + run.trust + ':' + RUN_V;
+    var key = run.n + ':' + run.seed + ':' + run.trust + ':' + RUN_V + ':' + (run.ids ? run.ids.join(',') : '');
     if (cache.key === key) return cache.items;
     var L = level(run.n), g0 = makeGen(run.seed), B = stake(run.n), trust = run.trust || 1;
     var authored = L.fixed ? L.scenarios.slice() : g0.shuffle(L.scenarios).slice(0, L.draw.authored);
+    if (!L.fixed && run.ids) {
+      var byId = {};
+      L.scenarios.forEach(function (sc) { byId[sc.id] = sc; });
+      var chosen = run.ids.map(function (id) { return byId[id]; }).filter(Boolean);
+      if (chosen.length === L.draw.authored) authored = chosen;
+    }
     var nums = g0.shuffle(L.numerics || []).slice(0, L.draw.numeric || 0);
     var order = authored.map(function (sc) { return { kind: 'choice', def: sc }; });
     nums.forEach(function (k) {
@@ -267,8 +273,26 @@
   }
   MB._buildItems = buildItems;
 
+  /* Deal the situations this player has not met yet before any they have. */
+  function pickIds(n, seed) {
+    var L = level(n);
+    if (L.fixed) return null;
+    var g = makeGen(seed ^ hash('pick')), seen = S.seen[n] || [], need = L.draw.authored;
+    var fresh_ = g.shuffle(L.scenarios.filter(function (sc) { return seen.indexOf(sc.id) < 0; }));
+    var old = g.shuffle(L.scenarios.filter(function (sc) { return seen.indexOf(sc.id) >= 0; }));
+    if (fresh_.length < need) S.seen[n] = [];
+    return g.shuffle(fresh_.concat(old).slice(0, need)).map(function (sc) { return sc.id; });
+  }
+  function markSeen(n, id) {
+    if (!S.seen) S.seen = {};
+    var list = S.seen[n] || (S.seen[n] = []);
+    if (list.indexOf(id) < 0) list.push(id);
+  }
+
   function startRun(n) {
-    S.run = { v: RUN_V, n: n, seed: (Math.random() * 4294967296) >>> 0, trust: trustOf(standing()), practice: !!S.passed[n], phase: 'brief', step: 0, sub: null, answers: [], result: null };
+    if (!S.seen) S.seen = {};
+    var seed0 = (Math.random() * 4294967296) >>> 0;
+    S.run = { v: RUN_V, n: n, seed: seed0, ids: pickIds(n, seed0), trust: trustOf(standing()), practice: !!S.passed[n], phase: 'brief', step: 0, sub: null, answers: [], result: null };
     save();
   }
 
@@ -468,6 +492,7 @@
       (it.role ? '<p class="role"><span class="label">You</span> ' + it.role + '</p>' : '') +
       '<div class="scene">' + tipify(paras(it.scene)) + '</div><div class="tip-box" id="tip-box" hidden></div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
       (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
+        (it.behind ? '<div class="behind"><span class="label">What was going on</span><p>' + it.behind + '</p></div>' : '') +
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
         '<div class="actions"><button class="btn" data-act="next">' + (pending ? 'One more thing' : last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
         moreBlock(it) + '</div>' : '');
@@ -666,6 +691,7 @@
     else if (act === 'choose' && run && run.phase === 'play' && !run.answers[run.step]) {
       var i = parseInt(el.getAttribute('data-i'), 10), o = buildItems(run)[run.step].options[i];
       run.answers[run.step] = { pick: i, g: o.g, cash: o.cash, risk: o.risk, gw: o.gw };
+      markSeen(run.n, buildItems(run)[run.step].id);
       save(); render('outcome');
     }
     else if (act === 'ask' && run && run.phase === 'play' && run.sub === 'ask' && run.answers[run.step] && !run.answers[run.step].ask) {
@@ -705,7 +731,7 @@
     }
     else if (act === 'career-no') { render(false); }
     else if (act === 'career-yes') {
-      var keep = { bestEquity: S.bestEquity, unlockAll: S.unlockAll };
+      var keep = { bestEquity: S.bestEquity, unlockAll: S.unlockAll, seen: S.seen || {} };
       S = Object.assign(fresh(), keep); cache = { key: '', items: [] }; save();
       if (route().view !== 'contents') window.location.hash = 'contents'; else render();
     }

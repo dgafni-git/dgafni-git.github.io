@@ -29,6 +29,7 @@
           var s = g.story;
           return {
             scene: `${s.whistle}, a project accountant, emails you. ${s.officer}, an officer of the general partner, owns the firm managing the fund's properties, on an unapproved contract at inflated fees. A director has a hidden stake. ${s.ceo}, the chief executive, is ${s.officer.first}'s old friend.`,
+            behind: `${s.whistle.first} is taking a risk by reporting. ${s.officer.first} profits from the fees. ${s.ceo.first} has a friendship to protect. Who hears the complaint first decides whether it is examined or managed.`,
             options: [
               ['s', `Protect ${s.whistle.first}, brief the unconflicted directors, hire independent counsel, and preserve records.`, `People without bias judge it, the evidence is secured, and the complainant is safe.`],
               ['g', `Ask ${s.ceo.first} to look into it quietly.`, `The investigator is the accused's close friend. Whatever the result, it will not be believed.`],
@@ -47,6 +48,7 @@
           var s = g.story;
           return {
             scene: `Counsel's first look says the complaint has substance. ${s.dirA} is believed to be the director with the stake. The next scheduled board meeting is five weeks away with a full agenda.`,
+            behind: `Delay suits anyone who benefits from the contract, because the fees keep flowing. A weekend of private calls would let the chief executive shape each director's view one at a time.`,
             options: [
               ['s', `Call a special meeting on this alone, with a session without ${s.dirA.first} or management.`, `The board acts properly convened and informed, with those under review out of the room.`],
               ['g', `Add it under "other business" in five weeks.`, `Five weeks of fees keep flowing, and a serious matter gets a tired board.`],
@@ -64,6 +66,7 @@
           return {
             scene: `${s.dirA} admits a ${s.pct}% interest in ${s.officer.first}'s firm, never disclosed, and insists on staying. "I know the facts best. I will simply not vote."`,
             who: `${s.dirA.first}`,
+            behind: `${s.dirA.first} wants to hear what the board thinks, and to influence it by being present. People do not say what they believe about a colleague sitting across the table.`,
             options: [
               ['s', `${s.dirA.first} discloses for the minutes, answers questions, then leaves the room.`, `The board gets the facts, then talks freely. Nobody speaks candidly about a colleague who is watching.`],
               ['g', `${s.dirA.first} stays throughout and abstains.`, `One vote is kept out, but the others soften what they say.`],
@@ -81,6 +84,7 @@
           return {
             scene: `${s.ceo} proposes a review committee: ${s.dirB}, who vacations with ${s.officer.first}'s family, and ${s.cfo}, whose team paid the invoices. The firm's own lawyers would advise.`,
             who: `${s.ceo.first}`,
+            behind: `${s.ceo.first} wants the inquiry in friendly hands. A committee can be designed to find nothing, and its membership usually tells you which kind it is.`,
             options: [
               ['s', `The two outside directors, a written mandate, and advisers they choose.`, `Independent in fact, with authority on paper. Its findings will carry weight.`],
               ['g', `One outside director and ${s.cfo.first}, with the usual lawyers behind a wall.`, `One independent voice, but finance is reviewing its own payments.`],
@@ -98,6 +102,7 @@
           return {
             scene: `The committee reports: an expired one-page engagement letter, fees ${s.over}% above market, about ${MB.usd(s.amt)} too much over two years, and competent work. ${s.ceo} says: "Paper the contract and move on."`,
             who: `${s.ceo.first}`,
+            behind: `${s.ceo.first} wants it over without embarrassing a friend. Papering the contract at the old rates would turn two years of overcharging into something the board approved.`,
             options: [
               ['s', `Recover the excess and tender the mandate, with ${s.officer.first} out of both decisions.`, `The fund is made whole, and the firm can keep the work if it wins on merit.`],
               ['g', `Sign a backdated contract at the existing rates.`, `The board has now knowingly approved above-market fees to an insider.`],
@@ -115,6 +120,7 @@
           return {
             scene: `The agreement requires prompt reports of related-party dealings and material breaches. A refinancing closes in six weeks with a no-affiliate-contracts certificate. ${s.cfo} says: "Tell them in the annual report."`,
             who: `${s.cfo.first}`,
+            behind: `${s.cfo.first} wants to avoid alarming investors and endangering the refinancing. Waiting means the lender relies on a certificate the general partner knows is untrue.`,
             options: [
               ['s', `Report now to the investors, and to the lender before it relies on the certificate.`, `They hear it from the general partner, promptly, with the fix under way.`],
               ['g', `A paragraph in the annual report, and nothing to the lender.`, `Each statement might be accurate. Together they are built to keep people from knowing.`],
@@ -132,6 +138,7 @@
           return {
             scene: `${s.ceo} sees you alone. "Go after ${s.officer.first} for that money and I resign the week before the refinancing. Drop it and we all get through this." There is no succession plan.`,
             who: `${s.ceo.first}`,
+            behind: `${s.ceo.first} is using the refinancing as leverage to protect ${s.officer.first}. The threat works only if the board believes it cannot manage without one person.`,
             options: [
               ['s', `Hold the board's decision, report the conversation, and prepare interim leadership.`, `The board decides for the fund, not under threat from an executive.`],
               ['g', `Quietly drop the recovery if ${s.ceo.first} stays through the refinancing.`, `It trades the fund's money to settle a personal threat, and teaches that ultimatums work.`],
@@ -148,6 +155,7 @@
           var s = g.story;
           return {
             scene: `The fees are repaid, the mandate was tendered, ${s.dirA} has resigned, and the refinancing closed. A director says: "An isolated incident. Let us not bury the company in policy."`,
+            behind: `The director wants to move on, which is human. The gaps that let this run for two years are still open.`,
             options: [
               ['s', `Adopt a few owned controls: conflict declarations, a contract register, an authority matrix.`, `Each control answers a way this went wrong. Next time the system finds it in weeks.`],
               ['g', `Send a memo reminding everyone of their obligations.`, `They knew their obligations. What was missing was anything that would catch a lapse.`],
