@@ -26,7 +26,7 @@
     o: { label: 'Free option', tone: 's', pay: [1.2, 2.4], gw: 1 },
     n: { label: 'No ask', tone: 'n', pay: [0, 0], gw: 1, gwRight: 3 }
   };
-  var RUN_V = 6;
+  var RUN_V = 7;
   /* Looking for a wider answer costs a little time. A free option pays off less than half the time, and never costs. */
   var LOOK = 0.2, WIDE = 1.7, OPT_CHANCE = 0.4;
   var START_RANK = 'Analyst';
@@ -385,6 +385,7 @@
   }
 
   function startRun(n) {
+    if (S.run && S.run.phase === 'reckon') commitRun();
     if (!S.seen) S.seen = {};
     var seed0 = (Math.random() * 4294967296) >>> 0;
     var L0 = level(n), ids0 = pickIds(n, seed0);
@@ -430,43 +431,70 @@
   }
   function patience(gw) { return 2 + Math.floor(gw / 25); }
 
+  /* The odds are never fixed. They move with what the player has done, in this meeting and before it. */
+  function heat() {
+    return Object.keys(S.passed).map(Number).sort(function (a, b) { return b - a; }).slice(0, 2)
+      .reduce(function (t, k) { return t + (S.passed[k].dues || 0); }, 0);
+  }
+  function oddsRisk(kind, others, hot, st) {
+    var base = kind === 'g' ? 30 : 60, p = base;
+    var why = [(kind === 'g' ? 'A grey shortcut' : kind === 'p' ? 'A poor choice' : 'An overreach') + ': ' + base + '%'];
+    if (others) { var o = Math.min(15, others * 5); p += o; why.push(others + ' other loose end' + (others > 1 ? 's' : '') + ' in this meeting: +' + o + '%'); }
+    if (hot) { var h = Math.min(16, hot * 8); p += h; why.push('Something came due recently, so people are looking: +' + h + '%'); }
+    if (st >= 85) { p -= 5; why.push('A strong record draws fewer questions: ' + MINUS + '5%'); }
+    return { p: Math.max(10, Math.min(90, p)) / 100, why: why };
+  }
+  function oddsOpt(gw) {
+    var add = Math.round(gw * 0.3);
+    return { p: Math.min(60, 25 + add) / 100, why: ['Any free option: 25%', 'Your goodwill of ' + gw + ': +' + add + '%'] };
+  }
+
   function finishRun() {
     var run = S.run, items = buildItems(run), L = level(run.n);
     var pts = run.answers.reduce(function (t, a) { return t + GRADE[eff(a)].pts; }, 0);
     var max = items.length * 2, pct = pts / max;
     var passed = pct >= L.pass - 1e-9;
-    var before = rank(), first = false, gross = 0, losses = 0, optGain = 0, reckon = [], gw = runGw(run);
-    run.answers.forEach(function (a, i) {
-      gross += a.cash + (a.ask ? a.ask.cash : 0);
-      if (!passed) return;
+    var gross = 0, reckon = [], open = 0, hot = heat(), st = standing(), gwNow = liveGoodwill(run);
+    run.answers.forEach(function (a) { gross += a.cash + (a.ask ? a.ask.cash : 0); if (a.risk) open++; if (a.ask && a.ask.risk) open++; });
+    if (passed) run.answers.forEach(function (a, i) {
+      var it = items[i], od;
       if (a.risk) {
-        var due = makeGen(run.seed ^ hash('reckon:' + i)).rnd() < GRADE[a.g].chance;
-        if (due) { losses += a.risk; gw += GW.due; }
-        reckon.push({ i: i, due: due, cost: a.risk, what: 'the ' + GRADE[a.g].name });
+        od = oddsRisk(a.g, open - 1, hot, st);
+        reckon.push({ i: i, cost: a.risk, what: 'the ' + GRADE[a.g].name, text: (it.options[a.pick] || {}).t || '', p: od.p, why: od.why, u: makeGen(run.seed ^ hash('reckon:' + i)).rnd() });
       }
       if (a.ask && a.ask.risk) {
-        var due2 = makeGen(run.seed ^ hash('reckon-ask:' + i)).rnd() < ASK.x.chance;
-        if (due2) { losses += a.ask.risk; gw += GW.due; }
-        reckon.push({ i: i, due: due2, cost: a.ask.risk, what: 'the overreach' });
+        od = oddsRisk('x', open - 1, hot, st);
+        reckon.push({ i: i, cost: a.ask.risk, what: 'the overreach', text: a.ask.riskText || '', p: od.p, why: od.why, u: makeGen(run.seed ^ hash('reckon-ask:' + i)).rnd() });
       }
       if (a.ask && a.ask.opts) a.ask.opts.forEach(function (v, j) {
-        var paid = makeGen(run.seed ^ hash('opt:' + i + ':' + j)).rnd() < OPT_CHANCE;
-        if (paid) optGain += v;
-        reckon.push({ i: i, opt: true, paid: paid, val: v });
+        od = oddsOpt(gwNow);
+        reckon.push({ i: i, opt: true, val: v, text: (a.ask.optTexts || [])[j] || '', p: od.p, why: od.why, u: makeGen(run.seed ^ hash('opt:' + i + ':' + j)).rnd() });
       });
     });
-    if (passed) gw += pct === 1 ? GW.gold : GW.pass;
-    var net = passed ? gross - losses + optGain : 0;
-    if (passed && !S.passed[run.n]) {
+    reckon.forEach(function (r) { if (r.opt) r.paid = r.u < r.p; else r.due = r.u < r.p; });
+    run.result = { pts: pts, max: max, pct: pct, passed: passed, gross: gross, reckon: reckon, spun: 0, committed: false, before: rank() };
+    if (reckon.length) { run.phase = 'reckon'; run.sub = null; save(); }
+    else commitRun();
+  }
+
+  /* Writes the sitting onto the record. Called once every wheel has been spun, or if the player walks away first. */
+  function commitRun() {
+    var run = S.run, res = run.result;
+    if (!res || res.committed) return;
+    var losses = 0, optGain = 0, dues = 0, gw = runGw(run);
+    res.reckon.forEach(function (r) { if (r.opt) { if (r.paid) optGain += r.val; } else if (r.due) { losses += r.cost; dues++; gw += GW.due; } });
+    if (res.passed) gw += res.pct === 1 ? GW.gold : GW.pass;
+    var net = res.passed ? res.gross - losses + optGain : 0, first = false;
+    if (res.passed && !S.passed[run.n]) {
       first = true;
-      S.passed[run.n] = { pct: pct, net: net, gw: gw, gold: pct === 1 };
+      S.passed[run.n] = { pct: res.pct, net: net, gw: gw, gold: res.pct === 1, dues: dues };
       if (passedCount() === MB.levels.length) S.bestEquity = Math.max(S.bestEquity === null ? -Infinity : S.bestEquity, equity());
     }
-    var parts = { choices: 0, asks: 0, due: 0, pass: passed ? (pct === 1 ? GW.gold : GW.pass) : 0 };
+    var parts = { choices: 0, asks: 0, due: dues * GW.due, pass: res.passed ? (res.pct === 1 ? GW.gold : GW.pass) : 0 };
     run.answers.forEach(function (a) { parts.choices += a.gw || 0; if (a.ask) parts.asks += a.ask.gw; });
-    reckon.forEach(function (r) { if (r.due) parts.due += GW.due; });
+    res.first = first; res.losses = losses; res.optGain = optGain; res.net = net; res.gw = res.passed ? gw : 0; res.gwParts = parts;
+    res.promoted = rank() !== res.before ? rank() : null; res.spun = res.reckon.length; res.committed = true;
     run.phase = 'done'; run.sub = null;
-    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, optGain: optGain, net: net, gw: passed ? gw : 0, gwParts: parts, reckon: reckon, promoted: rank() !== before ? rank() : null };
     save();
   }
 
@@ -736,6 +764,36 @@
         '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div></div>' : '');
   }
 
+  function wheelSVG(r, k, spun) {
+    var a = r.p * 360, rad = 52, x = 60 + rad * Math.sin(a * Math.PI / 180), y = 60 - rad * Math.cos(a * Math.PI / 180);
+    var slice = '<path class="w-hit" d="M60 60 L60 8 A52 52 0 ' + (a > 180 ? 1 : 0) + ' 1 ' + x.toFixed(1) + ' ' + y.toFixed(1) + ' Z"/>';
+    return '<svg class="wheel ' + (r.opt ? 'is-opt' : 'is-risk') + '" viewBox="0 0 120 120" role="img" aria-label="A wheel with ' + Math.round(r.p * 100) + ' percent marked">' +
+      '<g class="w-spin" id="wheel-' + k + '" style="transform: rotate(' + (spun ? -(r.u * 360) : 180 - a / 2) + 'deg)"><circle class="w-base" cx="60" cy="60" r="52"/>' + slice + '<circle class="w-hub" cx="60" cy="60" r="7"/></g>' +
+      '<path class="w-pointer" d="M60 16 L52 2 L68 2 Z"/></svg>';
+  }
+
+  function viewReckon(L, run) {
+    var items = buildItems(run), res = run.result, n = res.reckon.length, all = res.spun >= n;
+    var cards = res.reckon.map(function (r, k) {
+      var spun = k < res.spun, next = k === res.spun;
+      var pc = Math.round(r.p * 100);
+      var outcome = !spun ? '' : r.opt
+        ? '<span class="stamp ' + (r.paid ? 'yes' : 'no-quiet') + '">' + (r.paid ? 'Paid off ' + plus(r.val) : 'Expired, at no cost') + '</span>'
+        : '<span class="stamp ' + (r.due ? 'no' : 'yes') + '">' + (r.due ? 'Came due ' + MB.cash(-r.cost) : 'Never surfaced') + '</span>';
+      return '<div class="spin-card' + (spun ? ' is-spun' : next ? ' is-next' : '') + '"' + (next ? ' id="outcome" tabindex="-1"' : '') + '>' + wheelSVG(r, k, spun) +
+        '<div class="spin-body"><p class="spin-head"><span class="label">Item ' + (r.i + 1) + ' ' + DOT + ' ' + (r.opt ? 'a free option' : r.what) + '</span></p>' +
+        (r.text ? '<p class="spin-text">' + r.text + '</p>' : '') +
+        '<p class="spin-odds"><b>' + pc + '%</b> ' + (r.opt ? 'chance it pays ' + plus(r.val) : 'chance it costs ' + MB.cash(r.cost)) + '</p>' +
+        '<ul class="spin-why">' + r.why.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ul>' +
+        (spun ? outcome : next ? '<button class="btn" data-act="spin" data-k="' + k + '">Spin</button>' : '<span class="label">Waiting</span>') + '</div></div>';
+    }).join('');
+    return folio('Meeting ' + ROMAN[L.n] + ' ' + DOT + ' ' + L.title, 'The reckoning') +
+      '<h1 class="display small">Now see what comes back.</h1>' +
+      '<p class="lede">Shortcuts do not always come due, and options do not always pay. The odds are yours: they come from what you did in this meeting and before it. The coloured part of each wheel is the chance.</p>' +
+      '<div class="spins">' + cards + '</div>' +
+      '<div class="actions">' + (all ? '<button class="btn" data-act="reckoned">See the minutes</button>' : (n - res.spun > 1 ? '<button class="btn quiet" data-act="spin-all">Spin the rest at once</button>' : '')) + '</div>';
+  }
+
   function sgn(n) { return n ? (n > 0 ? '+' : MINUS) + Math.abs(n) : '0'; }
   function gwBreak(res, run) {
     var p = res.gwParts || { choices: res.gw, asks: 0, due: 0, pass: 0 };
@@ -816,8 +874,16 @@
       '<div class="prose">' +
       '<p>Minute Book is a corporate equity and governance game set in real estate lending, development and private equity. Finish with as much equity as you can.</p>' +
       '<h2 class="section">Money</h2>' +
-      '<p>You start with ' + MB.cash(SEED_EQUITY) + '. Every motion shows what it pays today. ' + chip('s') + ' motions pay and nothing follows you. ' + chip('g') + ' motions leave a loose end: about one in three comes due, at two and a half times what you took. ' + chip('p') + ' motions leave a liability: most come due, at four times. You are not told which is which until you choose.</p>' +
-      '<p>The reckoning happens when the meeting adjourns. The stakes grow with every meeting.</p>' +
+      '<p>You start with ' + MB.cash(SEED_EQUITY) + '. Every motion shows what it pays today. ' + chip('s') + ' motions pay and nothing follows you. ' + chip('g') + ' motions leave a loose end that could cost two and a half times what you took. ' + chip('p') + ' motions leave a liability that could cost four times. You are not told which is which until you choose. The stakes grow with every meeting.</p>' +
+      '<h2 class="section">The reckoning</h2>' +
+      '<p>When a meeting adjourns, you spin a wheel for each loose end and each option. The coloured part is the chance, and the chance depends on you.</p>' +
+      '<ul class="rules">' +
+      '<li>A grey shortcut starts at <b>30%</b>. A poor choice or an overreach starts at <b>60%</b>.</li>' +
+      '<li><b>+5%</b> for every other loose end in the same meeting. A pattern gets noticed.</li>' +
+      '<li><b>+8%</b> for each thing that came due in your last two meetings. Once caught, you are watched.</li>' +
+      '<li><b>' + MINUS + '5%</b> if your standing is 85 or more. A clean record draws fewer questions.</li>' +
+      '<li>A free option pays off <b>25%</b> of the time, plus <b>3%</b> for every ten points of goodwill.</li>' +
+      '</ul>' +
       '<h2 class="section">Goodwill</h2>' +
       '<p>Goodwill is what the people across the table think of dealing with you: partners, borrowers, vendors, colleagues. It runs from 0 to 100 and starts at 50. Every change names the person and the reason.</p>' +
       '<ul class="rules">' +
@@ -832,7 +898,7 @@
       '<h2 class="section">Finding more in a deal</h2>' +
       '<p>The deal on the table is usually wider than it looks, and not every gain costs something.</p>' +
       '<ul class="rules">' +
-      '<li><b>Free options.</b> Some asks cost the other side nothing today and may pay you later, such as a right of first offer. They are agreed, held, and settled at adjournment. They pay off about two times in five and never cost you.</li>' +
+      '<li><b>Free options.</b> Some asks cost the other side nothing today and may pay you later, such as a right of first offer. They are agreed, held, and settled at adjournment. They never cost you, and they pay off more often when your goodwill is high.</li>' +
       '<li><b>Term sheets.</b> Some openings let you tick several terms at once. Each has a hidden cost to the other side, from nothing to a lot. Find the ones that are cheap for them and valuable for you.</li>' +
       '<li><b>Another way.</b> When a choice is framed as either-or, you can pay a little to look wider. Sometimes there is a better structure. Sometimes there is not.</li>' +
       '<li><b>Spot it.</b> Some items show you a document. Tap the phrase that hides an opportunity.</li>' +
@@ -881,7 +947,7 @@
       if (!isOpen(r.n)) { window.location.hash = 'contents'; return; }
       if (!S.run || S.run.n !== r.n) startRun(r.n);
       var L = level(r.n), run = S.run;
-      html = run.phase === 'brief' ? viewBrief(L, run) : run.phase === 'play' ? viewPlay(L, run) : viewDone(L, run);
+      html = run.phase === 'brief' ? viewBrief(L, run) : run.phase === 'play' ? viewPlay(L, run) : run.phase === 'reckon' ? viewReckon(L, run) : viewDone(L, run);
     } else if (r.view === 'registers') html = viewRegisters();
     else if (r.view === 'about') html = viewAbout();
     else html = viewContents();
@@ -900,6 +966,24 @@
     if (!el || el.tagName === 'FORM') return;
     var act = el.getAttribute('data-act'), run = S.run;
     if (act === 'order' && run) { run.phase = 'play'; save(); render(); }
+    else if (act === 'spin' && run && run.phase === 'reckon') {
+      var res0 = run.result, k0 = res0.spun, r0 = res0.reckon[k0];
+      if (!r0 || el.disabled) return;
+      el.disabled = true;
+      var wheel = document.getElementById('wheel-' + k0);
+      var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (wheel && !still) { wheel.classList.add('spinning'); wheel.style.transform = 'rotate(' + (-(r0.u * 360) - 1800) + 'deg)'; }
+      res0.spun = k0 + 1;
+      if (res0.spun >= res0.reckon.length) { commitRun(); run.phase = 'reckon'; }
+      save();
+      window.setTimeout(function () { render('outcome'); if (res0.spun >= res0.reckon.length) renderStanding(); }, still ? 0 : 2700);
+    }
+    else if (act === 'spin-all' && run && run.phase === 'reckon') {
+      commitRun(); run.phase = 'reckon'; save(); render(false);
+    }
+    else if (act === 'reckoned' && run && run.phase === 'reckon') {
+      run.phase = 'done'; save(); render();
+    }
     else if (act === 'look' && run && run.phase === 'play' && !run.answers[run.step]) {
       if (!run.look) run.look = {};
       run.look[run.step] = 1; save(); render(false);
@@ -924,8 +1008,8 @@
       var d = buildItems(run)[run.step].deal, k = parseInt(el.getAttribute('data-i'), 10), a = d.asks[k], R = ASK[a.k];
       var res = { pick: k, k: a.k, ok: true, cash: 0, risk: 0, gw: R.gw, p: reachOdds(liveGoodwill(run)) };
       if (a.k === 'm' || a.k === 'v') res.cash = a.cash;
-      else if (a.k === 'o') res.opts = [a.opt];
-      else if (a.k === 'x') { res.cash = a.cash; res.risk = a.risk; }
+      else if (a.k === 'o') { res.opts = [a.opt]; res.optTexts = [a.t]; }
+      else if (a.k === 'x') { res.cash = a.cash; res.risk = a.risk; res.riskText = a.t; }
       else if (a.k === 't') res.ok = false;
       else if (a.k === 'n') res.gw = d.none ? R.gwRight : R.gw;
       else if (a.k === 'r') { res.ok = d.roll < res.p; res.cash = res.ok ? a.cash : 0; res.gw = res.ok ? R.gw : R.gwNo; }
@@ -980,8 +1064,9 @@
     var byPain = legit.slice().sort(function (a, b) { return terms[b].pain - terms[a].pain || b - a; });
     while (pain > tol && byPain.length) { var out = byPain.shift(); struck.push(out); pain -= terms[out].pain; }
     var res = { sheet: true, k: xs.length ? 'x' : 's', ok: true, picks: picks, struck: struck, cash: 0, risk: 0, opts: [], tol: tol, gw: 0 };
-    legit.forEach(function (i) { if (struck.indexOf(i) >= 0) return; if (terms[i].k === 'o') res.opts.push(terms[i].val); else res.cash += terms[i].val; });
-    xs.forEach(function (i) { res.cash += terms[i].val; res.risk += terms[i].risk; });
+    res.optTexts = [];
+    legit.forEach(function (i) { if (struck.indexOf(i) >= 0) return; if (terms[i].k === 'o') { res.opts.push(terms[i].val); res.optTexts.push(terms[i].t); } else res.cash += terms[i].val; });
+    xs.forEach(function (i) { res.cash += terms[i].val; res.risk += terms[i].risk; res.riskText = terms[i].t; });
     res.gw = (picks.length ? (struck.length ? -2 * struck.length : 2) : 1) + xs.length * ASK.x.gw;
     run.answers[run.step].ask = res;
     save(); render('outcome');
@@ -1013,6 +1098,7 @@
     MB.levels.sort(function (a, b) { return a.n - b.n; });
     if (data && data.state) S = Object.assign(fresh(), data.state); else load();
     if (S.run && (!level(S.run.n) || S.run.v !== RUN_V)) S.run = null;
+    if (S.run && S.run.phase === 'reckon' && S.run.result && S.run.result.committed) S.run.phase = 'done';
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
     document.addEventListener('keydown', function (e) {

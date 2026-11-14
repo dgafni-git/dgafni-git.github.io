@@ -16,9 +16,19 @@ and three short motions, and every motion shows what it pays today.
 The player is not told which is which until they choose. Payouts overlap on purpose, so the
 biggest number is not reliably the worst motion.
 
-**The reckoning.** When the meeting adjourns, each loose end is rolled. A grey one comes due
-about one time in three, at 2.5 times what was taken. A poor one comes due 70% of the time, at
-4 times. On average sound play earns the most, but a gamble can pay.
+**The reckoning.** When a meeting adjourns, the player spins a wheel for each loose end and
+each option. The coloured part of the wheel is the chance, and the pointer shows the result.
+The outcome is drawn from the sitting's seed, so a reload cannot change it, and walking away
+mid-reckoning records it anyway. The chance is built from the player's own record:
+
+- A grey shortcut starts at 30%. A poor choice or an overreach starts at 60%.
+- Plus 5% for each other loose end in the same meeting, up to 15%.
+- Plus 8% for each thing that came due in the last two meetings on record, up to 16%.
+- Minus 5% when standing is 85 or more.
+- A free option pays off 25% of the time plus 3% per ten points of goodwill, up to 60%.
+
+A grey loose end costs 2.5 times what was taken, a liability 4 times, an overreach 3 times.
+Each card lists the factors behind its odds.
 
 **Passing.** A meeting passes at 70% of its points (80% for the last). Fail and nothing is
 banked. The first passed sitting is locked onto the record. After that the meeting can only be
@@ -49,8 +59,8 @@ or a disclosure never can. Deal beats exist so far in Meetings IV, VI, VII, IX a
 **Finding more in a deal.** Five mechanics teach that the deal space is wider than it looks
 and that some gains cost nothing.
 
-- **Free options** (`o` asks): no cash today, a value that pays off 40% of the time at the
-  reckoning, and no downside. An overreach can be dressed as one by adding `'later'` as a
+- **Free options** (`o` asks): no cash today, a value that may pay off at the reckoning,
+  and no downside. An overreach can be dressed as one by adding `'later'` as a
   fourth element, for cases where the option is taken from people you owe a duty to.
 - **Term sheets** (`sheet` in place of `deal`): the player ticks any number of terms. Each is
   `[kind, text, why, pain, value]`, with kind `c` (cash now), `o` (option) or `x` (overreach)
