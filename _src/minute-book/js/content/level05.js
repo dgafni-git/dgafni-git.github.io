@@ -89,6 +89,7 @@ MB.level({
             ['g', `Distribute it all, on investors' promise to send money back if needed.`, `In a year those promises must be collected from people who have spent the money.`],
             ['p', `Distribute it all. Contractors can chase an empty company.`, `Creditors can recover that money from those who received it and those who approved it.`]
           ],
+          wider: [`Buy insurance for the warranty, pay the contractors, and distribute the rest now.`, `A small premium replaces a large reserve. Investors get nearly everything a year sooner.`],
           rule: `Liabilities come before distributions. Reserve first, release on a stated date.`,
           us: `Members who knowingly receive a distribution that leaves an LLC unable to pay its debts can be made to return it.`,
           ca: `Corporations may not pay dividends that leave them unable to meet liabilities, and limited partners can be required to return distributions.`
@@ -233,6 +234,7 @@ MB.level({
             ['g', `Use the general partner's value and disclose how it was reached.`, `Disclosed, and still set by the party it pays.`],
             ['p', `Go ahead as proposed.`, `Cash to the general partner on its own valuation, land to everyone else.`]
           ],
+          wider: [`Put the land in a small company all partners own in the same shares, and pay promote only when it sells.`, `Nobody has to agree on a value today, and everyone is paid on the real one.`],
           rule: `If investors are paid in something hard to value, so is the sponsor.`
         };
       }
@@ -277,6 +279,7 @@ MB.level({
             ['g', `Release it against the principals' signed promises.`, `Security the investors bargained for is swapped for a weaker one without asking.`],
             ['p', `Release it. The fund is doing well.`, `Doing well so far is exactly when a clawback seems unnecessary.`]
           ],
+          wider: [`Offer investors a bank letter of credit in place of the cash, and ask them to approve the swap.`, `Their protection stays as strong, and the principals get their money. It is their consent to give.`],
           rule: `Security held for investors is released by the investors.`
         };
       }

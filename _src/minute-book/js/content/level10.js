@@ -1,5 +1,5 @@
 MB.level({
-  n: 10, title: 'Foreclosure and Owned Property', rank: 'Chief Restructuring Officer', pass: 0.7, draw: { authored: 4, numeric: 2 }, numerics: ['deficiency', 'reo'],
+  n: 10, title: 'Foreclosure and Owned Property', rank: 'Chief Restructuring Officer', pass: 0.7, draw: { authored: 4, numeric: 2, spot: 1 }, numerics: ['deficiency', 'reo'],
   topics: 'Remedies, taking title, and the entity that holds what you took',
   role: 'You run workouts at the lender, turning bad loans into something.',
   blurb: 'Enforcing a mortgage turns a lender into an owner. Process, price and structure decide what happens next.',
@@ -12,6 +12,25 @@ MB.level({
     ['Receiver', 'An independent person appointed by the lender or a court to take control of the property, protect it and sell it.'],
     ['Environmental due diligence', 'Investigation of contamination before taking title. Owners can be liable for cleanup regardless of who caused it.'],
     ['Owned-property entity', 'A special purpose entity that takes title to foreclosed property, funded by a documented loan from the lender at an independently appraised value.']
+  ],
+  spots: [
+    {
+      id: 'l10-spot', title: 'Read the property file',
+      make: function () {
+        return {
+          scene: `You have taken title to a four-storey building. The plan is to sell it as it stands. You read the file first.`,
+          parts: [
+            [`Zoned for six storeys. The approved site plan uses four.`, 'y', `Two storeys of unused density. It can be built, or sold to a buyer who will build it.`],
+            [`Property taxes are paid up to date.`, 'n', `Good, and nothing more.`],
+            [`A rooftop cell tower lease pays $1,800 a month and may be assigned.`, 'y', `An income stream that can be sold separately to specialist buyers, often for many years of rent up front.`],
+            [`The parking lot is shared with the neighbour under a 1998 agreement.`, 'n', `Something to check, not something to sell.`],
+            [`The environmental report is clean.`, 'n', `Comfort.`]
+          ],
+          rule: `A property is a bundle of rights. Some can be sold without selling the building.`,
+          behind: `Buyers price what they see. Unused density and side income are in the file, not on the street, so sellers who do not read the file give them away.`
+        };
+      }
+    }
   ],
   scenarios: [
     {
@@ -61,6 +80,7 @@ MB.level({
               ['m', `Sell the loan at a discount to a specialist buyer, with the report disclosed.`, `They price the risk better than you can, and you never own the site.`],
               ['r', `Offer the borrower more time in return for a funded cleanup escrow.`, `The owner pays for the cleanup. This borrower has little money left.`],
               ['x', `Sell the loan quickly without mentioning the report.`, `Concealing a known defect from a buyer is misrepresentation. They will find the report.`],
+              ['o', `Sell the loan, keeping a share of the profit if the buyer resells within two years.`, `The buyer gives up nothing unless it does well, and then you share in it.`],
               ['n', `Hold the loan and wait.`, `Nothing lost today. The interest keeps going unpaid.`]
             ],
             rule: `Bad news about an asset can be sold, at a price, to someone told the truth.`
@@ -89,15 +109,17 @@ MB.level({
             ['g', `Sign the borrower's form before ${a.first} changes course.`, `Fast, but the guarantor is released and the property comes with whatever is registered.`],
             ['p', `Accept the deed and discharge the mortgage.`, `Discharging gives away priority. Every junior claim moves up.`]
           ],
-          deal: {
-            setup: `Title is clean and the appraisal is below the debt. ${a.first}, the borrower, still wants the personal guarantee released and has little cash.`,
-            asks: [
-              ['m', `Release the guarantee for the deed plus full cooperation: plans, permits, contracts and keys.`, `Cooperation is worth months on a half-built site, and ${a.first} can give it.`],
-              ['r', `Release the guarantee only for a cash payment toward the shortfall.`, `Fair to ask of a guarantor. ${a.first} may not have it.`],
-              ['x', `Take the deed now and say the release will follow, without meaning it.`, `A promise you do not intend to keep is fraud, and it can unwind the transfer.`],
-              ['n', `Take the deed and release the guarantee as offered.`, `Simple and quick. You asked for nothing extra.`]
+          sheet: {
+            setup: `Title is clean and the appraisal is below the debt. ${a.first}, the borrower, wants the personal guarantee released and is walking away from the project. Write the terms.`,
+            terms: [
+              ['c', `Full cooperation: plans, permits, contracts and keys.`, `An afternoon for the borrower. Months saved for you.`, 0, 0.9],
+              ['c', `A cash payment toward the shortfall.`, `The borrower has little cash. This is the hard one.`, 3, 1.4],
+              ['o', `The borrower's claims against the contractor, assigned to you.`, `Worthless to someone leaving the project. Possibly worth a great deal to its new owner.`, 0, 1.5],
+              ['o', `Supplier deposits and warranties, assigned to you.`, `They are abandoning these anyway. You can use them.`, 0, 0.8],
+              ['c', `Six months of the borrower's time, unpaid, to finish the build.`, `A lot to ask of someone who has just lost the property.`, 2, 0.7],
+              ['x', `Take the deed now and promise the release later, without meaning to give it.`, `A promise you do not intend to keep is fraud, and can unwind the transfer.`, 0, 2.4]
             ],
-            rule: `A release is worth something. Trade it openly for cooperation or cash.`
+            rule: `Someone walking away holds things that are worthless to them and valuable to you. Ask for all of them.`
           },
           rule: `A voluntary transfer gives title as it is. Search first and keep the mortgage alive.`,
           us: `A transfer by an insolvent borrower for less than fair value can be challenged later. An appraisal is standard.`,
@@ -259,6 +281,7 @@ MB.level({
             ['g', `Phone the tenants and ask them to redirect rent.`, `Some will, some will not, and none are protected.`],
             ['p', `Change the locks on the borrower's management office.`, `That is taking possession without process.`]
           ],
+          wider: [`Offer the borrower a choice: rents into a joint account while you talk, or a receiver tomorrow.`, `Most borrowers take the account. The money stops leaking without a court application.`],
           rule: `Security over rents is exercised by formal notice.`
         };
       }
@@ -288,6 +311,7 @@ MB.level({
               ['m', `Offer the extension at market rent for the added years.`, `It keeps the anchor and lifts the income over time.`],
               ['r', `Ask for market rent from today in return for the expansion.`, `The grocer wants the space, but its current rent is protected.`],
               ['x', `Say the lease will not survive unless the rent goes up.`, `That is the threat you promised in writing not to make.`],
+              ['o', `Ask for a share of the grocer's sales above a set level.`, `It costs the grocer nothing at today's sales. If the bigger store thrives, the rent rises with it.`],
               ['n', `Hear them out and commit to nothing.`, `Nothing lost. The opening may not come again.`]
             ],
             rule: `A protected tenant can still be a willing one. Offer something it wants.`
@@ -313,6 +337,7 @@ MB.level({
             ['g', `Process it slowly and see whether the deadline passes.`, `Delay to defeat a payment made on time is bad faith.`],
             ['p', `Refuse the payment.`, `Refusing a valid payment does not end the right. It adds damages.`]
           ],
+          wider: [`Accept the payment, and offer to introduce your buyer to the borrower for an agreed fee.`, `The debt is paid, the borrower may sell well, and you are paid for the introduction.`],
           rule: `A lender's interest in a property ends when the debt is paid.`
         };
       }

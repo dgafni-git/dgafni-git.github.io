@@ -1,5 +1,5 @@
 MB.level({
-  n: 6, title: 'Partnerships', rank: 'Principal', pass: 0.7, draw: { authored: 5 },
+  n: 6, title: 'Partnerships', rank: 'Principal', pass: 0.7, draw: { authored: 5, spot: 1 },
   topics: 'General partners, limited partners and the agreement between them',
   role: 'You are an officer of the general partner, which runs the fund for its investors.',
   blurb: 'One partner has control. The others have money at risk. The agreement is the whole relationship.',
@@ -12,6 +12,25 @@ MB.level({
     ['Removal rights', 'The limited partners\' power to replace the general partner by a stated vote, for cause or sometimes without it.'],
     ['Key person clause', 'A term that pauses new investing or gives investors an exit if named individuals stop devoting their time to the fund.'],
     ['Good faith', 'A baseline obligation that survives almost any drafting: a party given discretion must use it honestly and for the purpose it was given.']
+  ],
+  spots: [
+    {
+      id: 'l6-spot', title: 'Read the partnership agreement', role: 'You are an investor in the partnership.',
+      make: function () {
+        return {
+          scene: `You are a limited partner. Another partner has just missed a capital call. You re-read the agreement.`,
+          parts: [
+            [`The general partner may call capital on ten business days' notice.`, 'n', `Procedure.`],
+            [`A partner who fails to fund is diluted under Schedule C.`, 'n', `This is what happens to them. It is not yet an opportunity for you.`],
+            [`Any partner may fund a defaulting partner's share and receive the units that go with it.`, 'y', `You can increase your stake at the penalty price, just when the project needs money most.`],
+            [`The term of the partnership is ten years.`, 'n', `A date.`],
+            [`Amendments require a two-thirds vote.`, 'n', `Procedure.`]
+          ],
+          rule: `One partner's default is another partner's chance to buy in at a discount the agreement already set.`,
+          behind: `Default clauses are written to punish the partner who fails. The same clause rewards whoever steps in, and most partners never read that far.`
+        };
+      }
+    }
   ],
   scenarios: [
     {
@@ -92,6 +111,7 @@ MB.level({
             ],
             rule: `When you are on both sides of a deal, you do not also get to bargain.`
           },
+          wider: [`Run an open sale, and let the newer fund bid in it.`, `The market sets the price. If the affiliate wins, nobody can say it paid too little.`],
           rule: `When the general partner is on both sides, someone else sets the price and someone else approves.`,
           us: `Registered fund advisers must disclose and obtain consent for principal transactions with funds they manage.`,
           ca: `Registered fund managers must address material conflicts in the fund's best interest.`
@@ -276,6 +296,7 @@ MB.level({
               ['m', `Ask the buyer to sign the agreement and cover the partnership's legal costs.`, `The agreement allows cost recovery, and every new partner signs on.`],
               ['r', `Ask the buyer to prefund its share of the next capital call.`, `Useful certainty for the partnership. The buyer has no duty to give it.`],
               ['x', `Ask for a personal fee to speed things up.`, `A payment to you for doing your job is a bribe.`],
+              ['o', `Ask the buyer to give the partnership first offer if it ever resells.`, `A buyer keen to get in agrees easily, and the partnership controls who comes next.`],
               ['n', `Consent and wish them both well.`, `Nothing gained, nothing owed.`]
             ],
             rule: `Ask on behalf of the partnership. Ask nothing for yourself.`
@@ -345,6 +366,7 @@ MB.level({
             ['g', `Split it evenly with the fund without asking anyone.`, `Half of a charge you are not entitled to is still not yours to take.`],
             ['p', `Charge it all to the fund as "legal."`, `A vague label hides a general partner expense inside the fund's costs.`]
           ],
+          wider: [`Check first whether the general partner's own insurance covers the claim.`, `Employment claims are often insured. The argument about who pays may not need to happen.`],
           rule: `Costs are split between a general partner and its fund as the agreement says. Doubt goes to the investors.`
         };
       }
@@ -368,16 +390,17 @@ MB.level({
             ['p', `Carry on and keep charging full fees.`, `An expired fund paying full fees with no consent is the general partner serving itself.`]
           ],
           rule: `A fund's term is a promise about when investors get their money back.`,
-          deal: {
-            setup: `The committee agrees that selling now would be a mistake. They ask what terms you propose for the extra year.`,
-            asks: [
-              ['m', `One year at half fees.`, `It shares the pain of the delay. Committees say yes to this.`],
-              ['r', `Two years at full fees.`, `More time and no fee cut. They may think you are in no hurry.`],
-              ['v', `One year with no fee at all.`, `It costs you real income and proves you want the properties sold.`],
-              ['x', `Say the properties will be dumped unless they agree today.`, `Threatening to harm the fund to win a vote is a breach of your duty to it.`],
-              ['n', `One year on the existing terms.`, `What the agreement provides, nothing more.`]
+          sheet: {
+            setup: `The advisory committee agrees that selling now would be a mistake, and asks what you propose for the extra year. These are your own investors. Write the terms.`,
+            terms: [
+              ['c', `Half fees for the extra year.`, `You are still paid, and they see you sharing the delay.`, 1, 0.6],
+              ['c', `Full fees for the extra year.`, `They wonder why you would be in any hurry to sell.`, 3, 1.2],
+              ['o', `A second year, available only if both sides agree at the time.`, `It commits them to nothing now, and saves a second negotiation.`, 0, 0.9],
+              ['o', `An option for the general partner to buy the properties itself at appraised value.`, `An option over their property for their own manager. They may agree, and they will remember you asked.`, 3, 1.8],
+              ['c', `Monthly updates on each sale effort.`, `Costs you an hour. It is what they wanted most.`, 0, 0.3],
+              ['x', `Say the properties will be dumped unless they agree today.`, `Threatening to harm the fund to win a vote is a breach of your duty to it.`, 0, 2.2]
             ],
-            rule: `Extra time is something to pay for, not something to extract.`
+            rule: `With people whose money you manage, an option for yourself is never free. It needs their informed agreement, and it costs trust.`
           }
         };
       }

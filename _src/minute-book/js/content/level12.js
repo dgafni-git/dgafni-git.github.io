@@ -217,6 +217,7 @@ MB.level({
             ['g', `Pay half the old invoices to keep deliveries coming.`, `Half a preference is still a preference.`],
             ['p', `Pay the old invoices in full.`, `One creditor paid out at the expense of all the others.`]
           ],
+          wider: [`Offer cash on delivery, plus a small premium on new orders.`, `The supplier has a reason to keep delivering, and no old debt is paid ahead of the others.`],
           rule: `In insolvency, creditors of the same rank are treated alike, however loud.`
         };
       }
@@ -261,6 +262,7 @@ MB.level({
             ['g', `Move out only the equipment you believe is leased from others.`, `Possibly right, but done on your own say-so and at night.`],
             ['p', `Clear the premises overnight.`, `Removing goods to defeat a creditor's rights can be reversed and can be an offence.`]
           ],
+          wider: [`Offer the landlord the proceeds of selling the equipment, in return for ending the lease early.`, `The landlord gets money and its unit back. The company sheds the lease.`],
           rule: `A creditor's rights over property are not defeated by moving the property.`
         };
       }
@@ -305,6 +307,7 @@ MB.level({
             ['g', `Agree to one more month, as before.`, `A sixth month on the same assurance, with nothing to measure it by.`],
             ['p', `Continue, and stop paying taxes to stretch the cash.`, `That adds personal liability to mounting losses.`]
           ],
+          wider: [`Ask the would-be buyer to fund this month's losses as a deposit.`, `A serious buyer will. If it refuses, you have learned what the last five months were worth.`],
           rule: `A board may wait for a rescue, with a deadline and a reason it can defend.`
         };
       }

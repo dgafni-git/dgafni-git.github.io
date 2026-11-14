@@ -1,5 +1,5 @@
 MB.level({
-  n: 7, title: 'Contracts and Related Parties', rank: 'Managing Director', pass: 0.7, draw: { authored: 5 },
+  n: 7, title: 'Contracts and Related Parties', rank: 'Managing Director', pass: 0.7, draw: { authored: 5, spot: 1 },
   topics: 'Assignments, releases, insiders as vendors and deals with yourself',
   role: 'You are a managing director at the general partner, signing off on its contracts.',
   blurb: 'Insiders end up on both sides of a deal. That is fine when it is written down and approved by someone else.',
@@ -12,6 +12,25 @@ MB.level({
     ['Arm\'s length', 'The terms unrelated parties would agree to, each looking after its own interest. The benchmark for any related-party deal.'],
     ['Beneficial ownership', 'The real economic ownership of an interest, whoever\'s name is on the register. Arrangements where one person holds for another must be disclosed where the agreement or the law requires.'],
     ['Change of control', 'A clause triggered when ownership of a contracting party changes hands, often treated the same as an assignment.']
+  ],
+  spots: [
+    {
+      id: 'l7-spot', title: 'Read the service contract',
+      make: function () {
+        return {
+          scene: `A three-year-old maintenance contract is up for its annual price increase. You read it before paying.`,
+          parts: [
+            [`Fees increase by 3% each year.`, 'n', `The term everyone remembers.`],
+            [`Invoices are due in 30 days.`, 'n', `Routine.`],
+            [`The customer receives the lowest price the vendor charges any comparable customer.`, 'y', `A matching right you already hold. Ask for proof that it is being honoured.`],
+            [`The vendor may subcontract the work.`, 'n', `A right for the vendor.`],
+            [`This agreement renews each year unless either side gives notice.`, 'n', `A deadline to watch.`]
+          ],
+          rule: `Rights you already hold are the cheapest gains there are. Most go unused.`,
+          behind: `Vendors grant matching rights to win the contract and count on nobody checking. One letter asking them to confirm compliance often produces a credit.`
+        };
+      }
+    }
   ],
   scenarios: [
     {
@@ -33,15 +52,17 @@ MB.level({
             ['g', `Email ${b.first} to confirm "same terms as before."`, `It shows an understanding. It does not show consent or that anyone took on the obligations.`],
             ['p', `Leave it. The work is being done.`, `Fine until there is a claim. Then nobody can say who is party to what.`]
           ],
-          deal: {
-            setup: `${b.first}, the new manager, is relieved to get a real contract and asks what terms you want. The work has been good.`,
-            asks: [
-              ['m', `Ask for a 30-day termination right and proof of insurance.`, `Standard protections ${b.first} will happily give.`],
-              ['r', `Ask for a 10% lower fee in return for a three-year term.`, `A fair trade of price for certainty. ${b.first} may not need the certainty.`],
-              ['x', `Demand a refund of six months of fees, since no contract covered them.`, `The work was done and accepted. Using your own paperwork gap as a weapon is bad faith.`],
-              ['n', `Paper the existing terms as they are.`, `Clean, and nothing more.`]
+          sheet: {
+            setup: `${b.first}, the new manager, is relieved to get a real contract and asks what terms you want. The work has been good. Write the terms.`,
+            terms: [
+              ['c', `A 30-day termination right and proof of insurance.`, `Standard. They give it without thinking.`, 0, 0.5],
+              ['c', `A fee 10% lower.`, `That is their margin. This is where patience goes.`, 3, 1.2],
+              ['o', `The right to renew for two years at today's price.`, `It costs nothing unless prices rise, which is when you want it.`, 1, 1.0],
+              ['o', `A matching right: your fee drops if they charge a similar client less.`, `Free to them unless they discount someone else.`, 0, 0.8],
+              ['c', `Monthly reporting in your format.`, `A template to them. Hours saved for you every month.`, 0, 0.4],
+              ['x', `A refund of six months of fees, since no contract covered them.`, `The work was done and accepted. Using your own paperwork gap as a weapon is bad faith.`, 0, 2.2]
             ],
-            rule: `A gap in the paper is a chance to improve terms going forward, not to claw back the past.`
+            rule: `A new contract is the moment to collect the terms nobody thinks to charge for.`
           },
           rule: `A contract does not follow the work. Assign it, get consent, and have the new party sign.`
         };
@@ -113,6 +134,7 @@ MB.level({
               ['m', `Have them ask the firm to match the lowest quote.`, `The quotes did their job. The price is now a market price.`],
               ['r', `Have them ask for 10% below the lowest quote, with part of the fee tied to schedule.`, `Hard bargaining with an insider, done by the right people. The firm may walk.`],
               ['x', `Show the firm its rivals' bids so it can undercut them.`, `Leaking sealed bids to a favoured bidder corrupts the tender you just ran.`],
+              ['o', `Have them ask for the right to renew for two years at this price.`, `It costs the firm nothing unless prices rise, which is exactly when you want it.`],
               ['n', `Award it at the firm's quoted price.`, `Defensible if the directors record why quality justified the premium.`]
             ],
             rule: `Use the market to price an insider. Do not hand the insider the market's secrets.`
@@ -236,6 +258,7 @@ MB.level({
               ['m', `Offer a one-year renewal with written performance standards.`, `They keep the work, and you get a way to measure it.`],
               ['r', `Ask for 15% off and the right to end it on 30 days' notice.`, `A lot to give up. They may prefer to lose the account.`],
               ['x', `Say you will tell their other clients about the poor work unless they cut the price.`, `Threatening someone's reputation to get money can amount to extortion.`],
+              ['o', `Ask for the right to renew for two more years at this year's price.`, `A vendor fighting to keep the account gives this away. You are covered if prices climb.`],
               ['n', `Let it expire and rebid.`, `A clean break. Rebidding takes time.`]
             ],
             rule: `Leverage from a real right is fair. Leverage from a threat is not.`
@@ -261,6 +284,7 @@ MB.level({
             ['g', `Sign. Nobody ever gets sued on these.`, `True until the one time it matters, when the clause decides who pays.`],
             ['p', `Sign, and waive the insurance certificate too.`, `Now nobody stands behind the advice, including an insurer.`]
           ],
+          wider: [`Ask to be added to the consultant's professional liability insurance, with the cap raised to the policy limit.`, `It costs the consultant almost nothing, and an insurer now stands behind the advice.`],
           rule: `The indemnity and liability clauses are the contract. The rest is description.`
         };
       }
@@ -305,6 +329,7 @@ MB.level({
             ['g', `Approve it at the bank deposit rate as cash management.`, `A below-market loan to an insider is a gift from the other owners.`],
             ['p', `Wire it. ${a.first} is good for it.`, `Company money left on the boss's word, likely in breach of the loan agreement.`]
           ],
+          wider: [`Suggest ${a.first} borrow from a bank against ${a.first}'s own units.`, `${a.first} gets the cash, and the company's money never moves.`],
           rule: `Lending company money to an insider needs the approval of everyone but the insider.`,
           us: `Public companies are barred from making personal loans to their executives.`,
           ca: `Corporate statutes no longer ban these loans outright, but directors owe duties in approving them, and related-party loans are disclosed in the financial statements.`

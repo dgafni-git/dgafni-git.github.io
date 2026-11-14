@@ -15,7 +15,7 @@
   var PAY = { s: [0.7, 1.3], g: [0.9, 1.7], p: [1.1, 2.4] };
   /* Goodwill a first choice costs or earns. A sound choice burns more the harder someone pushed. */
   var BURN = [0, -1, -4];
-  var GW = { g: 1, p: 2, due: -6, pass: 6, gold: 10 };
+  var GW = { g: 1, p: 2, due: -6, pass: 3, gold: 6 };
   /* The asks in a deal beat. pay is a multiple of the meeting's stake. */
   var ASK = {
     m: { label: 'Fair ask', tone: 's', pay: [0.4, 0.7], gw: 5 },
@@ -23,9 +23,12 @@
     x: { label: 'Overreach', tone: 'p', pay: [1.8, 3.0], gw: -8, chance: 0.7, times: 3 },
     t: { label: 'Tone-deaf', tone: 'g', pay: [0.3, 0.6], gw: -7 },
     v: { label: 'A gift', tone: 's', pay: [0.25, 0.45], gw: 10 },
+    o: { label: 'Free option', tone: 's', pay: [1.2, 2.4], gw: 1 },
     n: { label: 'No ask', tone: 'n', pay: [0, 0], gw: 1, gwRight: 3 }
   };
-  var RUN_V = 5;
+  var RUN_V = 6;
+  /* Looking for a wider answer costs a little time. A free option pays off less than half the time, and never costs. */
+  var LOOK = 0.2, WIDE = 1.7, OPT_CHANCE = 0.4;
   var START_RANK = 'Analyst';
   var SEED_EQUITY = 100000;
   var KEY = 'minute-book-v2';
@@ -66,15 +69,43 @@
     ['contingency', 'Contingency'], ['change order', 'Change order'], ['holdback|lien', 'Lien and holdback'], ['cost to complete', 'Cost to complete'], ['builder.s risk', 'Builder\'s risk insurance'],
     ['covenant', 'Covenant'], ['forbearance', 'Forbearance agreement'], ['guarant(?:ee|or)s?', 'Guarantee'], ['intercreditor', 'Intercreditor agreement'],
     ['power of sale', 'Power of sale'], ['credit bid', 'Credit bid'], ['receiver', 'Receiver'], ['letter of intent', 'Letter of intent'],
-    ['right of first refusal', 'Right of first refusal'], ['drag', 'Drag-along and tag-along'], ['side letters?', null], ['insolven(?:t|cy)', 'Insolvency'],
-    ['register', 'Registers']
+    ['right of first refusal', 'Right of first refusal'], ['drag', 'Drag-along and tag-along'], ['side letters?', 'Side letter'], ['insolven(?:t|cy)', 'Insolvency'],
+    ['register', 'Registers'],
+    ['right of first offer|first offer|first[- ]offer right', 'Right of first offer'], ['matching right|right to match', 'Matching right'],
+    ['option to extend|extension options?|right to extend|right to renew', 'Extension option'], ['share of (?:the )?(?:sale|resale) (?:proceeds|profit)|profit share', 'Profit share'],
+    ['standstill', 'Standstill'], ['escrow', 'Escrow'], ['not to disturb|non-disturbance', 'Non-disturbance agreement'], ['bond', 'Bond'],
+    ['interest reserve', 'Interest reserve'], ['consent fee', 'Consent fee'], ['co-invest(?:ment|ors?)?', 'Co-investment'],
+    ['opening bid', 'Opening bid'], ['second charge|charge on', 'Charge'], ['earn-out', 'Earn-out'], ['liquidated damages', 'Liquidated damages'],
+    ['density', 'Density'], ['allowances?', 'Allowance'], ['professional liability', 'Professional liability insurance'], ['letter of credit', 'Letter of credit']
   ];
+  var EXTRA_DEFS = {
+    'Side letter': 'A private agreement giving one investor terms the others do not have. Acceptable when the main agreement permits it and those entitled are told.',
+    'Right of first offer': 'A promise that if they ever sell, or borrow, they come to you first. It costs them nothing unless that day arrives.',
+    'Matching right': 'A right to take the same terms someone else is offered: a better price given to another customer, or a rival bid.',
+    'Extension option': 'A right to add time at a price fixed today, used only if you need it.',
+    'Profit share': 'A slice of any gain above an agreed level. If there is no gain, it costs the giver nothing.',
+    'Standstill': 'An agreement to take no action for a set period while the parties talk.',
+    'Escrow': 'Money or documents held by a neutral third party until a condition is met.',
+    'Non-disturbance agreement': 'A lender\'s promise to a tenant that the lease survives if the lender takes over the property.',
+    'Bond': 'A guarantee from an insurer, called a surety, that it will finish the work or pay if the contractor fails.',
+    'Interest reserve': 'Money set aside up front to cover interest payments for a period.',
+    'Consent fee': 'A payment for agreeing to something you had the right to refuse.',
+    'Co-investment': 'A chance to invest directly in one deal alongside the fund, usually with little or no fee.',
+    'Opening bid': 'A first firm bid that sets a floor for a sale, which others may still beat.',
+    'Charge': 'Security over property, like a mortgage. A second charge ranks behind the first.',
+    'Earn-out': 'Part of a purchase price paid later, only if the business performs.',
+    'Liquidated damages': 'A sum fixed in advance for a breach, such as each day of delay.',
+    'Density': 'How much may be built on a site under its zoning. Unused density can be built, sold or transferred.',
+    'Allowance': 'A sum in a construction price set aside for an item not yet chosen. What is not spent should come back to the owner.',
+    'Professional liability insurance': 'Insurance that pays when a consultant\'s advice or design is wrong.',
+    'Letter of credit': 'A bank\'s promise to pay on demand, used as security in place of cash.'
+  };
   var DEFS = null;
   function defs() {
     if (DEFS) return DEFS;
     DEFS = {};
     MB.levels.forEach(function (L) { L.concepts.forEach(function (c) { DEFS[c[0]] = c[1]; }); });
-    DEFS['Side letter'] = 'A private agreement giving one investor terms the others do not have. Acceptable when the main agreement permits it and those entitled are told.';
+    Object.keys(EXTRA_DEFS).forEach(function (k) { DEFS[k] = EXTRA_DEFS[k]; });
     return DEFS;
   }
   function tipify(html) {
@@ -88,6 +119,19 @@
       taken[term] = 1; used++;
     });
     return html;
+  }
+
+  /* A row of tappable terms found in text that cannot hold a button itself, such as an option. */
+  function termChips(texts) {
+    var d = defs(), joined = texts.join(' \n '), out = [];
+    ALIAS.forEach(function (al) {
+      var term = al[1];
+      if (!d[term] || out.indexOf(term) >= 0 || out.length >= 4) return;
+      if (new RegExp('(^|[^A-Za-z])(' + al[0] + ')(?![A-Za-z])', 'i').test(joined)) out.push(term);
+    });
+    return out.length ? '<p class="terms-used"><span class="label">Terms</span> ' + out.map(function (t) {
+      return '<button type="button" class="tip" data-act="tip" data-term="' + t.replace(/"/g, '&quot;') + '">' + t + '</button>';
+    }).join(' ') + '</p>' : '';
   }
 
   /* ---------- seeded generation ---------- */
@@ -237,6 +281,9 @@
       var at = g0.int(1, order.length);
       order.splice(at, 0, { kind: 'numeric', key: k });
     });
+    g0.shuffle(L.spots || []).slice(0, L.draw.spot || 0).forEach(function (sp) {
+      order.splice(g0.int(1, order.length), 0, { kind: 'spot', def: sp });
+    });
     var story = L.story ? L.story(makeGen(run.seed ^ hash('story'))) : null;
     if (story) story.alt = !!run.alt;
     var items = order.map(function (o) {
@@ -245,6 +292,13 @@
         var inst = MB.numerics[o.key](gn);
         inst.kind = 'numeric'; inst.id = o.key; inst.stake = round2(B * trust);
         return inst;
+      }
+      if (o.kind === 'spot') {
+        var sp = o.def.make(makeGen(run.seed ^ hash(o.def.id)));
+        sp.kind = 'spot'; sp.id = o.def.id; sp.title = o.def.title; sp.role = o.def.role || L.role || '';
+        sp.stake = round2(B * 1.5);
+        sp.parts = sp.parts.map(function (q) { return { t: q[0], k: q[1], why: q[2] }; });
+        return sp;
       }
       var gc = makeGen(run.seed ^ hash(o.def.id));
       gc.story = story;
@@ -268,12 +322,26 @@
         var gw = a[0] === 's' ? BURN[burnLevel] : (gc.twist && a[0] === 'g') ? -1 : GW[a[0]];
         return { g: a[0], t: a[1], why: a[2], cash: cash, gw: gw, risk: a[0] === 's' ? 0 : round2(cash * GRADE[a[0]].times) };
       }));
+      made.lookCost = round2(B * LOOK);
+      if (made.wider && !gc.twist) {
+        var sOpt = made.options.filter(function (x) { return x.g === 's'; })[0];
+        made.wide = { g: 's', wide: true, t: made.wider[0], why: made.wider[1], cash: round2(sOpt.cash * WIDE), gw: 2, risk: 0 };
+      }
+      if (made.sheet) {
+        var gs = makeGen(run.seed ^ hash('sheet:' + o.def.id));
+        made.sheet.terms = gs.shuffle(made.sheet.terms.map(function (t) {
+          var val = round2(B * t[4]);
+          return { k: t[0], t: t[1], why: t[2], pain: t[3], val: val, risk: t[0] === 'x' ? round2(val * ASK.x.times) : 0 };
+        }));
+      }
       if (made.deal) {
         var ga = makeGen(run.seed ^ hash('ask:' + o.def.id));
         made.deal.roll = ga.rnd();
         var asks = ga.shuffle(made.deal.asks.map(function (a) {
           var R = ASK[a[0]], c = round2(B * (R.pay[0] + ga.rnd() * (R.pay[1] - R.pay[0])));
-          return { k: a[0], t: a[1], why: a[2], cash: a[0] === 'n' ? 0 : a[0] === 'v' ? -c : c, risk: a[0] === 'x' ? round2(c * R.times) : 0 };
+          var later = a[0] === 'o' || a[3] === 'later';
+          return { k: a[0], t: a[1], why: a[2], later: later, show: c, opt: a[0] === 'o' ? c : 0,
+            cash: a[0] === 'n' || later ? 0 : a[0] === 'v' ? -c : c, risk: a[0] === 'x' ? round2(c * R.times) : 0 };
         }));
         made.deal.asks = asks.filter(function (a) { return a.k !== 'n'; }).concat(asks.filter(function (a) { return a.k === 'n'; }));
       }
@@ -353,20 +421,21 @@
   };
 
   function tally(run) {
-    var t = { cash: 0, open: 0, risk: 0, gw: runGw(run) };
+    var t = { cash: 0, open: 0, risk: 0, opts: 0, gw: runGw(run) };
     run.answers.forEach(function (a) {
       t.cash += a.cash; if (a.risk) { t.open++; t.risk += a.risk; }
-      if (a.ask) { t.cash += a.ask.cash; if (a.ask.risk) { t.open++; t.risk += a.ask.risk; } }
+      if (a.ask) { t.cash += a.ask.cash; if (a.ask.risk) { t.open++; t.risk += a.ask.risk; } t.opts += (a.ask.opts || []).length; }
     });
     return t;
   }
+  function patience(gw) { return 2 + Math.floor(gw / 25); }
 
   function finishRun() {
     var run = S.run, items = buildItems(run), L = level(run.n);
     var pts = run.answers.reduce(function (t, a) { return t + GRADE[eff(a)].pts; }, 0);
     var max = items.length * 2, pct = pts / max;
     var passed = pct >= L.pass - 1e-9;
-    var before = rank(), first = false, gross = 0, losses = 0, reckon = [], gw = runGw(run);
+    var before = rank(), first = false, gross = 0, losses = 0, optGain = 0, reckon = [], gw = runGw(run);
     run.answers.forEach(function (a, i) {
       gross += a.cash + (a.ask ? a.ask.cash : 0);
       if (!passed) return;
@@ -380,9 +449,14 @@
         if (due2) { losses += a.ask.risk; gw += GW.due; }
         reckon.push({ i: i, due: due2, cost: a.ask.risk, what: 'the overreach' });
       }
+      if (a.ask && a.ask.opts) a.ask.opts.forEach(function (v, j) {
+        var paid = makeGen(run.seed ^ hash('opt:' + i + ':' + j)).rnd() < OPT_CHANCE;
+        if (paid) optGain += v;
+        reckon.push({ i: i, opt: true, paid: paid, val: v });
+      });
     });
     if (passed) gw += pct === 1 ? GW.gold : GW.pass;
-    var net = passed ? gross - losses : 0;
+    var net = passed ? gross - losses + optGain : 0;
     if (passed && !S.passed[run.n]) {
       first = true;
       S.passed[run.n] = { pct: pct, net: net, gw: gw, gold: pct === 1 };
@@ -392,8 +466,31 @@
     run.answers.forEach(function (a) { parts.choices += a.gw || 0; if (a.ask) parts.asks += a.ask.gw; });
     reckon.forEach(function (r) { if (r.due) parts.due += GW.due; });
     run.phase = 'done'; run.sub = null;
-    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, net: net, gw: passed ? gw : 0, gwParts: parts, reckon: reckon, promoted: rank() !== before ? rank() : null };
+    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, optGain: optGain, net: net, gw: passed ? gw : 0, gwParts: parts, reckon: reckon, promoted: rank() !== before ? rank() : null };
     save();
+  }
+
+  /* What a careful dealmaker would also have taken, listed at adjournment. */
+  function leftOnTable(items, run) {
+    var out = [];
+    items.forEach(function (it, i) {
+      var a = run.answers[i];
+      if (!a) return;
+      if (it.kind === 'spot') { if (!a.found) out.push({ i: i, t: 'An opportunity in the document went unnoticed.', amt: it.stake }); return; }
+      if (it.kind !== 'choice' || a.g !== 's') return;
+      if (it.wide && !a.wide) out.push({ i: i, t: 'There was another way: ' + it.wide.t, amt: Math.max(0, it.wide.cash - (a.cash + (a.look || 0))) });
+      if (it.deal && a.ask) {
+        var mine = it.deal.asks[a.ask.pick], empty = mine.k === 'n' || mine.k === 't' || (mine.k === 'r' && !a.ask.ok);
+        if (empty) it.deal.asks.forEach(function (q) {
+          if (q.k === 'o') out.push({ i: i, t: 'A free option was there for the asking: ' + q.t, amt: q.opt, later: true });
+          else if (q.k === 'm') out.push({ i: i, t: 'A fair ask would have been agreed: ' + q.t, amt: q.cash });
+        });
+      }
+      if (it.sheet && a.ask) it.sheet.terms.forEach(function (t, j) {
+        if (t.k !== 'x' && t.pain === 0 && a.ask.picks.indexOf(j) < 0) out.push({ i: i, t: 'It would have cost them nothing: ' + t.t, amt: t.val, later: t.k === 'o' });
+      });
+    });
+    return out;
   }
 
   /* ---------- views ---------- */
@@ -456,7 +553,7 @@
   function pips(items, run) {
     return '<ol class="pips" aria-label="Agenda progress">' + items.map(function (it, i) {
       var a = run.answers[i];
-      var cls = a ? 'g-' + eff(a) : (i === run.step ? 'now' : '');
+      var cls = a ? 'g-' + (a.found === false ? 'n' : eff(a)) : (i === run.step ? 'now' : '');
       return '<li class="' + cls + '"><span class="vh">Item ' + (i + 1) + (a ? ': ' + GRADE[eff(a)].label : i === run.step ? ': current' : '') + '</span></li>';
     }).join('') + '</ol>';
   }
@@ -465,6 +562,7 @@
     var t = tally(run);
     return '<div class="tally"><span><span class="label">On the table</span> <b>' + plus(t.cash) + '</b></span>' +
       '<span class="' + (t.open ? 'has-risk' : '') + '"><span class="label">Loose ends</span> <b>' + t.open + '</b>' + (t.open ? ' <span class="at-risk">' + MB.cash(t.risk) + ' at risk</span>' : '') + '</span>' +
+      (t.opts ? '<span><span class="label">Options held</span> <b>' + t.opts + '</b></span>' : '') +
       '<span><span class="label">Goodwill</span> <b>' + liveGoodwill(run) + '</b>' + (t.gw ? ' <span class="gw-delta">' + (t.gw > 0 ? '+' : MINUS) + Math.abs(t.gw) + '</span>' : '') + '</span></div>';
   }
 
@@ -474,6 +572,7 @@
   function gwWhy(o, who) {
     if (!o.gw) return '';
     var n = ' <span class="gw-why">Goodwill ' + (o.gw > 0 ? '+' : MINUS) + Math.abs(o.gw);
+    if (o.wide) return n + ': everyone left with something.</span>';
     if (!who) return n + '.</span>';
     if (o.g === 's') return n + ': ' + who + ' wanted a different answer.</span>';
     return n + ': ' + who + (o.g === 'g' ? ' got most of what was wanted.' : ' got exactly what was wanted.') + '</span>';
@@ -497,18 +596,42 @@
 
   function viewPlay(L, run) {
     var items = buildItems(run), it = items[run.step], ans = run.answers[run.step];
-    if (run.sub === 'ask' && it.deal && ans) return viewAsk(L, run, items, it, ans);
+    if (run.sub === 'ask' && ans && it.sheet) return viewTerms(L, run, items, it, ans);
+    if (run.sub === 'ask' && ans && it.deal) return viewAsk(L, run, items, it, ans);
     var last = run.step === items.length - 1;
-    var pending = ans && it.deal && ans.g === 's' && !ans.ask;
+    var pending = ans && (it.deal || it.sheet) && ans.g === 's' && !ans.ask;
     var body = '', ruling = '';
     if (it.kind === 'choice') {
-      body = '<div class="opts" role="group" aria-label="Motions">' + it.options.map(function (o, i) {
+      var looked = !!(run.look && run.look[run.step]);
+      var list = it.options.slice();
+      if (it.wide && (looked || ans)) list.push(it.wide);
+      body = '<div class="opts" role="group" aria-label="Motions">' + list.map(function (o, i) {
         var letter = 'abcdef'.charAt(i);
         var pay = '<span class="opt-pay">' + plus(o.cash) + '</span>';
-        if (!ans) return '<button class="opt" data-act="choose" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span>' + pay + '</button>';
+        if (!ans) return '<button class="opt' + (o.wide ? ' is-wide' : '') + '" data-act="choose" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span>' + pay + '</button>';
         var mine = ans.pick === i;
-        return doneCard(mine, o.g, letter, o.t, moneyLine(o, mine, it.who), o.why, chip(o.g) + (mine ? '<span class="yours">Your motion</span>' : ''));
+        var tag = o.wide ? '<span class="chip g-s">Another way</span>' : chip(o.g);
+        var money = moneyLine(o, mine, it.who) + (mine && ans.look ? ' Looking wider cost <b>' + MB.cash(ans.look) + '</b>.' : '') + (o.wide && !mine && !ans.look ? ' You did not look for it.' : '');
+        return doneCard(mine, o.g, letter, o.t, money, o.why, tag + (mine ? '<span class="yours">Your motion</span>' : ''));
       }).join('') + '</div>';
+      if (!ans) {
+        body += looked
+          ? '<p class="note">' + (it.wide ? 'You looked wider, and found another way. It is listed last.' : 'You looked wider. These are the only options here.') + ' That cost <b>' + MB.cash(it.lookCost) + '</b>.</p>'
+          : '<div class="look"><button type="button" class="btn quiet" data-act="look">Is there another way?</button><span class="opt-pay">' + MB.cash(-it.lookCost) + ' to look</span></div>';
+        body += termChips(list.map(function (o) { return o.t; }));
+      }
+    } else if (it.kind === 'spot') {
+      body = '<p class="clause">' + it.parts.map(function (q, i) {
+        if (!ans) return '<button type="button" class="part" data-act="spot" data-i="' + i + '">' + q.t + '</button>';
+        return '<span class="part done' + (q.k === 'y' ? ' hit' : '') + (ans.pick === i ? ' mine' : '') + '">' + q.t + '</span>';
+      }).join(' ') + '</p>';
+      if (!ans) body += '<p class="note">Tap the phrase that hides an opportunity. <span class="opt-pay">' + plus(it.stake) + ' if you find one</span></p>' + termChips(it.parts.map(function (q) { return q.t; }));
+      else {
+        var picked = it.parts[ans.pick];
+        ruling = '<div class="ruling g-' + (ans.found ? 's' : 'n') + '"><p class="ruling-money">' + (ans.found ? 'Found. <b>' + plus(ans.cash) + '</b>.' : 'Missed. It was hiding in plain sight.') + '</p><ul class="others">' +
+          it.parts.filter(function (q) { return q.k === 'y'; }).map(function (q) { return '<li><span class="chip g-s">Opportunity</span><span><b>' + q.t + '</b> ' + tipify(q.why) + '</span></li>'; }).join('') +
+          (ans.found ? '' : '<li><span class="chip g-n">Your pick</span><span><b>' + picked.t + '</b> ' + tipify(picked.why) + '</span></li>') + '</ul></div>';
+      }
     } else if (!ans) {
       body = '<form class="ledger-form" data-act="figure" novalidate><label for="figure">Your figure <span class="opt-pay">' + plus(it.stake) + ' if right</span></label>' +
         '<div class="ledger-row"><input id="figure" name="figure" inputmode="decimal" autocomplete="off" aria-describedby="figure-hint figure-err"><button class="btn" type="submit">Enter in the ledger</button></div>' +
@@ -517,13 +640,13 @@
       ruling = '<div class="ruling g-' + ans.g + '"><p class="ruling-money">' + chip(ans.g) + ' <b>' + plus(ans.cash) + '</b>. You entered ' + fmtAnswer(it, ans.value) + '. The figure is <b>' + fmtAnswer(it, it.answer) + '</b>.</p>' +
         '<ol class="work">' + it.work.map(function (w) { return '<li>' + w + '</li>'; }).join('') + '</ol></div>';
     }
-    return folio('Meeting ' + ROMAN[L.n] + ' · ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + (run.practice ? ' · practice' : '')) + pips(items, run) + tallyRow(run) +
+    return folio('Meeting ' + ROMAN[L.n] + ' ' + DOT + ' ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + (run.practice ? ' ' + DOT + ' practice' : '')) + pips(items, run) + tallyRow(run) +
       '<h1 class="item-title">' + it.title + '</h1>' +
       (it.role ? '<p class="role"><span class="label">You</span> ' + it.role + '</p>' : '') +
-      '<div class="scene">' + tipify(paras(it.scene)) + '</div><div class="tip-box" id="tip-box" hidden></div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
+      '<div class="scene">' + tipify(paras(it.scene)) + '</div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
       (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
         (it.twist ? '<div class="twist-note"><span class="label">The twist</span><p>' + it.twist + '</p></div>' : '') +
-        (it.behind ? '<div class="behind"><span class="label">What was going on</span><p>' + it.behind + '</p>' +
+        (it.behind ? '<div class="behind"><span class="label">What was going on</span><p>' + tipify(it.behind) + '</p>' +
           (it.deep ? '<details class="deep"><summary>Go deeper</summary><ul>' + it.deep.map(function (d) { return '<li><b>' + d[0] + '.</b> ' + d[1] + '</li>'; }).join('') + '</ul></details>' : '') + '</div>' : '') +
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
         '<div class="actions"><button class="btn" data-act="next">' + (pending ? 'One more thing' : last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
@@ -532,10 +655,10 @@
 
   function doneCard(mine, tone, letter, text, money, why, tags) {
     var inner = '<span class="opt-l">(' + letter + ')</span><span class="opt-t">' + text +
-      '<span class="opt-more"><span class="opt-money">' + money + '</span><span class="opt-why">' + why + '</span></span></span>' +
+      '<span class="opt-more"><span class="opt-money">' + money + '</span><span class="opt-why">' + tipify(why) + '</span></span></span>' +
       '<span class="opt-tags">' + tags + (mine ? '' : '<span class="peek-hint">See why</span>') + '</span>';
     if (mine) return '<div class="opt done chosen g-' + tone + '" id="outcome" tabindex="-1">' + inner + '</div>';
-    return '<button type="button" class="opt done peek g-' + tone + '" data-act="peek" aria-expanded="false">' + inner + '</button>';
+    return '<div role="button" tabindex="0" class="opt done peek g-' + tone + '" data-act="peek" aria-expanded="false">' + inner + '</div>';
   }
 
   function askChip(k) {
@@ -547,9 +670,13 @@
     var R = ASK[a.k];
     if (a.k === 'n') return mine ? 'Nothing asked.' + gwText(res.gw) : 'Nothing gained, nothing risked.';
     if (a.k === 'm') return (mine ? 'Agreed. <b>' + plus(a.cash) + '</b>.' : 'Would have been agreed, for <b>' + plus(a.cash) + '</b>.') + gwText(R.gw);
+    if (a.k === 'o') return (mine ? 'Agreed. You hold a free option worth up to <b>' + plus(a.opt) + '</b>. It cost them nothing today, and you nothing ever.' : 'Would have been agreed: a free option worth up to <b>' + plus(a.opt) + '</b>, at no cost or risk.') + gwText(R.gw);
     if (a.k === 'v') return (mine ? 'Done. <b>' + MB.cash(a.cash) + '</b>.' : 'Would have cost <b>' + MB.cash(-a.cash) + '</b>.') + gwText(R.gw);
     if (a.k === 't') return (mine ? 'Refused, and remembered.' : 'Would have been refused, and remembered.') + gwText(R.gw);
-    if (a.k === 'x') return (mine ? 'They signed. <b>' + plus(a.cash) + '</b> today, and a liability that could cost <b>' + MB.cash(a.risk) + '</b>. It also costs you a governance point.' : 'They would have signed for <b>' + plus(a.cash) + '</b>, leaving a liability of up to <b>' + MB.cash(a.risk) + '</b>.') + gwText(R.gw);
+    if (a.k === 'x') {
+      var got = a.later ? 'a right worth up to <b>' + plus(a.show) + '</b>' : '<b>' + plus(a.cash) + '</b> today';
+      return (mine ? 'They signed. You took ' + got + ', and a liability that could cost <b>' + MB.cash(a.risk) + '</b>. It also costs you a governance point.' : 'They would have signed, giving you ' + got + ' and a liability of up to <b>' + MB.cash(a.risk) + '</b>.') + gwText(R.gw);
+    }
     var ok = deal.roll < res.p;
     if (mine) return (res.ok ? 'Agreed. <b>' + plus(a.cash) + '</b>.' : 'Refused. Nothing gained.') + gwText(res.gw);
     return (ok ? 'Would have been agreed, for <b>' + plus(a.cash) + '</b>.' : 'Would have been refused at your goodwill.') + gwText(ok ? R.gw : R.gwNo);
@@ -559,19 +686,54 @@
     var d = it.deal, res = ans.ask, last = run.step === items.length - 1;
     var body = '<div class="opts" role="group" aria-label="Asks">' + d.asks.map(function (a, i) {
       var letter = 'abcdef'.charAt(i);
-      var pay = '<span class="opt-pay">' + (a.k === 'n' ? '$0' : a.k === 'v' ? MB.cash(a.cash) : plus(a.cash) + ' if agreed') + '</span>';
+      var pay = '<span class="opt-pay">' + (a.k === 'n' ? '$0' : a.k === 'v' ? MB.cash(a.cash) : a.later ? 'up to ' + plus(a.show) + ' later' : plus(a.cash) + ' if agreed') + '</span>';
       if (!res) return '<button class="opt" data-act="ask" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + a.t + '</span>' + pay + '</button>';
       var mine = res.pick === i, tone = ASK[a.k].tone;
-      var stamp = mine && (a.k === 'r' || a.k === 'm' || a.k === 't') ? '<span class="stamp ' + (res.ok ? 'yes' : 'no') + '">' + (res.ok ? 'Agreed' : 'Refused') + '</span>' : '';
+      var stamp = mine && (a.k === 'r' || a.k === 'm' || a.k === 't' || a.k === 'o') ? '<span class="stamp ' + (res.ok ? 'yes' : 'no') + '">' + (res.ok ? 'Agreed' : 'Refused') + '</span>' : '';
       return doneCard(mine, tone, letter, a.t, askLine(a, mine, res, d), a.why, askChip(a.k) + (mine ? '<span class="yours">Your ask</span>' : '') + stamp);
     }).join('') + '</div>';
     return folio('Meeting ' + ROMAN[L.n] + ' ' + DOT + ' ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + ' ' + DOT + ' the ask') + pips(items, run) + tallyRow(run) +
       '<h1 class="item-title">What do you ask for?</h1>' +
-      '<p class="role"><span class="label">You chose</span> ' + it.options[ans.pick].t + '</p>' +
-      '<div class="scene">' + tipify(paras(d.setup)) + '</div><div class="tip-box" id="tip-box" hidden></div>' + body +
+      '<p class="role"><span class="label">You chose</span> ' + (it.options[ans.pick] || it.wide).t + '</p>' +
+      '<div class="scene">' + tipify(paras(d.setup)) + '</div>' + body +
       (res ? '<div class="review">' + (d.rule ? '<p class="rule-line"><span class="label">The line</span> ' + d.rule + '</p>' : '') +
         '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div></div>'
-        : '<p class="note">Your goodwill is <b>' + liveGoodwill(run) + '</b>. At that level a strong ask is agreed about <b>' + Math.round(reachOdds(liveGoodwill(run)) * 100) + '%</b> of the time. A fair ask always is. An overreach is the one that crosses a legal line, and not every opening is a deal.</p>');
+        : termChips(d.asks.map(function (a) { return a.t; })) + '<p class="note">Your goodwill is <b>' + liveGoodwill(run) + '</b>. At that level a strong ask is agreed about <b>' + Math.round(reachOdds(liveGoodwill(run)) * 100) + '%</b> of the time. A fair ask always is. Some asks cost the other side nothing. An overreach crosses a legal line, and not every opening is a deal.</p>');
+  }
+
+  /* The term sheet: tick every term you want. Each has a hidden cost to the other side. */
+  function dots(n, of) { var o = ''; for (var i = 0; i < of; i++) o += i < n ? '\u25cf' : '\u25cb'; return o; }
+  function viewTerms(L, run, items, it, ans) {
+    var sh = it.sheet, res = ans.ask, last = run.step === items.length - 1, gwNow = liveGoodwill(run);
+    var body;
+    if (!res) {
+      body = '<form class="sheet" data-act="terms" novalidate>' + sh.terms.map(function (t, i) {
+        return '<label class="sheet-row" for="term-' + i + '"><input type="checkbox" id="term-' + i + '" name="term" value="' + i + '"><span class="opt-t">' + t.t + '</span>' +
+          '<span class="opt-pay">' + (t.k === 'o' ? 'up to ' + plus(t.val) + ' later' : plus(t.val)) + '</span></label>';
+      }).join('') +
+        '<p class="note">Tick everything you want. Each term has a cost to them that you cannot see, from nothing to a lot. Your goodwill of <b>' + gwNow + '</b> buys patience of <b>' + dots(patience(gwNow), patience(gwNow)) + '</b>. Ask for more than that and they strike out the costliest.</p>' +
+        '<div class="actions"><button class="btn" type="submit">Put it to them</button></div></form>' + termChips(sh.terms.map(function (t) { return t.t; }));
+    } else {
+      var agreed = res.picks.filter(function (i) { return res.struck.indexOf(i) < 0 && sh.terms[i].k !== 'x'; }).length;
+      body = '<div class="ruling g-' + (res.k === 'x' ? 'p' : 's') + '" id="outcome" tabindex="-1"><p class="ruling-money">' +
+        (res.picks.length ? 'They agreed to <b>' + agreed + '</b> of your <b>' + res.picks.length + '</b> terms. <b>' + plus(res.cash) + '</b> now' + (res.opts.length ? ', and <b>' + res.opts.length + '</b> option' + (res.opts.length > 1 ? 's' : '') + ' held' : '') + '.' : 'You asked for nothing.') +
+        (res.struck.length ? ' They struck out the costliest.' : '') + (res.risk ? ' One term crossed the line and could cost <b>' + MB.cash(res.risk) + '</b>.' : '') + gwText(res.gw) + '</p>' +
+        '<p>Their patience was ' + dots(res.tol, res.tol) + '. Each term below shows what it cost them.</p></div>' +
+        '<div class="opts">' + sh.terms.map(function (t, i) {
+          var picked = res.picks.indexOf(i) >= 0, struck = res.struck.indexOf(i) >= 0;
+          var status = t.k === 'x' ? (picked ? 'Overreach' : 'Would have been an overreach') : !picked ? (t.pain === 0 ? 'Left on the table' : 'Not asked') : struck ? 'Struck out' : 'Agreed';
+          var tone = t.k === 'x' ? 'p' : struck ? 'g' : picked ? 's' : t.pain === 0 ? 'g' : 'n';
+          var money = t.k === 'x' ? 'Shown as ' + plus(t.val) + '. Not a cost to them so much as a wrong to them.' : 'Cost to them: <b>' + (t.pain ? dots(t.pain, 3) : 'nothing') + '</b>. Worth ' + (t.k === 'o' ? 'up to ' : '') + '<b>' + plus(t.val) + '</b>' + (t.k === 'o' ? ' later' : '') + ' to you.';
+          return '<div class="opt done g-' + tone + (picked ? ' chosen' : '') + '"><span class="opt-l">' + (picked ? '\u2611' : '\u2610') + '</span><span class="opt-t">' + t.t +
+            '<span class="opt-more"><span class="opt-money">' + money + '</span><span class="opt-why">' + tipify(t.why) + '</span></span></span><span class="opt-tags"><span class="chip g-' + tone + '">' + status + '</span></span></div>';
+        }).join('') + '</div>';
+    }
+    return folio('Meeting ' + ROMAN[L.n] + ' ' + DOT + ' ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + ' ' + DOT + ' the terms') + pips(items, run) + tallyRow(run) +
+      '<h1 class="item-title">Write the terms.</h1>' +
+      '<p class="role"><span class="label">You chose</span> ' + (it.options[ans.pick] || it.wide).t + '</p>' +
+      '<div class="scene">' + tipify(paras(sh.setup)) + '</div>' + body +
+      (res ? '<div class="review">' + (sh.rule ? '<p class="rule-line"><span class="label">The line</span> ' + sh.rule + '</p>' : '') +
+        '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div></div>' : '');
   }
 
   function sgn(n) { return n ? (n > 0 ? '+' : MINUS) + Math.abs(n) : '0'; }
@@ -590,7 +752,9 @@
     var items = buildItems(run), res = run.result;
     var minutes = items.map(function (it, i) {
       var a = run.answers[i];
-      return '<li><span class="min-n">' + (i + 1) + '.</span><span class="min-body">' + it.title + (a.ask ? '<span class="min-ask">' + ASK[a.ask.k].label + (a.ask.k === 'r' ? (a.ask.ok ? ', agreed' : ', refused') : '') + '</span>' : '') + '</span><span class="min-cash">' + plus(a.cash + (a.ask ? a.ask.cash : 0)) + '</span>' + chip(eff(a)) + '</li>';
+      var note = a.ask ? (a.ask.sheet ? 'Term sheet' + (a.ask.k === 'x' ? ', with an overreach' : '') : ASK[a.ask.k].label + (a.ask.k === 'r' ? (a.ask.ok ? ', agreed' : ', refused') : '')) : a.wide ? 'Another way' : '';
+      var badge = it.kind === 'spot' ? '<span class="chip g-' + (a.found ? 's' : 'n') + '">' + (a.found ? 'Found' : 'Missed') + '</span>' : chip(eff(a));
+      return '<li><span class="min-n">' + (i + 1) + '.</span><span class="min-body">' + it.title + (note ? '<span class="min-ask">' + note + '</span>' : '') + '</span><span class="min-cash">' + plus(a.cash + (a.ask ? a.ask.cash : 0)) + '</span>' + badge + '</li>';
     }).join('');
     var nxt = L.n < MB.levels.length ? L.n + 1 : null;
     var head, sub, money = '';
@@ -600,14 +764,20 @@
         (run.practice ? 'A practice sitting. Nothing is banked.' : (res.promoted ? 'You now sit as <b>' + res.promoted + '</b>.' : ''));
       var reck = res.reckon.length
         ? '<ul class="reckon">' + res.reckon.map(function (r, k) {
+          if (r.opt) return '<li class="' + (r.paid ? 'paid' : 'quiet') + '" style="animation-delay:' + (0.5 + k * 0.45) + 's"><span>Item ' + (r.i + 1) + ', a free option</span><b>' + (r.paid ? 'Paid off ' + plus(r.val) : 'Expired, at no cost') + '</b></li>';
           return '<li class="' + (r.due ? 'due' : 'quiet') + '" style="animation-delay:' + (0.5 + k * 0.45) + 's"><span>Item ' + (r.i + 1) + ', ' + (r.what || 'the loose end') + '</span><b>' + (r.due ? 'Came due ' + MB.cash(-r.cost) : 'Never surfaced') + '</b></li>';
         }).join('') + '</ul>'
-        : '<p class="note">No loose ends. Nothing came back.</p>';
+        : '<p class="note">No loose ends and no options. Nothing came back.</p>';
+      var left = leftOnTable(items, run);
+      var leftHtml = '<h2 class="section">Left on the table</h2>' + (left.length
+        ? '<ul class="left">' + left.slice(0, 8).map(function (x) { return '<li><span>Item ' + (x.i + 1) + '. ' + x.t + '</span><b>' + (x.later ? 'up to ' : '') + plus(x.amt) + '</b></li>'; }).join('') + '</ul>'
+        : '<p class="note">Nothing. You took what was there to take.</p>');
       money = '<h2 class="section">The reckoning</h2>' + reck +
         '<dl class="ledger"><div><dt>Taken at the table</dt><dd>' + plus(res.gross) + '</dd></div><div><dt>Came due</dt><dd>' + MB.cash(-res.losses) + '</dd></div>' +
+        (res.optGain ? '<div><dt>Options that paid off</dt><dd>' + plus(res.optGain) + '</dd></div>' : '') +
         '<div class="total"><dt>Net for the meeting</dt><dd>' + plus(res.net) + '</dd></div>' +
         (run.practice ? '' : '<div><dt>Your equity</dt><dd>' + MB.cash(equity()) + '</dd></div>') +
-        '</dl>' + gwBreak(res, run);
+        '</dl>' + leftHtml + gwBreak(res, run);
       if (!run.practice && L.n === MB.levels.length && passedCount() === MB.levels.length) {
         sub += ' Your career closes at <b>' + MB.cash(equity()) + '</b>.';
       }
@@ -654,11 +824,21 @@
       '<li><b>' + MINUS + '1 to ' + MINUS + '4</b> when a sound choice refuses someone. More when they are powerful. Nothing when nobody is put out.</li>' +
       '<li><b>+1 or +2</b> when a grey or poor choice gives someone what they wanted. It is cheap goodwill, and it is lost if the loose end comes due.</li>' +
       '<li><b>' + MINUS + '6</b> each time a loose end or liability comes due.</li>' +
-      '<li><b>+6</b> for passing a meeting, <b>+10</b> for a perfect one.</li>' +
-      '<li><b>+5</b> for a fair ask, <b>+10</b> for a gift, <b>' + MINUS + '1</b> for a strong ask that lands, <b>' + MINUS + '5</b> for one refused, <b>' + MINUS + '7</b> for a tone-deaf ask, <b>' + MINUS + '8</b> for an overreach.</li>' +
+      '<li><b>+3</b> for passing a meeting, <b>+6</b> for a perfect one.</li>' +
+      '<li><b>+5</b> for a fair ask, <b>+1</b> for a free option, <b>+2</b> for finding another way, <b>+10</b> for a gift, <b>' + MINUS + '1</b> for a strong ask that lands, <b>' + MINUS + '5</b> for one refused, <b>' + MINUS + '7</b> for a tone-deaf ask, <b>' + MINUS + '8</b> for an overreach.</li>' +
       '</ul>' +
       '<h2 class="section">The ask</h2>' +
       '<p>After some sound choices an opening appears and you choose what to ask for. A fair ask always lands and pays a little. A strong ask pays well and can be refused. The chance it lands is shown before you choose, and rises with goodwill: about 30% at 20, 55% at 50, 80% at 80. An overreach pays most, crosses a legal line and comes back on you. Sometimes there is no deal to be had, and the right ask is none.</p>' +
+      '<h2 class="section">Finding more in a deal</h2>' +
+      '<p>The deal on the table is usually wider than it looks, and not every gain costs something.</p>' +
+      '<ul class="rules">' +
+      '<li><b>Free options.</b> Some asks cost the other side nothing today and may pay you later, such as a right of first offer. They are agreed, held, and settled at adjournment. They pay off about two times in five and never cost you.</li>' +
+      '<li><b>Term sheets.</b> Some openings let you tick several terms at once. Each has a hidden cost to the other side, from nothing to a lot. Find the ones that are cheap for them and valuable for you.</li>' +
+      '<li><b>Another way.</b> When a choice is framed as either-or, you can pay a little to look wider. Sometimes there is a better structure. Sometimes there is not.</li>' +
+      '<li><b>Spot it.</b> Some items show you a document. Tap the phrase that hides an opportunity.</li>' +
+      '<li><b>Left on the table.</b> At adjournment the book lists what a careful dealmaker would also have taken.</li>' +
+      '</ul>' +
+      '<p>One rule sits over all of it. Taking a free option from someone across the table is good dealing. Taking one for yourself from people whose money you manage needs their informed agreement.</p>' +
       '<h2 class="section">Standing</h2>' +
       '<p>Standing is the quality of the sittings on your record. The better it is, the more your sound work pays, up to a quarter more. Trust compounds.</p>' +
       '<h2 class="section">Passing</h2>' +
@@ -720,18 +900,31 @@
     if (!el || el.tagName === 'FORM') return;
     var act = el.getAttribute('data-act'), run = S.run;
     if (act === 'order' && run) { run.phase = 'play'; save(); render(); }
+    else if (act === 'look' && run && run.phase === 'play' && !run.answers[run.step]) {
+      if (!run.look) run.look = {};
+      run.look[run.step] = 1; save(); render(false);
+    }
     else if (act === 'choose' && run && run.phase === 'play' && !run.answers[run.step]) {
-      var i = parseInt(el.getAttribute('data-i'), 10), o = buildItems(run)[run.step].options[i];
-      run.answers[run.step] = { pick: i, g: o.g, cash: o.cash, risk: o.risk, gw: o.gw };
-      var itSeen = buildItems(run)[run.step];
-      markSeen(run.n, itSeen.id, (run.tw && run.tw[itSeen.id]) ? 't' : 'b');
+      var i = parseInt(el.getAttribute('data-i'), 10), itc = buildItems(run)[run.step];
+      var looked = !!(run.look && run.look[run.step]);
+      var o = i < itc.options.length ? itc.options[i] : (looked ? itc.wide : null);
+      if (!o) return;
+      var spent = looked ? itc.lookCost : 0;
+      run.answers[run.step] = { pick: i, g: o.g, cash: o.cash - spent, risk: o.risk, gw: o.gw, look: spent, wide: !!o.wide };
+      markSeen(run.n, itc.id, (run.tw && run.tw[itc.id]) ? 't' : 'b');
       if (level(run.n).fixed) markSeen(run.n, 'story', run.alt ? 't' : 'b');
       save(); render('outcome');
+    }
+    else if (act === 'spot' && run && run.phase === 'play' && !run.answers[run.step]) {
+      var sp = buildItems(run)[run.step], si = parseInt(el.getAttribute('data-i'), 10), hit = sp.parts[si].k === 'y';
+      run.answers[run.step] = { pick: si, g: 's', found: hit, cash: hit ? sp.stake : 0, risk: 0, gw: 0 };
+      save(); render('review');
     }
     else if (act === 'ask' && run && run.phase === 'play' && run.sub === 'ask' && run.answers[run.step] && !run.answers[run.step].ask) {
       var d = buildItems(run)[run.step].deal, k = parseInt(el.getAttribute('data-i'), 10), a = d.asks[k], R = ASK[a.k];
       var res = { pick: k, k: a.k, ok: true, cash: 0, risk: 0, gw: R.gw, p: reachOdds(liveGoodwill(run)) };
       if (a.k === 'm' || a.k === 'v') res.cash = a.cash;
+      else if (a.k === 'o') res.opts = [a.opt];
       else if (a.k === 'x') { res.cash = a.cash; res.risk = a.risk; }
       else if (a.k === 't') res.ok = false;
       else if (a.k === 'n') res.gw = d.none ? R.gwRight : R.gw;
@@ -741,7 +934,7 @@
     }
     else if (act === 'next' && run && run.answers[run.step]) {
       var cur = buildItems(run)[run.step], an = run.answers[run.step];
-      if (cur.deal && an.g === 's' && !an.ask && run.sub !== 'ask') { run.sub = 'ask'; save(); render(); return; }
+      if ((cur.deal || cur.sheet) && an.g === 's' && !an.ask && run.sub !== 'ask') { run.sub = 'ask'; save(); render(); return; }
       run.sub = null;
       if (run.step >= buildItems(run).length - 1) finishRun(); else { run.step++; save(); }
       render();
@@ -754,11 +947,13 @@
       if (hint) hint.textContent = open ? 'Hide' : 'See why';
     }
     else if (act === 'tip') {
-      var box = document.getElementById('tip-box'), term = el.getAttribute('data-term');
-      if (!box) return;
-      if (!box.hidden && box.getAttribute('data-term') === term) { box.hidden = true; return; }
+      var term = el.getAttribute('data-term'), box = document.getElementById('tip-box');
+      var host = el.closest('.opt, .sheet-row, .behind, .terms-used, .scene, .clause, .ruling') || el.parentNode;
+      if (box && !box.hidden && box.getAttribute('data-term') === term && box.previousElementSibling === host) { box.hidden = true; return; }
+      if (!box) { box = document.createElement('div'); box.id = 'tip-box'; box.className = 'tip-box'; }
       box.innerHTML = '<b>' + term + '.</b> ' + defs()[term];
       box.setAttribute('data-term', term); box.hidden = false;
+      host.insertAdjacentElement('afterend', box);
     }
     else if (act === 'career-ask') {
       document.getElementById('career-zone').innerHTML = '<p class="confirm">Close the book on this career and start again at ' + MB.cash(SEED_EQUITY) + '?</p><div class="actions"><button class="btn danger" data-act="career-yes">Yes, start again</button><button class="btn quiet" data-act="career-no">Keep this career</button></div>';
@@ -775,7 +970,26 @@
     }
   }
 
+  function onTerms(form) {
+    var run = S.run;
+    if (!run || run.phase !== 'play' || run.sub !== 'ask' || !run.answers[run.step] || run.answers[run.step].ask) return;
+    var terms = buildItems(run)[run.step].sheet.terms, tol = patience(liveGoodwill(run));
+    var picks = Array.prototype.filter.call(form.querySelectorAll('input[name="term"]'), function (c) { return c.checked; }).map(function (c) { return parseInt(c.value, 10); });
+    var legit = picks.filter(function (i) { return terms[i].k !== 'x'; }), xs = picks.filter(function (i) { return terms[i].k === 'x'; });
+    var pain = legit.reduce(function (t, i) { return t + terms[i].pain; }, 0), struck = [];
+    var byPain = legit.slice().sort(function (a, b) { return terms[b].pain - terms[a].pain || b - a; });
+    while (pain > tol && byPain.length) { var out = byPain.shift(); struck.push(out); pain -= terms[out].pain; }
+    var res = { sheet: true, k: xs.length ? 'x' : 's', ok: true, picks: picks, struck: struck, cash: 0, risk: 0, opts: [], tol: tol, gw: 0 };
+    legit.forEach(function (i) { if (struck.indexOf(i) >= 0) return; if (terms[i].k === 'o') res.opts.push(terms[i].val); else res.cash += terms[i].val; });
+    xs.forEach(function (i) { res.cash += terms[i].val; res.risk += terms[i].risk; });
+    res.gw = (picks.length ? (struck.length ? -2 * struck.length : 2) : 1) + xs.length * ASK.x.gw;
+    run.answers[run.step].ask = res;
+    save(); render('outcome');
+  }
+
   function onSubmit(e) {
+    var tf = e.target.closest('form[data-act="terms"]');
+    if (tf) { e.preventDefault(); onTerms(tf); return; }
     var form = e.target.closest('form[data-act="figure"]');
     if (!form) return;
     e.preventDefault();
@@ -801,6 +1015,9 @@
     if (S.run && (!level(S.run.n) || S.run.v !== RUN_V)) S.run = null;
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role="button"][data-act]')) { e.preventDefault(); e.target.click(); }
+    });
     window.addEventListener('hashchange', function () { render(); });
     render(false);
   }

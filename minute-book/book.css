@@ -330,3 +330,29 @@ details.deep li { font-size: 15.5px; color: #25332b; padding-left: 12px; border-
 details.deep li b { color: var(--ink); }
 .twist-note { border-left: 4px solid var(--margin); background: #f5f8ef; padding: 10px 14px; display: grid; gap: 3px; max-width: 66ch; }
 .twist-note p { font-size: 16px; }
+
+/* ---------- wider deals: looking wider, documents, term sheets, options ---------- */
+.look { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.look .btn { padding: 9px 14px; font-size: 14.5px; }
+.opt.is-wide { border-style: dashed; border-color: var(--cloth); }
+.terms-used { font-size: 14.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.terms-used .tip { font-size: 14.5px; }
+.clause { font-family: var(--typed); font-size: 16px; line-height: 2.1; background: #f8faf3; border: 1px solid var(--rule); border-left: 4px solid var(--ink-2); padding: 14px 16px; max-width: 68ch; }
+.part { font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--rule); padding: 2px 1px; cursor: pointer; text-align: left; }
+button.part:hover { background: var(--paper-2); border-bottom-color: var(--ink); }
+.part.done { border-bottom: 0; }
+.part.hit { background: #d5e8d7; box-shadow: 0 0 0 2px #d5e8d7; }
+.part.mine { outline: 2px solid var(--ink); outline-offset: 2px; }
+.ruling.g-n { border-left-color: var(--ink-2); }
+.pips li.g-n { background: var(--ink-2); }
+form.sheet { display: grid; gap: 8px; }
+.sheet-row { display: grid; grid-template-columns: 26px 1fr auto; gap: 0 10px; align-items: start; background: #f5f8ef; border: 1px solid var(--rule); border-left: 4px solid var(--rule); padding: 13px 14px 13px 12px; cursor: pointer; }
+.sheet-row:hover { border-color: var(--ink); }
+.sheet-row input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--cloth); }
+.sheet-row:has(input:checked) { border-left-color: var(--cloth); background: #fbfdf7; }
+@media (max-width: 560px) { .sheet-row { grid-template-columns: 26px 1fr; } .sheet-row .opt-pay { grid-column: 2; margin-top: 6px; } }
+.reckon .paid b { color: var(--sound); }
+.left { list-style: none; padding: 0; border-top: 1px solid var(--rule); }
+.left li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 15.5px; }
+.left li span { max-width: 56ch; }
+.left b { font-family: var(--typed); font-variant-numeric: tabular-nums; white-space: nowrap; }

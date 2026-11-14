@@ -1,5 +1,5 @@
 MB.level({
-  n: 9, title: 'Loans, Defaults and Forbearance', rank: 'Head of Credit', pass: 0.7, draw: { authored: 5, numeric: 1 }, numerics: ['payoff', 'dscr'],
+  n: 9, title: 'Loans, Defaults and Forbearance', rank: 'Head of Credit', pass: 0.7, draw: { authored: 5, numeric: 1, spot: 1 }, numerics: ['payoff', 'dscr'],
   topics: 'Covenants, notices, waivers and standing still on purpose',
   role: 'You run credit at the lender.',
   blurb: 'When a borrower stumbles, the lender keeps its rights by writing things down and loses them by being casual.',
@@ -13,6 +13,25 @@ MB.level({
     ['Guarantee', 'A separate promise by another person to pay the borrower\'s debt. Changing the loan without the guarantor\'s consent can release them.'],
     ['Intercreditor agreement', 'The contract between lenders at different levels of the capital stack that says who can act, when, and who is paid first.'],
     ['Lender liability', 'The claims a borrower can bring when a lender oversteps: breaking its own commitments, acting in bad faith, or taking control of the borrower\'s business.']
+  ],
+  spots: [
+    {
+      id: 'l9-spot', title: 'Read the security',
+      make: function () {
+        return {
+          scene: `A construction loan is in default and the site is half built. Before deciding anything, you re-read what the borrower pledged.`,
+          parts: [
+            [`Default interest accrues at 5% over the contract rate.`, 'n', `More debt on paper, from a borrower who cannot pay the debt it has.`],
+            [`The lender may appoint a receiver.`, 'n', `A remedy you knew you had.`],
+            [`The borrower's rights under all construction contracts, permits and plans are assigned to the lender.`, 'y', `You can step into the contracts and permits. A site with its approvals is worth far more than bare land.`],
+            [`Notices are to be sent by courier.`, 'n', `Procedure.`],
+            [`The lender may apply any deposit it holds against the debt.`, 'n', `Useful, and small.`]
+          ],
+          rule: `Your security is more than the land. Read the whole list before you value it.`,
+          behind: `Permits and contracts can take years to obtain. Lenders who forget they hold them sell half-built sites as raw land, and the buyer collects the difference.`
+        };
+      }
+    }
   ],
   scenarios: [
     {
@@ -50,6 +69,7 @@ MB.level({
               ['m', `Offer to move the due date to the fifteenth for a small amendment fee.`, `It fixes the real problem, and the borrower pays you for it.`],
               ['r', `Ask for a three-month interest reserve, funded now.`, `Real protection. The borrower may not have the cash.`],
               ['x', `Bill default interest for the three months you already accepted.`, `You took those payments without objection. Charging for them now invites a bad-faith fight.`],
+              ['o', `Ask for first offer on the borrower's next loan.`, `It costs the borrower nothing to promise, and may bring you the next deal.`],
               ['n', `Leave the terms as they are.`, `The notice stands and nothing changes.`]
             ],
             rule: `Solve the borrower's problem and charge for it. Do not charge for the past you waived.`
@@ -79,15 +99,17 @@ MB.level({
             ['g', `Email: "We will hold off for ninety days."`, `A written promise with no acknowledgement, milestones, guarantors or release.`],
             ['p', `Shake on it. ${a.first} has always been straight.`, `In ninety days each side will remember a different deal.`]
           ],
-          deal: {
-            setup: `${a.first}, the borrower, needs the ninety days badly and says so. "Tell me what it costs."`,
-            asks: [
-              ['m', `A 1% forbearance fee, with interest kept current.`, `Market terms. The borrower pays for time and keeps its dignity.`],
-              ['r', `A fee, a charge on ${a.first}'s other property, and a share of sale proceeds above the debt.`, `More security and some upside, all documented. Counsel checks the total cost against rate limits.`],
-              ['x', `All of that, plus a signed deed held in escrow, to record if a date is missed.`, `A pre-signed deed skips foreclosure. Courts often refuse it as a clog on the right to redeem.`],
-              ['n', `Just the standard forbearance terms.`, `Time given, rights preserved, nothing extra.`]
+          sheet: {
+            setup: `${a.first}, the borrower, needs the ninety days badly and says so. "Tell me what it costs." Write the terms.`,
+            terms: [
+              ['c', `A 1% forbearance fee.`, `The market price for time. They expected it.`, 1, 0.5],
+              ['c', `Default interest for the whole period.`, `Real money to a borrower already short. It uses up patience fast.`, 3, 1.3],
+              ['c', `A second charge on the borrower's other property.`, `More security for you. It ties up something they may need.`, 2, 0.8],
+              ['o', `A share of the sale proceeds above the debt.`, `If the sale only covers the debt, it costs them nothing. They agree easily.`, 0, 1.6],
+              ['o', `First offer on financing the buyer's purchase.`, `It costs the borrower nothing at all, and may bring you the next loan.`, 0, 1.2],
+              ['x', `A signed deed held in escrow, to record if a date is missed.`, `A pre-signed deed skips foreclosure. Courts often refuse it as a clog on the right to redeem.`, 0, 2.6]
             ],
-            rule: `Price the time and take more security. Never take the borrower's right to redeem.`
+            rule: `The terms that are cheapest for them are often the most valuable for you. Ask for those first.`
           },
           rule: `Forbearance is a trade, and it goes in a contract.`
         };
@@ -235,6 +257,7 @@ MB.level({
             ['g', `Send a letter on the good loan "reserving rights" and hinting at default.`, `Implying a default that does not exist is a threat you cannot back up.`],
             ['p', `Call both loans.`, `Calling a performing loan with no right to is a breach, and the borrower's damages can be large.`]
           ],
+          wider: [`Offer to leave the good loan alone in return for extra security on the bad one.`, `You get the leverage you wanted, by agreement, and the borrower keeps its good loan.`],
           rule: `A default on one loan reaches another only if the documents say so.`
         };
       }
@@ -311,6 +334,7 @@ MB.level({
             ['g', `Send it in three weeks.`, `Slow on purpose, to earn interest the borrower is trying to stop paying.`],
             ['p', `Delay, and add a fee the documents do not support.`, `An invented charge on a payoff is a breach, and regulators treat it severely.`]
           ],
+          wider: [`Send it today, with an offer to match the new lender's rate.`, `You may keep a paying borrower. If not, you have lost nothing.`],
           rule: `When a borrower is ready to repay, a lender's job is to let them.`,
           us: `Many states set deadlines for payoff statements and for releasing the mortgage afterward.`,
           ca: `Provincial laws require a lender to provide a discharge within a set time once it is paid.`
@@ -335,6 +359,7 @@ MB.level({
             ['g', `Agree with the borrower and inform the co-lender afterward.`, `They learn their income changed after it was too late to object.`],
             ['p', `Agree, and keep reporting the old terms.`, `Now it is a breach concealed with false reports.`]
           ],
+          wider: [`Ask the co-lender, and offer to buy back its share if it disagrees.`, `The borrower gets an answer either way, and the co-lender is never overridden.`],
           rule: `Running a loan for others gives you the work, not the right to change their deal.`
         };
       }
@@ -365,6 +390,7 @@ MB.level({
               ['m', `Waive the default rate for a small fee and firmer reporting dates.`, `The borrower pays for the lapse, and the covenant gets teeth.`],
               ['r', `Ask for rents to flow through an account you control.`, `Real protection. It is a big step for a borrower who has never missed a payment.`],
               ['x', `Demand a 2% penalty the documents do not provide for.`, `You cannot charge what the contract does not give you.`],
+              ['o', `Ask for first offer on any refinancing.`, `A grateful borrower says yes. If they refinance, you see it first.`],
               ['n', `Accept the cure and close the file.`, `Fair and forgettable.`]
             ],
             rule: `A cured default is a chance to tighten terms, by agreement.`

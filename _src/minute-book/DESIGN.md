@@ -46,6 +46,31 @@ The number of legitimate asks varies, so the player cannot count their way to th
 fixed rule for writers: price, time, security and upside can be traded. A notice, an approval
 or a disclosure never can. Deal beats exist so far in Meetings IV, VI, VII, IX and X.
 
+**Finding more in a deal.** Five mechanics teach that the deal space is wider than it looks
+and that some gains cost nothing.
+
+- **Free options** (`o` asks): no cash today, a value that pays off 40% of the time at the
+  reckoning, and no downside. An overreach can be dressed as one by adding `'later'` as a
+  fourth element, for cases where the option is taken from people you owe a duty to.
+- **Term sheets** (`sheet` in place of `deal`): the player ticks any number of terms. Each is
+  `[kind, text, why, pain, value]`, with kind `c` (cash now), `o` (option) or `x` (overreach)
+  and pain 0 to 3. Pain is hidden. Patience is 2 plus one for every 25 goodwill. Over the
+  limit, the costliest terms are struck out. Every sheet needs at least one free term and
+  one overreach.
+- **Another way** (`wider: [text, why]` on a scenario): every decision has a button to look
+  wider, at a fifth of the stake. Where a wider answer exists it appears as an extra motion
+  paying 1.7 times the sound one. Where none exists the cost is wasted, so it takes judgment.
+- **Spot it** (`spots` on a level, `spot: 1` in its draw): a document shown as tappable
+  phrases, `[text, 'y' | 'n', why]`. Finding a `y` pays. Missing costs nothing but the chance.
+- **Left on the table**: the adjournment screen lists what was available and not taken.
+
+The rule that sits over these: taking a free option from a counterparty is good dealing, and
+taking one for yourself from people whose money you manage needs their informed agreement.
+
+**Terms.** Words the Registers or `EXTRA_DEFS` define are tappable wherever they appear in a
+situation, an insight or an explanation. Options and asks cannot hold a button, so a "Terms"
+row lists what they use. Add a new term by adding its definition and an `ALIAS` pattern.
+
 **Stakes.** About $20,000 a decision in Meeting I, growing 40% a meeting. Starting equity is
 $100,000.
 
@@ -189,7 +214,8 @@ Helpers: `g.person()`, `g.city('us' | 'ca')`, `g.spe('LP' | 'LLC' | 'Inc.')`, `g
 ## Ideas not yet built
 
 - Deal beats for the meetings that have none, and more twists.
-- A planning and debrief layer between meetings.
+- A planning and debrief layer between meetings, built on the term sheet.
+- Options that carry forward and can be exercised in a later meeting.
 - Deal flow that depends on goodwill, and a deal table for investing equity between meetings.
 - Per-motion payouts written to fit each scenario, in place of generated ones.
 - Loose ends that stay buried and resurface in later meetings.

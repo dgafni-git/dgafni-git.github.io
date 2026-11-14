@@ -1,5 +1,5 @@
 MB.level({
-  n: 11, title: 'Deals', rank: 'Partner', pass: 0.7, draw: { authored: 5, numeric: 1 }, numerics: ['basket'],
+  n: 11, title: 'Deals', rank: 'Partner', pass: 0.7, draw: { authored: 5, numeric: 1, spot: 1 }, numerics: ['basket'],
   topics: 'Letters of intent, diligence, approvals and selling to insiders',
   role: 'You are a partner advising the board on a transaction.',
   blurb: 'A deal concentrates every earlier lesson into a few weeks. The process must survive being read aloud later.',
@@ -13,6 +13,25 @@ MB.level({
     ['Drag-along and tag-along', 'Rights that let a majority force a minority to join a sale, or let a minority join a sale the majority has arranged, on the same terms.'],
     ['Special committee', 'A committee of independent directors given the power and advisers to negotiate a deal in which management or a controlling owner has an interest.'],
     ['Fairness opinion', 'An independent financial adviser\'s written view that the price is fair. It is evidence for the board\'s process and does not replace it.']
+  ],
+  spots: [
+    {
+      id: 'l11-spot', title: 'Read the purchase agreement', role: 'You are buying the company.',
+      make: function () {
+        return {
+          scene: `You are buying a small property manager. The seller's lawyer sends a draft. Your team is arguing about price.`,
+          parts: [
+            [`The price is payable in cash at closing.`, 'n', `The term everyone is looking at.`],
+            [`The seller will stay for six months, unpaid, to help with the handover.`, 'y', `Free expertise during the riskiest months. Make sure it is specific and enforceable.`],
+            [`The seller's promises about the business last for 12 months.`, 'n', `Protection, and fairly standard.`],
+            [`The buyer may assign this agreement to an affiliate.`, 'y', `Freedom to bring in a partner or change the buying entity later, without asking again.`],
+            [`Each party pays its own costs.`, 'n', `Routine.`]
+          ],
+          rule: `Read a draft for what it gives you as well as for what it costs you.`,
+          behind: `Sellers offer transition help and flexibility to make a deal feel easy. Buyers focused on price skim past them, then pay consultants for the same help.`
+        };
+      }
+    }
   ],
   scenarios: [
     {
@@ -218,6 +237,7 @@ MB.level({
             ['g', `Threaten the clause, knowing it is weak, to open a renegotiation.`, `It may work. It may also be the bad faith the seller's lawyers needed.`],
             ['p', `Refuse to close.`, `On one weak quarter, you are probably the party in breach.`]
           ],
+          wider: [`Close, and ask for part of the price to be held back against next quarter's results.`, `It answers your worry directly, and a seller confident in the business can accept it.`],
           rule: `A right to walk away is used when its conditions are met, not when the price looks high.`
         };
       }
@@ -240,6 +260,7 @@ MB.level({
             ['g', `Hold back signing renewals until the year is over.`, `No diversion on paper, and the same intent.`],
             ['p', `Book the renewals in the sister company.`, `Moving revenue to defeat the payment is a breach, and easy to trace.`]
           ],
+          wider: [`Offer the seller a smaller fixed payment now to end the earn-out.`, `The seller takes certainty. You are free to run the business as you like.`],
           rule: `If you control whether a payment falls due, you may not arrange for it not to.`
         };
       }
@@ -306,6 +327,7 @@ MB.level({
             ['g', `Accept the terms to secure the price.`, `A good price today, and no way to know whether it was the best one.`],
             ['p', `Accept, and give the buyer an option over the main property as well.`, `That makes any rival bid pointless, which is the intent.`]
           ],
+          wider: [`Offer a normal fee, plus a right for the buyer to match any higher bid.`, `The buyer is protected against losing the deal, and the owners can still get a better price.`],
           rule: `A board selling a company may protect the deal, but not so tightly that no better one can appear.`,
           us: `Delaware courts strike down deal protections that prevent a board from accepting a better offer.`
         };

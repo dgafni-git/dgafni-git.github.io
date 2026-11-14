@@ -1,5 +1,5 @@
 MB.level({
-  n: 4, title: 'The Capital Stack', rank: 'Asset Manager', pass: 0.7, draw: { authored: 4, numeric: 2 }, numerics: ['ltv', 'dscr', 'dilution'],
+  n: 4, title: 'The Capital Stack', rank: 'Asset Manager', pass: 0.7, draw: { authored: 4, numeric: 2, spot: 1 }, numerics: ['ltv', 'dscr', 'dilution'],
   topics: 'Debt, equity, capital calls and raising money from people you know',
   role: 'You work for the sponsor that raises the money and runs the project.',
   blurb: 'Money enters a project in layers, and each layer has rights. Write down which layer before it arrives.',
@@ -12,6 +12,25 @@ MB.level({
     ['Capital call', 'A demand under the agreement for owners to contribute more money, usually in proportion to their interests and on a set notice period.'],
     ['Dilution', 'The reduction of an owner\'s percentage when others put in money and they do not. The agreement sets the formula.'],
     ['Exempt offering', 'A sale of securities allowed without a prospectus or registration because it fits an exemption, such as sales to accredited investors. The exemption has conditions, and someone must check them.']
+  ],
+  spots: [
+    {
+      id: 'l4-spot', title: 'Read the term sheet',
+      make: function () {
+        return {
+          scene: `A lender sends its terms for your construction loan. Your partner wants to argue about the rate.`,
+          parts: [
+            [`Interest at 9.5%, paid monthly.`, 'n', `The rate is what everyone negotiates. It is rarely where the hidden value is.`],
+            [`Two extensions of six months each, at the borrower's choice, for a fee of 0.25%.`, 'y', `An extension option. Projects run late, and time bought in advance is far cheaper than time begged for.`],
+            [`A personal guarantee of completion.`, 'n', `Standard for construction loans, and a cost to you.`],
+            [`Lender's consent for any change order over $100,000.`, 'n', `A control for the lender.`],
+            [`Repayment allowed at any time without penalty.`, 'y', `A free right to refinance the day rates fall or the building is finished.`]
+          ],
+          rule: `The rate is the loudest term. The options are often the most valuable ones.`,
+          behind: `Lenders compete on rate because borrowers compare it. Extension rights and free repayment cost a lender little to grant, and can be worth more than a quarter point.`
+        };
+      }
+    }
   ],
   scenarios: [
     {
@@ -39,6 +58,7 @@ MB.level({
               ['m', `Take a standard fee and promote, written into the partnership agreement.`, `Disclosed sponsor pay is how this business works. Investors expect it.`],
               ['r', `Ask for a larger promote above a higher return hurdle, fully disclosed.`, `More upside only if investors do well first. Some will push back.`],
               ['x', `Take a finder's fee from the loan seller and keep it to yourselves.`, `A secret commission from the other side of your investors' deal is a breach, and in places a crime.`],
+              ['x', `Write in a right for the sponsors to buy investors out at cost, and do not draw attention to it.`, `An option for yourself, slipped past people whose money you manage, is self-dealing.`, 'later'],
               ['n', `Take nothing on this one.`, `Generous, and friends will remember. You also worked for free.`]
             ],
             rule: `Sponsors may be paid well. Every dollar of it must be in the documents.`
@@ -100,6 +120,7 @@ MB.level({
             ['g', `Borrow it from one friendly partner at 15% instead.`, `Possibly allowed, but it is a related-party loan ranking ahead of everyone, and nobody checked the agreement.`],
             ['p', `Call the four friendly partners and issue the units.`, `That dilutes the others without their knowledge, in breach of the agreement.`]
           ],
+          wider: [`Call everyone, and let any partner who wants more take up what others leave.`, `Nobody is diluted without the chance to fund, and partners who believe in the project can add to their stake.`],
           rule: `A capital call follows the agreement to the letter: who, how much, on what notice.`
         };
       }
@@ -128,6 +149,7 @@ MB.level({
               ['m', `Arrange a buyout at an independent valuation, offered to every partner pro rata.`, `Everyone gets the same chance at a fair price, and ${a.first} exits cleanly.`],
               ['r', `Offer to fund ${a.first}'s share as a loan at the agreement's default rate, with the partners' approval.`, `A real return, properly approved. ${a.first} may prefer to sell.`],
               ['x', `Buy the interest yourself at a discount before the other partners hear of it.`, `An insider using inside knowledge to buy cheap from a distressed partner is self-dealing.`],
+              ['o', `Ask that the partnership gets first offer if ${a.first} ever sells the units.`, `It costs ${a.first} nothing today, and keeps a stranger from buying in cheaply later.`],
               ['n', `Leave it at the dilution formula.`, `The agreement is applied, and nothing more.`]
             ],
             rule: `You can buy a partner out. You cannot do it quietly, cheaply and first.`
@@ -160,6 +182,7 @@ MB.level({
               ['m', `Offer a consent fee and monthly reporting in return for consent.`, `Cheap for you, and the lender is paid for the extra risk.`],
               ['r', `Ask the senior lender to advance the extra money itself at a blended rate.`, `One lender, no intercreditor fight, lower cost. It is a lot to ask.`],
               ['x', `Say the new loan closes Friday with or without consent.`, `Threatening a breach to force consent is bad faith, and now it is in writing.`],
+              ['o', `Ask for an option to extend the main loan by a year, at a fee fixed today.`, `The lender gives up little now. You hold time you may badly need later.`],
               ['n', `Just ask for the consent.`, `A plain request. It may come with conditions.`]
             ],
             rule: `Offer value for consent. Never threaten the breach you are asking permission to avoid.`
@@ -297,6 +320,7 @@ MB.level({
             ['g', `Pay it out in shares without checking the loan's limits.`, `Fair between owners, and possibly a breach of the loan.`],
             ['p', `Pay it to the majority as a management fee.`, `That takes the minority's share by renaming it.`]
           ],
+          wider: [`Pay it out in shares, and offer the minority a sale to the majority at an independent value.`, `The minority gets its share and a way out. The majority gets what it really wanted, which is control.`],
           rule: `Cash taken out of a company goes to its owners in their shares, after its creditors are safe.`
         };
       }
@@ -342,15 +366,16 @@ MB.level({
             ['p', `Take it, and add an arrangement fee for the affiliate.`, `A premium rate and a fee, both decided by the party being paid.`]
           ],
           rule: `A sponsor may lend to its own deal on terms someone else has checked.`,
-          deal: {
-            setup: `The advisory committee accepts the need for speed. It asks what terms the affiliate proposes.`,
-            asks: [
-              ['m', `Lend at the bank's rate plus one point, repayable when the bank funds.`, `A fair price for speed that nobody will question.`],
-              ['r', `Lend at 12% with a three-month minimum.`, `Defensible for fast money. The committee may think it rich.`],
-              ['x', `Lend at 13% and take a share of the project's profit as well.`, `Taking upside on top of a premium rate, from a deal you control, is self-dealing.`],
-              ['n', `Wait six weeks for the bank.`, `Cheapest money. The delay has its own cost.`]
+          sheet: {
+            setup: `The advisory committee accepts the need for speed and asks what the affiliate proposes. You are lending to a deal you also manage. Write the terms.`,
+            terms: [
+              ['c', `Interest at the bank's rate plus one point.`, `A fair price for speed. Nobody questions it.`, 0, 0.6],
+              ['c', `Interest at 13%.`, `Four points over the bank, set by the party being paid.`, 3, 1.3],
+              ['c', `A three-month minimum term.`, `Reasonable for fast money. They would rather repay when the bank funds.`, 1, 0.5],
+              ['o', `The right to convert the loan into units at today's value.`, `An option on the investors' upside, asked for by their own manager. Possible with their agreement, and costly in trust.`, 3, 1.8],
+              ['x', `A share of the project's profit, written into the loan and left out of the committee's papers.`, `Upside taken from a deal you control, without the investors' informed approval, is self-dealing.`, 0, 2.4]
             ],
-            rule: `When you are both lender and manager, price it so a stranger would call it fair.`
+            rule: `When you sit on both sides, price it so a stranger would call it fair, and hide nothing.`
           }
         };
       }

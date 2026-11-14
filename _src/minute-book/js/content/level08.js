@@ -1,5 +1,5 @@
 MB.level({
-  n: 8, title: 'Development Oversight', rank: 'Head of Development', pass: 0.7, draw: { authored: 5 },
+  n: 8, title: 'Development Oversight', rank: 'Head of Development', pass: 0.7, draw: { authored: 5, spot: 1 },
   topics: 'Budgets, draws, change orders, liens and insurance',
   role: 'You oversee a construction project for its owner.',
   blurb: 'A project spends other people\'s money every week on the say-so of the people being paid.',
@@ -12,6 +12,25 @@ MB.level({
     ['In balance', 'A construction loan is in balance when the undrawn loan plus committed equity covers the cost to finish. Lenders stop funding when it is not.'],
     ['Cost to complete', 'The current estimate of what it will take to finish. It should be updated honestly every month.'],
     ['Builder\'s risk insurance', 'Coverage for a project under construction. It ends on a date, and delayed projects outlast it.']
+  ],
+  spots: [
+    {
+      id: 'l8-spot', title: 'Read the construction contract',
+      make: function () {
+        return {
+          scene: `The project is halfway built at a fixed price. You read the contract again, looking for money.`,
+          parts: [
+            [`The contract price is fixed at $18.4 million.`, 'n', `The headline number.`],
+            [`Savings from approved substitutions are shared equally.`, 'y', `An incentive already agreed. Invite the contractor to propose savings, and half is yours.`],
+            [`The contractor shall carry liability insurance.`, 'n', `Protection.`],
+            [`Unused allowances are credited to the owner.`, 'y', `Allowances are estimates. Whatever is not spent comes back, if someone asks.`],
+            [`Payment is due 30 days after certification.`, 'n', `Routine.`]
+          ],
+          rule: `A fixed price still has moving parts, and some of them move in your favour.`,
+          behind: `Shared savings and unused allowances are in most construction contracts. Contractors do not volunteer either one. An owner who tracks them recovers real money at no risk.`
+        };
+      }
+    }
   ],
   scenarios: [
     {
@@ -122,6 +141,7 @@ MB.level({
             ['g', `Release it against ${a.first}'s waiver.`, `If the sub's suppliers lien the job, the owner may pay that money twice.`],
             ['p', `Release it, and other trades' on request.`, `That dismantles lien protection across the whole project.`]
           ],
+          wider: [`Pay ${a.first}'s suppliers directly from the holdback, against their waivers, and release the rest.`, `The people the holdback protects are paid, so the protection is no longer needed.`],
           rule: `Holdback is released when the conditions are met, never out of sympathy.`,
           us: `Retainage is mostly contractual. Unconditional waivers from lower tiers are the usual protection.`,
           ca: `Holdback is statutory. An owner who releases it early stays liable up to the amount that should have been kept.`
@@ -147,6 +167,7 @@ MB.level({
             ['g', `Show the old estimate, trimming contingency to absorb some.`, `It spends the safety margin on paper. If savings do not appear, the report misled.`],
             ['p', `Show the old estimate and hold invoices to next month.`, `A false report to a lender to obtain funding. That can be fraud.`]
           ],
+          wider: [`Report it, with a plan to sell two finished units early to close the gap.`, `The lender hears the problem and the solution together, and no new equity is needed.`],
           rule: `Report the cost to complete as it is. Shortfalls can be fixed. False reports cannot.`
         };
       }
@@ -190,6 +211,7 @@ MB.level({
             ['g', `Accept it and hold a bigger contingency.`, `A reserve helps with overruns. It does not finish the job if the contractor fails.`],
             ['p', `Accept it and write a tough contract.`, `A harsh contract against a firm with no money is worth nothing.`]
           ],
+          wider: [`Accept it with a bond, and offer to pay the bond premium yourself.`, `The premium is a fraction of the saving, and a surety now stands behind the low price.`],
           rule: `Price is one term. A contractor who cannot finish is the most expensive bid there is.`
         };
       }
@@ -268,6 +290,7 @@ MB.level({
             ['g', `Make the changes and mention them in a newsletter.`, `A newsletter is not the notice the law requires, and it proves you knew.`],
             ['p', `Make the changes. Buyers will not notice until closing.`, `Buyers who find out at closing can refuse to close and claim their deposits.`]
           ],
+          wider: [`Offer buyers a choice: the changed unit at a lower price, or their deposit back.`, `Most keep the unit. The change is agreed, and nobody can claim to have been misled.`],
           rule: `Buyers bought what the disclosure described. Changing it means telling them and honouring their rights.`,
           us: `State condominium laws and federal land sales rules require updated disclosure for material changes.`,
           ca: `Provincial laws require an amended disclosure for a material change, and often give buyers a short period to cancel.`
