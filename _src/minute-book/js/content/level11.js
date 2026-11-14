@@ -1,6 +1,7 @@
 MB.level({
   n: 11, title: 'Deals', rank: 'Partner', pass: 0.7, draw: { authored: 5, numeric: 1 }, numerics: ['basket'],
   topics: 'Letters of intent, diligence, approvals and selling to insiders',
+  role: 'You are a partner advising the board on a transaction.',
   blurb: 'A deal concentrates every earlier lesson into a few weeks. The process must survive being read aloud later.',
   concepts: [
     ['Letter of intent', 'A short document setting out proposed deal terms. It should say plainly which parts bind, usually confidentiality and exclusivity, and which do not.'],
@@ -32,11 +33,12 @@ MB.level({
       }
     },
     {
-      id: 'l11-rofr', title: 'The right of first refusal',
+      id: 'l11-rofr', role: 'You are closing the sale for the selling partner.', title: 'The right of first refusal',
       make: function (g) {
         var a = g.person(), b = g.person(), amt = g.m(3, 9, 0.5);
         return {
           scene: `${a} is selling a partnership interest for ${MB.usd(amt)}. The other partners have 30 days to match after written notice. The buyer wants ten days. "${b.first} told me at dinner they are not interested."`,
+          who: `The buyer`,
           options: [
             ['s', `Deliver the notice, or get every partner's signed waiver.`, `The right is exercised or released the way the agreement says. A waiver takes a day.`],
             ['g', `Close in ten days and send the notice afterward.`, `If ${b.first} remembers dinner differently, the sale breached the agreement.`],
@@ -53,6 +55,7 @@ MB.level({
         var a = g.person(), amt = g.m(30, 90, 5);
         return {
           scene: `${a}, the chief executive, leads a group offering ${MB.usd(amt)} for the company, and offers to "run the process" using the company's usual lawyers.`,
+          who: `${a.first}`,
           options: [
             ['s', `Form a committee of independent directors with its own advisers.`, `The person who knows the company best is trying to buy it cheaply.`],
             ['g', `The full board negotiates, with ${a.first} present but not voting.`, `${a.first} hears the board's position, and the lawyers work with ${a.first} daily.`],
@@ -71,6 +74,7 @@ MB.level({
         var a = g.person(), amt = g.m(10, 28, 2);
         return {
           scene: `The board is asked to buy a management company for ${MB.usd(amt)}. The seller, ${a}, will not show its ten largest contracts until after signing. "They are all in good order."`,
+          who: `${a.first}`,
           options: [
             ['s', `See them through counsel, or get specific promises backed by an escrow.`, `Those contracts are the business. Verify them or shift the risk back.`],
             ['g', `Sign on standard representations, with no escrow.`, `A claim on paper. Without an escrow, the buyer is trusting the assurance.`],
@@ -81,12 +85,13 @@ MB.level({
       }
     },
     {
-      id: 'l11-substantially', title: 'Board approval is enough, surely',
+      id: 'l11-substantially', role: 'You advise the company\'s board.', title: 'Board approval is enough, surely',
       builds: ['Resolution'],
       make: function (g) {
         var a = g.person(), pct = g.pick([85, 90, 95]);
         return {
           scene: `The company's one property is ${pct}% of its assets. Management has a buyer. Two of eleven shareholders object. ${a}, the president, says the board can approve the sale alone.`,
+          who: `${a.first}`,
           options: [
             ['s', `Get board approval, then a shareholder vote at the required level.`, `Selling nearly everything changes what shareholders own. The law gives them the vote.`],
             ['g', `Close on board approval and ratify at the annual meeting.`, `If the vote was required, the sale closed without it and can be challenged.`],
@@ -99,12 +104,13 @@ MB.level({
       }
     },
     {
-      id: 'l11-drag', title: 'Dragged to the majority\'s own buyer',
+      id: 'l11-drag', role: 'You advise the company\'s board.', title: 'Dragged to the majority\'s own buyer',
       builds: ['Good faith', 'Arm\'s length'],
       make: function (g) {
         var a = g.person(), b = g.person(), pct = g.pick([15, 20, 25]);
         return {
           scene: `${a} owns 70% and may drag ${b}'s ${pct}% into "a sale to a third party on the same terms." The buyer is ${a.first}'s family trust, at a price well below last year's valuation.`,
+          who: `${a.first}`,
           options: [
             ['s', `Refuse. An affiliate sale needs independent valuation and ${b.first}'s agreement.`, `A family trust is not a third party. The right is being used for the wrong purpose.`],
             ['g', `Allow it with a valuation from the company's accountants.`, `Some support, but the valuers answer to ${a.first}.`],

@@ -54,6 +54,42 @@
     return String(text).split(/\n\s*\n/).map(function (p) { return '<p>' + p.trim() + '</p>'; }).join('');
   }
 
+  /* Words in a situation that the Registers define. Tapping one shows the definition. */
+  var ALIAS = [
+    ['special purpose entity', 'Special purpose entity'], ['good standing', 'Good standing'], ['fiduciar(?:y|ies)', 'Fiduciary'],
+    ['quorum', 'Quorum'], ['written resolution', 'Written resolution'], ['ratif(?:y|ies|ied|ication)', 'Ratification'],
+    ['mezzanine', 'Senior and mezzanine debt'], ['preferred equity', 'Preferred equity'], ['loan-to-value|loan-to-cost', 'Loan-to-value and loan-to-cost'],
+    ['debt service coverage', 'Debt service coverage'], ['capital calls?', 'Capital call'], ['dilut(?:e|es|ed|ion)', 'Dilution'],
+    ['waterfall', 'Waterfall'], ['preferred return', 'Preferred return'], ['promotes?', 'Promote'], ['catch-up', 'Catch-up'], ['clawback', 'Clawback'],
+    ['general partner', 'General partner'], ['limited partners?', 'Limited partner'], ['advisory committees?', 'Advisory committee'], ['key person', 'Key person clause'],
+    ['assign(?:ment|ed)?', 'Assignment'], ['novation', 'Novation'], ['termination fee', 'Termination fee'], ['change[- ]of[- ]control', 'Change of control'],
+    ['contingency', 'Contingency'], ['change order', 'Change order'], ['holdback|lien', 'Lien and holdback'], ['cost to complete', 'Cost to complete'], ['builder.s risk', 'Builder\'s risk insurance'],
+    ['covenant', 'Covenant'], ['forbearance', 'Forbearance agreement'], ['guarant(?:ee|or)s?', 'Guarantee'], ['intercreditor', 'Intercreditor agreement'],
+    ['power of sale', 'Power of sale'], ['credit bid', 'Credit bid'], ['receiver', 'Receiver'], ['letter of intent', 'Letter of intent'],
+    ['right of first refusal', 'Right of first refusal'], ['drag', 'Drag-along and tag-along'], ['side letters?', null], ['insolven(?:t|cy)', 'Insolvency'],
+    ['register', 'Registers']
+  ];
+  var DEFS = null;
+  function defs() {
+    if (DEFS) return DEFS;
+    DEFS = {};
+    MB.levels.forEach(function (L) { L.concepts.forEach(function (c) { DEFS[c[0]] = c[1]; }); });
+    DEFS['Side letter'] = 'A private agreement giving one investor terms the others do not have. Acceptable when the main agreement permits it and those entitled are told.';
+    return DEFS;
+  }
+  function tipify(html) {
+    var d = defs(), used = 0, taken = {};
+    ALIAS.forEach(function (al) {
+      var term = al[1] || 'Side letter';
+      if (used >= 3 || taken[term] || !d[term]) return;
+      var re = new RegExp('(^|[^A-Za-z<>/])(' + al[0] + ')(?![A-Za-z])(?![^<]*>)', 'i');
+      if (!re.test(html)) return;
+      html = html.replace(re, function (m, pre, word) { return pre + '<button type="button" class="tip" data-act="tip" data-term="' + term.replace(/"/g, '&quot;') + '">' + word + '</button>'; });
+      taken[term] = 1; used++;
+    });
+    return html;
+  }
+
   /* ---------- seeded generation ---------- */
 
   function mulberry32(a) {
@@ -208,6 +244,7 @@
       var made = o.def.make(gc);
       var gm = makeGen(run.seed ^ hash('cash:' + o.def.id));
       made.kind = 'choice'; made.id = o.def.id; made.title = o.def.title; made.builds = o.def.builds || [];
+      made.role = made.role || o.def.role || L.role || '';
       made.options = gc.shuffle(made.options.map(function (a) {
         var range = PAY[a[0]], m = range[0] + gm.rnd() * (range[1] - range[0]);
         var cash = round2(B * m * (a[0] === 's' ? trust : 1));
@@ -297,8 +334,11 @@
       S.passed[run.n] = { pct: pct, net: net, gw: gw, gold: pct === 1 };
       if (passedCount() === MB.levels.length) S.bestEquity = Math.max(S.bestEquity === null ? -Infinity : S.bestEquity, equity());
     }
+    var parts = { choices: 0, asks: 0, due: 0, pass: passed ? (pct === 1 ? GW.gold : GW.pass) : 0 };
+    run.answers.forEach(function (a) { parts.choices += a.gw || 0; if (a.ask) parts.asks += a.ask.gw; });
+    reckon.forEach(function (r) { if (r.due) parts.due += GW.due; });
     run.phase = 'done'; run.sub = null;
-    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, net: net, gw: passed ? gw : 0, reckon: reckon, promoted: rank() !== before ? rank() : null };
+    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, net: net, gw: passed ? gw : 0, gwParts: parts, reckon: reckon, promoted: rank() !== before ? rank() : null };
     save();
   }
 
@@ -376,14 +416,22 @@
 
   var MINUS = String.fromCharCode(8722), DOT = String.fromCharCode(183), TIMES = String.fromCharCode(215);
   function gwText(n) { return n ? ' Goodwill ' + (n > 0 ? '+' : MINUS) + Math.abs(n) + '.' : ''; }
+  /* Says whose goodwill moved and why, so the meter is never a mystery. */
+  function gwWhy(o, who) {
+    if (!o.gw) return '';
+    var n = ' <span class="gw-why">Goodwill ' + (o.gw > 0 ? '+' : MINUS) + Math.abs(o.gw);
+    if (!who) return n + '.</span>';
+    if (o.g === 's') return n + ': ' + who + ' wanted a different answer.</span>';
+    return n + ': ' + who + (o.g === 'g' ? ' got most of what was wanted.' : ' got exactly what was wanted.') + '</span>';
+  }
 
-  function moneyLine(o, mine) {
+  function moneyLine(o, mine, who) {
     if (mine) {
-      if (o.g === 's') return '<b>' + plus(o.cash) + '</b> banked. Nothing follows you.' + gwText(o.gw);
-      return '<b>' + plus(o.cash) + '</b> today, and a ' + GRADE[o.g].name + ' that could cost <b>' + MB.cash(o.risk) + '</b>.' + gwText(o.gw);
+      if (o.g === 's') return '<b>' + plus(o.cash) + '</b> banked. Nothing follows you.' + gwWhy(o, who);
+      return '<b>' + plus(o.cash) + '</b> today, and a ' + GRADE[o.g].name + ' that could cost <b>' + MB.cash(o.risk) + '</b>.' + gwWhy(o, who);
     }
-    if (o.g === 's') return 'Would have paid <b>' + plus(o.cash) + '</b>, with nothing to follow.' + gwText(o.gw);
-    return 'Would have paid <b>' + plus(o.cash) + '</b>, with a ' + GRADE[o.g].name + ' of up to <b>' + MB.cash(o.risk) + '</b>.' + gwText(o.gw);
+    if (o.g === 's') return 'Would have paid <b>' + plus(o.cash) + '</b>, with nothing to follow.' + gwWhy(o, who);
+    return 'Would have paid <b>' + plus(o.cash) + '</b>, with a ' + GRADE[o.g].name + ' of up to <b>' + MB.cash(o.risk) + '</b>.' + gwWhy(o, who);
   }
 
   function moreBlock(it) {
@@ -406,7 +454,7 @@
         if (!ans) return '<button class="opt" data-act="choose" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span>' + pay + '</button>';
         var mine = ans.pick === i;
         return '<div class="opt done g-' + o.g + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t +
-          '<span class="opt-money">' + moneyLine(o, mine) + '</span><span class="opt-why">' + o.why + '</span></span>' +
+          '<span class="opt-money">' + moneyLine(o, mine, it.who) + '</span><span class="opt-why">' + o.why + '</span></span>' +
           '<span class="opt-tags">' + chip(o.g) + (mine ? '<span class="yours">Your motion</span>' : '') + '</span></div>';
       }).join('') + '</div>';
     } else if (!ans) {
@@ -419,7 +467,8 @@
     }
     return folio('Meeting ' + ROMAN[L.n] + ' · ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + (run.practice ? ' · practice' : '')) + pips(items, run) + tallyRow(run) +
       '<h1 class="item-title">' + it.title + '</h1>' +
-      '<div class="scene">' + paras(it.scene) + '</div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
+      (it.role ? '<p class="role"><span class="label">You</span> ' + it.role + '</p>' : '') +
+      '<div class="scene">' + tipify(paras(it.scene)) + '</div><div class="tip-box" id="tip-box" hidden></div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
       (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
         '<div class="actions"><button class="btn" data-act="next">' + (pending ? 'One more thing' : last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
@@ -457,10 +506,23 @@
     }).join('') + '</div>';
     return folio('Meeting ' + ROMAN[L.n] + ' ' + DOT + ' ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + ' ' + DOT + ' the ask') + pips(items, run) + tallyRow(run) +
       '<h1 class="item-title">What do you ask for?</h1>' +
-      '<div class="scene">' + paras(d.setup) + '</div>' + body +
+      '<p class="role"><span class="label">You chose</span> ' + it.options[ans.pick].t + '</p>' +
+      '<div class="scene">' + tipify(paras(d.setup)) + '</div><div class="tip-box" id="tip-box" hidden></div>' + body +
       (res ? '<div class="review">' + (d.rule ? '<p class="rule-line"><span class="label">The line</span> ' + d.rule + '</p>' : '') +
         '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div></div>'
-        : '<p class="note">Bigger asks land more often when goodwill is high. Not every opening is one.</p>');
+        : '<p class="note">Your goodwill is <b>' + liveGoodwill(run) + '</b>. At that level a strong ask is agreed about <b>' + Math.round(reachOdds(liveGoodwill(run)) * 100) + '%</b> of the time. A fair ask always is. An overreach is the one that crosses a legal line, and not every opening is a deal.</p>');
+  }
+
+  function sgn(n) { return n ? (n > 0 ? '+' : MINUS) + Math.abs(n) : '0'; }
+  function gwBreak(res, run) {
+    var p = res.gwParts || { choices: res.gw, asks: 0, due: 0, pass: 0 };
+    return '<h2 class="section">Goodwill</h2><dl class="ledger">' +
+      '<div><dt>Choices that disappointed or pleased someone</dt><dd>' + sgn(p.choices) + '</dd></div>' +
+      '<div><dt>What you asked for</dt><dd>' + sgn(p.asks) + '</dd></div>' +
+      '<div><dt>Loose ends that came due</dt><dd>' + sgn(p.due) + '</dd></div>' +
+      '<div><dt>Delivering the meeting' + (res.pct === 1 ? ' without dissent' : '') + '</dt><dd>' + sgn(p.pass) + '</dd></div>' +
+      '<div class="total"><dt>Goodwill this meeting</dt><dd>' + sgn(res.gw) + '</dd></div>' +
+      (run.practice ? '' : '<div><dt>Your goodwill</dt><dd>' + goodwill() + ' of 100</dd></div>') + '</dl>';
   }
 
   function viewDone(L, run) {
@@ -484,7 +546,7 @@
         '<dl class="ledger"><div><dt>Taken at the table</dt><dd>' + plus(res.gross) + '</dd></div><div><dt>Came due</dt><dd>' + MB.cash(-res.losses) + '</dd></div>' +
         '<div class="total"><dt>Net for the meeting</dt><dd>' + plus(res.net) + '</dd></div>' +
         (run.practice ? '' : '<div><dt>Your equity</dt><dd>' + MB.cash(equity()) + '</dd></div>') +
-        '<div><dt>Goodwill this meeting</dt><dd>' + (res.gw >= 0 ? '+' : MINUS) + Math.abs(res.gw) + '</dd></div></dl>';
+        '</dl>' + gwBreak(res, run);
       if (!run.practice && L.n === MB.levels.length && passedCount() === MB.levels.length) {
         sub += ' Your career closes at <b>' + MB.cash(equity()) + '</b>.';
       }
@@ -525,8 +587,17 @@
       '<h2 class="section">Money</h2>' +
       '<p>You start with ' + MB.cash(SEED_EQUITY) + '. Every motion shows what it pays today. ' + chip('s') + ' motions pay and nothing follows you. ' + chip('g') + ' motions leave a loose end: about one in three comes due, at two and a half times what you took. ' + chip('p') + ' motions leave a liability: most come due, at four times. You are not told which is which until you choose.</p>' +
       '<p>The reckoning happens when the meeting adjourns. The stakes grow with every meeting.</p>' +
-      '<h2 class="section">Goodwill and the ask</h2>' +
-      '<p>Doing the right thing bluntly can cost goodwill with the people across the table. After some sound choices an opening appears, and you choose what to ask for. A fair ask pays a little and builds goodwill. A strong ask pays well but can be refused, and lands more often when goodwill is high. An overreach pays most and comes back on you. Sometimes there is no deal to be had, and the right ask is none.</p>' +
+      '<h2 class="section">Goodwill</h2>' +
+      '<p>Goodwill is what the people across the table think of dealing with you: partners, borrowers, vendors, colleagues. It runs from 0 to 100 and starts at 50. Every change names the person and the reason.</p>' +
+      '<ul class="rules">' +
+      '<li><b>' + MINUS + '1 to ' + MINUS + '4</b> when a sound choice refuses someone. More when they are powerful. Nothing when nobody is put out.</li>' +
+      '<li><b>+1 or +2</b> when a grey or poor choice gives someone what they wanted. It is cheap goodwill, and it is lost if the loose end comes due.</li>' +
+      '<li><b>' + MINUS + '6</b> each time a loose end or liability comes due.</li>' +
+      '<li><b>+6</b> for passing a meeting, <b>+10</b> for a perfect one.</li>' +
+      '<li><b>+5</b> for a fair ask, <b>+10</b> for a gift, <b>' + MINUS + '1</b> for a strong ask that lands, <b>' + MINUS + '5</b> for one refused, <b>' + MINUS + '7</b> for a tone-deaf ask, <b>' + MINUS + '8</b> for an overreach.</li>' +
+      '</ul>' +
+      '<h2 class="section">The ask</h2>' +
+      '<p>After some sound choices an opening appears and you choose what to ask for. A fair ask always lands and pays a little. A strong ask pays well and can be refused. The chance it lands is shown before you choose, and rises with goodwill: about 30% at 20, 55% at 50, 80% at 80. An overreach pays most, crosses a legal line and comes back on you. Sometimes there is no deal to be had, and the right ask is none.</p>' +
       '<h2 class="section">Standing</h2>' +
       '<p>Standing is the quality of the sittings on your record. The better it is, the more your sound work pays, up to a quarter more. Trust compounds.</p>' +
       '<h2 class="section">Passing</h2>' +
@@ -613,6 +684,13 @@
     }
     else if (act === 'again' && run) { startRun(run.n); render(); }
     else if (act === 'unlock') { S.unlockAll = el.checked; save(); }
+    else if (act === 'tip') {
+      var box = document.getElementById('tip-box'), term = el.getAttribute('data-term');
+      if (!box) return;
+      if (!box.hidden && box.getAttribute('data-term') === term) { box.hidden = true; return; }
+      box.innerHTML = '<b>' + term + '.</b> ' + defs()[term];
+      box.setAttribute('data-term', term); box.hidden = false;
+    }
     else if (act === 'career-ask') {
       document.getElementById('career-zone').innerHTML = '<p class="confirm">Close the book on this career and start again at ' + MB.cash(SEED_EQUITY) + '?</p><div class="actions"><button class="btn danger" data-act="career-yes">Yes, start again</button><button class="btn quiet" data-act="career-no">Keep this career</button></div>';
     }

@@ -1,6 +1,7 @@
 MB.level({
   n: 6, title: 'Partnerships', rank: 'Principal', pass: 0.7, draw: { authored: 5 },
   topics: 'General partners, limited partners and the agreement between them',
+  role: 'You are an officer of the general partner, which runs the fund for its investors.',
   blurb: 'One partner has control. The others have money at risk. The agreement is the whole relationship.',
   concepts: [
     ['General partner', 'The partner that manages the partnership and is liable for its debts. Usually a company formed for the purpose. It owes fiduciary duties to the partnership unless the agreement validly narrows them.'],
@@ -20,13 +21,14 @@ MB.level({
         var a = g.person(), pct = g.pick([28, 35, 40]);
         return {
           scene: `${a} holds ${pct}% of the units and is unhappy with construction. ${a.first} wants to approve every contract and give the contractor instructions directly.`,
+          who: `${a.first}`,
           options: [
             ['s', `Offer fuller reporting and an advisory committee seat, and explain the liability risk.`, `A real voice through the channel built for it, and the investor stays an investor.`],
             ['g', `Let ${a.first} join management calls and weigh in informally.`, `One investor now steers decisions the others cannot see, and looks like a manager.`],
             ['p', `Give ${a.first} co-signing authority.`, `A limited partner who signs contracts is managing, and risks limited liability.`]
           ],
           deal: {
-            setup: `${a.first} calms down once the advisory seat is offered. "Fine. But I want to see you earn it."`,
+            setup: `${a.first}, the unhappy investor, calms down once the advisory seat is offered. "Fine. But I want to see you earn it."`,
             asks: [
               ['m', `Ask ${a.first} to be a reference for investors in your next raise.`, `An easy yes that turns a critic into an advocate.`],
               ['r', `Ask ${a.first} to commit capital to your next fund now.`, `A big ask of someone who was angry an hour ago.`],
@@ -48,6 +50,7 @@ MB.level({
         var a = g.person(), amt = g.m(9, 28, 1);
         return {
           scene: `The fund must sell its last property. ${a}, who runs the general partner, also runs a newer fund that would pay ${MB.usd(amt)}. "No broker, quick close. Everyone wins."`,
+          who: `${a.first}`,
           options: [
             ['s', `Disclose to both advisory committees, get an independent valuation, and seek approval.`, `The general partner is seller and buyer. Independent pricing makes the deal sound.`],
             ['g', `Close at one broker's opinion of value and report it afterward.`, `Some price support, but chosen by the conflicted party and disclosed too late.`],
@@ -75,7 +78,8 @@ MB.level({
       make: function (g) {
         var a = g.person(), amt = g.m(0.4, 1.4, 0.1);
         return {
-          scene: `Three partnerships share ${MB.usd(amt)} of office costs, allocated "in the general partner's sole discretion." It earns a promote in two of them. ${a}, the controller, proposes loading the third.`,
+          scene: `The general partner runs three partnerships and splits ${MB.usd(amt)} of shared office costs among them "in its sole discretion." It earns a promote in two. ${a}, the controller, proposes charging most of the cost to the third, where it earns none.`,
+          who: `${a.first}`,
           options: [
             ['s', `Allocate on a consistent, reasonable basis and disclose the policy.`, `Discretion picks among reasonable methods. It does not pick the one that pays you.`],
             ['g', `Load the third and describe the method in its statement notes.`, `Disclosing a self-serving choice does not make it a good-faith one.`],
@@ -88,18 +92,19 @@ MB.level({
       }
     },
     {
-      id: 'l6-removal', title: 'They want the partner list',
+      id: 'l6-removal', role: 'You are the general partner\'s compliance officer.', title: 'They want the partner list',
       make: function (g) {
         var a = g.person(), b = g.person();
         return {
           scene: `Unhappy investors can remove the general partner by a two-thirds vote. ${a} asks for the partner list, which the agreement entitles any partner to. ${b}, the principal, says: "They are organizing. Take your time."`,
+          who: `${b.first}`,
           options: [
             ['s', `Provide the list on time and tell ${b.first} to answer the concerns.`, `The right belongs to the partners. A confident general partner answers its critics.`],
             ['g', `Ask for clarifications and let the deadline drift.`, `The delay will be the first exhibit when investors argue there is cause.`],
             ['p', `Refuse and warn ${a.first} about confidentiality.`, `Denying a right and threatening a partner turns unhappy investors into plaintiffs.`]
           ],
           deal: {
-            setup: `You send the list and call ${a.first}. The investors are angry about delays, not out for blood. They want a reason to stand down.`,
+            setup: `You send the list and call ${a.first}, the investor leading the push. The group is angry about delays, not out for blood. They want a reason to stand down.`,
             asks: [
               ['v', `Waive management fees until the project is back on schedule.`, `It costs real money and shows whose side you are on.`],
               ['m', `Ask for a 90-day standstill in return for monthly reporting and a recovery plan.`, `Time to fix it, on terms everyone can see.`],
@@ -118,13 +123,14 @@ MB.level({
         var a = g.person(), amt = g.m(6, 18, 1);
         return {
           scene: `${a}, a named key person, resigned last week. The agreement requires notice to investors in ten days and no new investments until they approve a replacement. A ${MB.usd(amt)} acquisition signs in twelve days.`,
+          who: `Your remaining partners`,
           options: [
             ['s', `Give notice now, pause, and ask investors to approve the deal.`, `Investors backed named people. The clause is their agreed protection.`],
             ['g', `Sign the deal, since it predates the departure, then give notice.`, `Arguable, but the general partner is deciding the investors' question in its own favour.`],
             ['p', `Close and mention it in the quarterly report.`, `That breaches the notice and the freeze, and is likely cause for removal.`]
           ],
           deal: {
-            setup: `Investors take the news calmly. Several say they still like the acquisition and ask what you propose.`,
+            setup: `You give the notice. Investors take the departure calmly. Several say they still like the acquisition and ask what you propose.`,
             asks: [
               ['m', `Ask them to approve this one acquisition, with a right to co-invest.`, `They keep control and share the upside. Easy to say yes to.`],
               ['r', `Ask them to approve your replacement and extend the investment period a year.`, `Much more than the clause contemplates. They may want to wait.`],

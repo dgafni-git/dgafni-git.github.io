@@ -1,6 +1,7 @@
 MB.level({
   n: 10, title: 'Foreclosure and Owned Property', rank: 'Chief Restructuring Officer', pass: 0.7, draw: { authored: 4, numeric: 2 }, numerics: ['deficiency', 'reo'],
   topics: 'Remedies, taking title, and the entity that holds what you took',
+  role: 'You run workouts at the lender, turning bad loans into something.',
   blurb: 'Enforcing a mortgage turns a lender into an owner. Process, price and structure decide what happens next.',
   concepts: [
     ['Judicial foreclosure', 'Enforcement through a court action that ends in a court-ordered sale or a transfer of title to the lender.'],
@@ -64,13 +65,14 @@ MB.level({
         var a = g.person(), amt = g.m(4, 11, 0.5);
         return {
           scene: `${a} owes ${MB.usd(amt)} and offers to sign the property over in exchange for release of the guarantee. Title has not been searched in three years. A one-page form is ready to sign.`,
+          who: `${a.first}`,
           options: [
             ['s', `Search title, keep the mortgage alive, and get an appraisal before accepting.`, `A handed-over deed leaves junior liens in place. The mortgage is how you clear them.`],
             ['g', `Sign the borrower's form before ${a.first} changes course.`, `Fast, but the guarantor is released and the property comes with whatever is registered.`],
             ['p', `Accept the deed and discharge the mortgage.`, `Discharging gives away priority. Every junior claim moves up.`]
           ],
           deal: {
-            setup: `Title is clean and the appraisal is below the debt. ${a.first} still wants the guarantee released and has little cash.`,
+            setup: `Title is clean and the appraisal is below the debt. ${a.first}, the borrower, still wants the personal guarantee released and has little cash.`,
             asks: [
               ['m', `Release the guarantee for the deed plus full cooperation: plans, permits, contracts and keys.`, `Cooperation is worth months on a half-built site, and ${a.first} can give it.`],
               ['r', `Release the guarantee only for a cash payment toward the shortfall.`, `Fair to ask of a guarantor. ${a.first} may not have it.`],
@@ -92,13 +94,14 @@ MB.level({
         var a = g.person(), amt = g.m(3, 9, 0.5);
         return {
           scene: `The lender is selling under power of sale. Before listing, ${a}, who co-invests with the partners, offers ${MB.usd(amt)}, matching the one appraisal, closing in ten days. The borrower will be sued for the shortfall.`,
+          who: `${a.first}`,
           options: [
             ['s', `List it with a broker and get a second appraisal first.`, `A lender selling a borrower's property must take reasonable steps to get a proper price.`],
             ['g', `Accept. The price matches the appraisal.`, `An unmarketed sale to a connected buyer is how borrowers win improvident-sale claims.`],
             ['p', `Accept a little less for a faster close.`, `Selling below your own appraisal to a connected buyer can cost the shortfall claim.`]
           ],
           deal: {
-            setup: `The property is listed. ${a.first} is still keen and asks if there is any way to get an edge.`,
+            setup: `The property is listed. ${a.first}, the partners' co-investor, is still keen and asks if there is any way to get an edge.`,
             asks: [
               ['m', `Invite ${a.first} to bid through the broker like anyone else.`, `A motivated bidder in a fair process helps the price.`],
               ['r', `Ask ${a.first} for a firm opening bid that sets a floor, on counsel's advice.`, `A floor protects the price if it is disclosed and others can still outbid it.`],
@@ -119,7 +122,8 @@ MB.level({
       make: function (g) {
         var a = g.person(), bal = g.m(8, 16, 1), app = Math.round(bal * g.pick([0.7, 0.75, 0.8]) / 1e5) * 1e5;
         return {
-          scene: `A foreclosed project moves into a new entity. The loan balance was ${MB.usd(bal)}. The independent appraisal says ${MB.usd(app)}. ${a}, who made the loan, wants the entity's note set at the full balance. "Why book a loss?"`,
+          scene: `A foreclosed project moves into a new entity. The loan balance was ${MB.usd(bal)}. The independent appraisal says ${MB.usd(app)}. ${a}, who made the loan, wants the entity's debt to the fund set at the full balance instead. "Why book a loss?"`,
+          who: `${a.first}`,
           options: [
             ['s', `Set the note at the appraised value and record the loss.`, `The entity starts with a debt it can repay, and the fund's books tell the truth.`],
             ['g', `Use a higher internal valuation from the deal team.`, `A valuation by the team whose loan went bad is not independent.`],
@@ -147,6 +151,7 @@ MB.level({
         var a = g.person();
         return {
           scene: `A foreclosure sale is set for ten tomorrow. At six tonight the borrower files for court protection from creditors. ${a} says the sale "was already in motion."`,
+          who: `${a.first}`,
           options: [
             ['s', `Stop until counsel confirms whether a stay applies.`, `A stay halts enforcement at once. The lender's rights now run through the court.`],
             ['g', `Finish the scheduled steps and start nothing new.`, `A stay does not care which steps were already scheduled.`],

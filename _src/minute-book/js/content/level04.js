@@ -1,6 +1,7 @@
 MB.level({
   n: 4, title: 'The Capital Stack', rank: 'Asset Manager', pass: 0.7, draw: { authored: 4, numeric: 2 }, numerics: ['ltv', 'dscr', 'dilution'],
   topics: 'Debt, equity, capital calls and raising money from people you know',
+  role: 'You work for the sponsor that raises the money and runs the project.',
   blurb: 'Money enters a project in layers, and each layer has rights. Write down which layer before it arrives.',
   concepts: [
     ['Capital stack', 'The layers of money in a project, ranked by who is paid first: senior debt, then mezzanine debt, then preferred equity, then common equity.'],
@@ -14,19 +15,20 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l4-hat', title: 'Passing the hat',
+      id: 'l4-hat', role: 'You are helping your partners raise money for a deal.', title: 'Passing the hat',
       builds: ['Governing documents'],
       make: function (g) {
         var a = g.person(), amt = g.m(3, 9, 0.5), n = g.int(9, 18);
         return {
           scene: `A distressed loan can be bought for ${MB.usd(amt)} within three weeks. ${a}, a partner, wants to raise it from ${n} friends and relatives. "They trust us. Collect the wires and paper it after closing."`,
+          who: `${a.first}`,
           options: [
             ['s', `Confirm an exemption for each investor, sign subscriptions, and disclose risks and conflicts first.`, `Selling partnership units is selling securities, even to friends.`],
             ['g', `Take the money on a one-page receipt, with terms to follow.`, `Investors paid for something undefined, and an exemption cannot be confirmed after the sale.`],
             ['p', `Collect the wires and sort the paper later.`, `An undocumented securities sale. Investors may be entitled to their money back.`]
           ],
           deal: {
-            setup: `The investors are in and the paper is clean. Nobody has yet discussed what the sponsors earn for finding and running the deal.`,
+            setup: `The friends and relatives are in and the paper is clean. Nobody has yet discussed what the sponsors earn for finding and running the deal.`,
             asks: [
               ['m', `Take a standard fee and promote, written into the partnership agreement.`, `Disclosed sponsor pay is how this business works. Investors expect it.`],
               ['r', `Ask for a larger promote above a higher return hurdle, fully disclosed.`, `More upside only if investors do well first. Some will push back.`],
@@ -42,11 +44,11 @@ MB.level({
       }
     },
     {
-      id: 'l4-loan-or-equity', burn: 0, title: 'Was that a loan?',
+      id: 'l4-loan-or-equity', role: 'You manage the project company and are writing its funding policy.', burn: 0, title: 'Was that a loan?',
       make: function (g) {
         var a = g.person(), amt = g.m(0.3, 1.2, 0.05);
         return {
-          scene: `Last spring ${a} wired ${MB.usd(amt)} into a cash-short project. Nothing was signed. The project sold at a profit. ${a.first} says it was equity. The others say it was a loan. Set the rule for next time.`,
+          scene: `Last spring ${a} wired ${MB.usd(amt)} into a cash-short project. Nothing was signed. The project sold at a profit. ${a.first} says it was equity. The others say it was a loan. Nobody can prove either. What rule stops this happening again?`,
           options: [
             ['s', `No owner money is accepted until a signed note or subscription says what it is.`, `The only time everyone agrees on debt or equity is before the outcome is known.`],
             ['g', `Accounting classifies each advance and emails the owner.`, `An email is evidence. It is not an agreement on rate, repayment or dilution.`],
@@ -63,6 +65,7 @@ MB.level({
         var a = g.person(), amt = g.m(0.8, 2.4, 0.2);
         return {
           scene: `The partnership needs ${MB.usd(amt)} for an overrun. The agreement requires capital calls from all partners in proportion. ${a}, who runs the general partner, says: "Call it from the four we know best and give them extra units."`,
+          who: `${a.first}`,
           options: [
             ['s', `Call every partner in proportion, with the required notice.`, `Every partner gets the same chance to protect their percentage.`],
             ['g', `Borrow it from one friendly partner at 15% instead.`, `Possibly allowed, but it is a related-party loan ranking ahead of everyone, and nobody checked the agreement.`],
@@ -78,13 +81,14 @@ MB.level({
         var a = g.person(), b = g.person();
         return {
           scene: `Six partners funded the capital call. ${a} did not, and the cure period has ended. The agreement dilutes a defaulting partner by formula. ${b}, who runs the general partner, says: "Leave it. ${a.first} is good for it."`,
+          who: `${b.first}`,
           options: [
             ['s', `Apply the formula, or put a waiver to the other partners.`, `The six who funded relied on the remedy. Leniency is theirs to give.`],
             ['g', `Quietly give ${a.first} sixty more days.`, `A private favour to a friend, paid for by the partners who funded on time.`],
             ['p', `Declare the whole interest forfeited to the general partner.`, `The agreement gives dilution, not forfeiture. That is taking a partner's property.`]
           ],
           deal: {
-            setup: `${a.first} takes the dilution notice badly, then calls back. "I cannot fund. Would anyone just buy me out?"`,
+            setup: `${a.first}, the partner who missed the call, takes the dilution notice badly, then phones back. "I cannot fund. Would anyone just buy me out?"`,
             asks: [
               ['m', `Arrange a buyout at an independent valuation, offered to every partner pro rata.`, `Everyone gets the same chance at a fair price, and ${a.first} exits cleanly.`],
               ['r', `Offer to fund ${a.first}'s share as a loan at the agreement's default rate, with the partners' approval.`, `A real return, properly approved. ${a.first} may prefer to sell.`],
@@ -98,18 +102,19 @@ MB.level({
       }
     },
     {
-      id: 'l4-mezz', title: 'A second layer of debt',
+      id: 'l4-mezz', role: 'You handle financing for the developer that owns the project.', title: 'A second layer of debt',
       make: function (g) {
         var a = g.person(), amt = g.m(1.5, 5, 0.5);
         return {
-          scene: `The project needs ${MB.usd(amt)} more. The senior loan bars new debt without consent. ${a} suggests calling the money preferred equity, with a fixed repayment date and takeover rights. "Then we do not need to ask."`,
+          scene: `Your project needs ${MB.usd(amt)} more to finish. Its main loan forbids any new borrowing without that lender's consent. ${a} suggests calling the money preferred equity, with a fixed repayment date and takeover rights. "Then we do not need to ask."`,
+          who: `${a.first}`,
           options: [
             ['s', `Ask the senior lender for consent and negotiate an intercreditor agreement.`, `The covenant gives the senior lender a say. Consent makes the new money safe.`],
             ['g', `Use the preferred equity structure and stay quiet.`, `Equity with a repayment date and takeover rights behaves like debt, and may breach anyway.`],
             ['p', `Take a mezzanine loan and say nothing.`, `A knowing covenant breach, and often a trigger for the guarantor's liability.`]
           ],
           deal: {
-            setup: `The senior lender takes your call. They are not thrilled about more debt, but they are listening.`,
+            setup: `You call the lender that holds the main loan. They are not thrilled about more debt, but they are listening.`,
             asks: [
               ['m', `Offer a consent fee and monthly reporting in return for consent.`, `Cheap for you, and the lender is paid for the extra risk.`],
               ['r', `Ask the senior lender to advance the extra money itself at a blended rate.`, `One lender, no intercreditor fight, lower cost. It is a lot to ask.`],
@@ -131,6 +136,7 @@ MB.level({
         var a = g.person(), amt = g.m(2, 6, 0.5);
         return {
           scene: `${a} will invest ${MB.usd(amt)} but wants a side letter with a lower fee. The agreement permits side letters and lets two other investors elect any better terms granted.`,
+          who: `${a.first}`,
           options: [
             ['s', `Document it and offer the same terms to the two investors.`, `Side letters are normal when authorized, written and disclosed to those entitled.`],
             ['g', `Agree verbally so the election right is not triggered.`, `An unwritten term is still a term. Dodging the others' rights makes it a breach.`],

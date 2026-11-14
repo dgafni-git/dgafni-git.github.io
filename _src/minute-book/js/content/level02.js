@@ -1,6 +1,7 @@
 MB.level({
   n: 2, title: 'Duties', rank: 'Senior Associate', pass: 0.7, draw: { authored: 5 },
   topics: 'Care, loyalty, conflicts and whose interests come first',
+  role: 'You hold a seat where other people\'s money depends on your judgment.',
   blurb: 'People who hold power over other people\'s money owe duties. Most failures are a breach of one.',
   concepts: [
     ['Fiduciary', 'Someone who holds power on behalf of another and must use it for that other\'s benefit. Directors, officers, managing members and general partners are fiduciaries of the entity they serve.'],
@@ -13,11 +14,12 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l2-family', title: 'The low bidder is family',
+      id: 'l2-family', role: 'You sit on the committee that awards the project\'s contracts.', title: 'The low bidder is family',
       make: function (g) {
         var a = g.person(), amt = g.m(0.4, 1.6, 0.1);
         return {
           scene: `Your committee votes this afternoon on a ${MB.usd(amt)} servicing contract. The lowest bid is from a company owned by your brother-in-law, ${a}. Nobody else knows.`,
+          who: `Your brother-in-law`,
           options: [
             ['s', `Disclose the relationship, leave the room, and have both minuted.`, `The committee can still pick the best bid, and the record shows the decision was untainted.`],
             ['g', `Tell the chair privately, then vote. It is the lowest bid anyway.`, `One person knows, the rest do not, and you voted on a relative's contract.`],
@@ -30,11 +32,12 @@ MB.level({
       }
     },
     {
-      id: 'l2-nominee', burn: 2, title: 'The director who was sent',
+      id: 'l2-nominee', role: 'You are a director of the project company, appointed by the lender that owns it.', burn: 2, title: 'The director who was sent',
       make: function (g) {
         var spe = g.spe('Inc.'), a = g.person(), amt = g.m(0.5, 2, 0.25);
         return {
           scene: `${g.fund} put you on the board of ${spe}. Its chief executive, ${a}, calls: "Send ${MB.usd(amt)} up to the fund this week. Vote it through." The entity has unpaid trades and tax due.`,
+          who: `${a.first}`,
           options: [
             ['s', `Check whether the entity can pay it and still meet its debts. Tell ${a.first} what you find.`, `Your duty runs to the entity whose board you sit on, not to whoever appointed you.`],
             ['g', `Vote yes and minute your reservations.`, `Reservations do not undo a yes vote. You approved it knowingly.`],
@@ -47,11 +50,12 @@ MB.level({
       }
     },
     {
-      id: 'l2-opportunity', title: 'The lot next door',
+      id: 'l2-opportunity', role: 'You are an officer of the project company.', title: 'The lot next door',
       make: function (g) {
         var spe = g.spe(), amt = g.m(0.6, 1.8, 0.1);
         return {
           scene: `You are an officer of ${spe}, which is assembling land. A broker calls you personally: the adjoining lot is quietly for sale at ${MB.usd(amt)}. "You could flip it to the project in a year."`,
+          who: `The broker`,
           options: [
             ['s', `Take it to the board. Buy it yourself only if the board declines in writing.`, `The chance came through your role and fits the entity's business. It is the entity's to refuse.`],
             ['g', `Buy it now so it is not lost, and offer it to the entity at cost.`, `Good motive, but you took the entity's opportunity and now sit across the table as seller.`],
@@ -64,11 +68,12 @@ MB.level({
       }
     },
     {
-      id: 'l2-informed', title: 'Sixty pages, sixty minutes',
+      id: 'l2-informed', role: 'You are a director of the company that owns the property.', title: 'Sixty pages, sixty minutes',
       make: function (g) {
         var a = g.person(), amt = g.m(8, 30, 1);
         return {
           scene: `An hour before the board meets, management sends sixty pages recommending a ${MB.usd(amt)} sale of the main property. The offer expires at midnight. "It is a good price," says ${a}, the chief executive. "I need a motion."`,
+          who: `${a.first}`,
           options: [
             ['s', `Ask how the price was tested and why the deadline is real, then vote.`, `A fast decision can still be an informed one. The record of questions is what protects it.`],
             ['g', `Vote yes on the chief executive's assurance.`, `Directors may rely on management, but not blindly on the company's biggest decision.`],
@@ -81,7 +86,7 @@ MB.level({
       }
     },
     {
-      id: 'l2-confidential', burn: 0, title: 'What you learned in the boardroom',
+      id: 'l2-confidential', role: 'You are a director of a landlord company.', burn: 0, title: 'What you learned in the boardroom',
       make: function (g) {
         var a = g.person();
         return {
@@ -96,11 +101,12 @@ MB.level({
       }
     },
     {
-      id: 'l2-gift', title: 'Seats behind the bench',
+      id: 'l2-gift', role: 'You run the tender for the project company.', title: 'Seats behind the bench',
       make: function (g) {
         var a = g.person();
         return {
           scene: `You are running a construction tender that closes in ten days. ${a}, who owns one of the bidders, offers you two playoff tickets. "No strings."`,
+          who: `${a.first}`,
           options: [
             ['s', `Decline while the tender is open and note the offer in the file.`, `Your decision has to be yours alone, and has to look that way.`],
             ['g', `Go, and tell your manager the next morning.`, `Better than silence, but a losing bidder who hears of it has a ready complaint.`],

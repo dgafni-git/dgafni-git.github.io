@@ -1,6 +1,7 @@
 MB.level({
   n: 5, title: 'Waterfalls and Prefs', rank: 'Vice President', pass: 0.7, draw: { authored: 4, numeric: 2 }, numerics: ['waterfall', 'catchup', 'clawback'],
   topics: 'Who is paid, in what order, and who checks the arithmetic',
+  role: 'You run finance for the general partner, which calculates everyone\'s share, including its own.',
   blurb: 'The waterfall decides who is paid and in what order. The party doing the maths is usually paid last.',
   concepts: [
     ['Waterfall', 'The ordered tiers through which cash is distributed. Each tier must be paid in full before the next receives anything.'],
@@ -19,6 +20,7 @@ MB.level({
         var a = g.person(), amt = g.m(2, 6, 0.5);
         return {
           scene: `A refinancing leaves ${MB.usd(amt)} to distribute. The limited partners do not have their capital back yet. ${a}, who runs the general partner, wants a slice now. "We will be deep in the promote by the sale."`,
+          who: `${a.first}`,
           options: [
             ['s', `Pay the limited partners first, exactly as the waterfall says.`, `The promote is earned when the tiers above it are full. A projection is not a tier.`],
             ['g', `Pay the general partner an advance, booked as a receivable.`, `Recorded, but the agreement has no advance. The general partner lent itself the partners' money.`],
@@ -34,6 +36,7 @@ MB.level({
         var diff = g.m(0.2, 0.9, 0.05);
         return {
           scene: `The agreement gives investors "an 8% cumulative preferred return" and is silent on compounding. The two readings differ by ${MB.usd(diff)}, all of it out of the general partner's promote. The model has always used simple interest.`,
+          who: `The general partner's principals`,
           options: [
             ['s', `Get counsel's reading and put the question to the advisory committee.`, `The general partner is interpreting a contract where its own pay depends on the answer.`],
             ['g', `Use simple interest, as the model always has, and note why.`, `Consistent and honest on file, but the investors never learn there was a question.`],
@@ -52,6 +55,7 @@ MB.level({
         var a = g.person(), net = g.m(4, 12, 0.5), owed = g.m(0.3, 0.9, 0.1);
         return {
           scene: `The project sold and the entity holds ${MB.usd(net)}. It still owes ${MB.usd(owed)} to contractors and gave the buyer a one-year warranty. ${a}, the largest investor, wants every dollar out this week.`,
+          who: `${a.first}`,
           options: [
             ['s', `Pay or reserve for what is owed and the warranty, then distribute the rest.`, `An entity may distribute only what it does not need to meet its obligations.`],
             ['g', `Distribute it all, on investors' promise to send money back if needed.`, `In a year those promises must be collected from people who have spent the money.`],
@@ -69,7 +73,8 @@ MB.level({
       make: function (g) {
         var pct = g.pick(['1%', '1.25%', '1.5%']);
         return {
-          scene: `An affiliate of the general partner starts charging an "asset management fee" of ${pct} of project cost. The agreement does not mention it. It comes out before the waterfall. The work is real.`,
+          scene: `An affiliate of the general partner starts charging an "asset management fee" of ${pct} of project cost. The agreement does not mention it. It is paid before investors get anything. The work is real. What should happen to the fee?`,
+          who: `The affiliate`,
           options: [
             ['s', `Stop charging it and ask the advisory committee to approve it.`, `The general partner cannot add to its own pay under a contract that lists what it is paid.`],
             ['g', `Keep charging and disclose it in the annual statements.`, `Disclosure after the fact shows what was taken. It does not give the right to take it.`],

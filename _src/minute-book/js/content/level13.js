@@ -10,6 +10,7 @@
   MB.level({
     n: 13, title: 'The Chair', rank: 'Chair of the Board', pass: 0.8, fixed: true, draw: { authored: 8 }, story: story,
     topics: 'One board, one complaint, eight decisions that are yours to lead',
+    role: 'You chair the board of the fund\'s general partner.',
     blurb: 'You chair the board. A complaint arrives about an insider\'s contract. Eight decisions, in order, each following from the last.',
     concepts: [
       ['The chair\'s role', 'The chair runs the board, not the company: sets the agenda, makes sure directors get proper information, manages conflicts in the room, and makes sure decisions are actually taken and recorded.'],
@@ -62,6 +63,7 @@
           var s = g.story;
           return {
             scene: `${s.dirA} admits a ${s.pct}% interest in ${s.officer.first}'s firm, never disclosed, and insists on staying. "I know the facts best. I will simply not vote."`,
+            who: `${s.dirA.first}`,
             options: [
               ['s', `${s.dirA.first} discloses for the minutes, answers questions, then leaves the room.`, `The board gets the facts, then talks freely. Nobody speaks candidly about a colleague who is watching.`],
               ['g', `${s.dirA.first} stays throughout and abstains.`, `One vote is kept out, but the others soften what they say.`],
@@ -78,6 +80,7 @@
           var s = g.story;
           return {
             scene: `${s.ceo} proposes a review committee: ${s.dirB}, who vacations with ${s.officer.first}'s family, and ${s.cfo}, whose team paid the invoices. The firm's own lawyers would advise.`,
+            who: `${s.ceo.first}`,
             options: [
               ['s', `The two outside directors, a written mandate, and advisers they choose.`, `Independent in fact, with authority on paper. Its findings will carry weight.`],
               ['g', `One outside director and ${s.cfo.first}, with the usual lawyers behind a wall.`, `One independent voice, but finance is reviewing its own payments.`],
@@ -94,6 +97,7 @@
           var s = g.story;
           return {
             scene: `The committee reports: an expired one-page engagement letter, fees ${s.over}% above market, about ${MB.usd(s.amt)} too much over two years, and competent work. ${s.ceo} says: "Paper the contract and move on."`,
+            who: `${s.ceo.first}`,
             options: [
               ['s', `Recover the excess and tender the mandate, with ${s.officer.first} out of both decisions.`, `The fund is made whole, and the firm can keep the work if it wins on merit.`],
               ['g', `Sign a backdated contract at the existing rates.`, `The board has now knowingly approved above-market fees to an insider.`],
@@ -110,6 +114,7 @@
           var s = g.story;
           return {
             scene: `The agreement requires prompt reports of related-party dealings and material breaches. A refinancing closes in six weeks with a no-affiliate-contracts certificate. ${s.cfo} says: "Tell them in the annual report."`,
+            who: `${s.cfo.first}`,
             options: [
               ['s', `Report now to the investors, and to the lender before it relies on the certificate.`, `They hear it from the general partner, promptly, with the fix under way.`],
               ['g', `A paragraph in the annual report, and nothing to the lender.`, `Each statement might be accurate. Together they are built to keep people from knowing.`],
@@ -126,6 +131,7 @@
           var s = g.story;
           return {
             scene: `${s.ceo} sees you alone. "Go after ${s.officer.first} for that money and I resign the week before the refinancing. Drop it and we all get through this." There is no succession plan.`,
+            who: `${s.ceo.first}`,
             options: [
               ['s', `Hold the board's decision, report the conversation, and prepare interim leadership.`, `The board decides for the fund, not under threat from an executive.`],
               ['g', `Quietly drop the recovery if ${s.ceo.first} stays through the refinancing.`, `It trades the fund's money to settle a personal threat, and teaches that ultimatums work.`],

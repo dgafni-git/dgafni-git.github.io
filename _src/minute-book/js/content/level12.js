@@ -1,6 +1,7 @@
 MB.level({
   n: 12, title: 'Distress', rank: 'Independent Director', pass: 0.7, draw: { authored: 5 },
   topics: 'Insolvency, creditors, personal liability and preserving the record',
+  role: 'You are a director of a company that is running out of money.',
   blurb: 'When an entity cannot pay everyone, every decision picks a loser, and personal liability becomes real.',
   concepts: [
     ['Insolvency', 'Being unable to pay debts as they fall due, or owing more than the assets are worth. Either test can apply.'],
@@ -19,6 +20,7 @@ MB.level({
         var a = g.person(), cash = g.m(0.6, 1.8, 0.1), trade = g.m(0.9, 2.4, 0.1);
         return {
           scene: `The entity has ${MB.usd(cash)}. It owes ${MB.usd(trade)} to trades and more to its parent, unsecured. It cannot pay both. ${a}, the parent's finance chief, calls: "Send the cash up today."`,
+          who: `${a.first}`,
           options: [
             ['s', `Refuse, preserve the cash, and get insolvency advice for the entity.`, `An insolvent entity's directors must consider all its creditors.`],
             ['g', `Split it: half to the parent, half to the trades.`, `Still a large insider payment by an insolvent company. A trustee would recover it.`],
@@ -37,6 +39,7 @@ MB.level({
         var a = g.person(), val = g.m(2, 6, 0.5);
         return {
           scene: `The entity will probably lose a contractor's lawsuit. ${a}, who controls it, wants to move its ${MB.usd(val)} land parcel to a sister company at book value, "to keep it out of the litigation."`,
+          who: `${a.first}`,
           options: [
             ['s', `Refuse. Any sale is at market value, with proceeds kept in the entity.`, `An entity may sell for fair value. It may not put assets beyond a creditor's reach.`],
             ['g', `Transfer it a little above book, on a management memo.`, `Still an insider transfer below market by an entity facing judgment.`],
@@ -54,6 +57,7 @@ MB.level({
         var a = g.person(), amt = g.pick([64000, 88000, 115000]);
         return {
           scene: `A sale in two weeks will fix the cash problem. Until then the company cannot pay both ${MB.usd(amt)} of payroll tax and its concrete supplier. ${a} suggests paying the supplier. "Two weeks. Nobody will notice."`,
+          who: `${a.first}`,
           options: [
             ['s', `Remit the tax. Find the supplier's money elsewhere.`, `Withheld tax was never the company's money. It can follow directors home.`],
             ['g', `Delay the tax, with a board resolution recording the plan.`, `The resolution proves the directors knowingly used trust money.`],
@@ -72,6 +76,7 @@ MB.level({
         var a = g.person();
         return {
           scene: `You are a director of an insolvent company. Management ignores your questions. ${a}, a lawyer friend, says: "Stop going to meetings. If you are not there, you approved nothing."`,
+          who: `${a.first}`,
           options: [
             ['s', `Put your concerns in writing, take advice, and resign formally if nothing changes.`, `While you hold the seat you have its duties. A record and a proper exit protect you.`],
             ['g', `Stay on but stop attending.`, `An absent director is still a director, and liability keeps building.`],
@@ -104,6 +109,7 @@ MB.level({
         var a = g.person(), n = g.int(14, 30);
         return {
           scene: `A condo developer has run out of financing and no investor is in sight. ${a}, the sales director, has ${n} buyers ready to pay deposits this weekend. "That keeps the lights on."`,
+          who: `${a.first}`,
           options: [
             ['s', `Pause sales unless deposits are protected and buyers are told. Get restructuring advice.`, `Do not take money from people who would not pay if they knew the facts.`],
             ['g', `Stop deposits but keep ordering materials on credit.`, `Suppliers are funding the rescue search without having agreed to.`],

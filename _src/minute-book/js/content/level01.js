@@ -1,6 +1,7 @@
 MB.level({
   n: 1, title: 'The Entity', rank: 'Associate', pass: 0.7, draw: { authored: 5 },
   topics: 'Separate legal persons, limited liability, who can sign',
+  role: 'You are a new associate at a lender that ends up owning what it forecloses on.',
   blurb: 'Every property and project sits inside a legal entity. Know what it shields and who can speak for it.',
   concepts: [
     ['Separate legal personality', 'A corporation, LLC or limited partnership is its own legal person. It owns the property, signs the contracts and owes the debts. Its owners and its parent do not, unless they agree to.'],
@@ -18,6 +19,7 @@ MB.level({
         var spe = g.spe(), a = g.person();
         return {
           scene: `${g.fund} foreclosed on ${g.asset()}. Title sits in ${spe}, but the security contract names the fund as owner. "Everyone knows it is us," says ${a}. "Just sign."`,
+          who: `${a.first}`,
           options: [
             ['s', `Reissue it in ${spe}'s name, signed by an authorized signatory with their title.`, `The entity that owns the property takes the obligation, and nobody signs personally.`],
             ['g', `Sign in the fund's name tonight and assign it later.`, `The parent is now liable on a property contract, which defeats the point of the entity.`],
@@ -33,6 +35,7 @@ MB.level({
         var spe = g.spe(), a = g.person();
         return {
           scene: `${spe} has no bank account yet and invoices are arriving. ${a}, the controller, wants to pay them from the fund's account and "net it out at year end."`,
+          who: `${a.first}`,
           options: [
             ['s', `Open the entity's account now. Fund payments as advances under a written intercompany loan.`, `The entity pays its own bills with documented borrowed money. Its books stand alone.`],
             ['g', `Pay from the fund's account and book a receivable each time.`, `Better than nothing, but the parent is still paying the entity's creditors with no loan agreement.`],
@@ -50,6 +53,7 @@ MB.level({
         var spe = g.spe('LLC'), a = g.person();
         return {
           scene: `A listing agreement for ${spe} must be signed by five. Only the manager, ${a}, may sign contracts over $25,000, and ${a.first} is on a flight. The broker points out that your email says "Authorized Representative."`,
+          who: `The broker`,
           options: [
             ['s', `Reach ${a.first} for an e-signature or a written delegation.`, `Authority comes from the governing documents. A short delay beats a contract the entity can disown.`],
             ['g', `Sign "subject to ratification by the manager."`, `Honest, but the broker may rely on it, and the entity is left arguing about whether it is bound.`],
@@ -62,7 +66,7 @@ MB.level({
       }
     },
     {
-      id: 'l1-type', burn: 0, title: 'Which kind of entity?',
+      id: 'l1-type', role: 'You are structuring a new investment for the lender.', burn: 0, title: 'Which kind of entity?',
       make: function (g) {
         var n = g.int(6, 14);
         return {
@@ -94,11 +98,12 @@ MB.level({
       }
     },
     {
-      id: 'l1-guarantee', title: 'A formality on the credit application',
+      id: 'l1-guarantee', role: 'You are opening a supplier account for the project company.', title: 'A formality on the credit application',
       make: function (g) {
         var spe = g.spe('Inc.');
         return {
           scene: `A supplier's credit application for ${spe} ends with a clause: the signer "personally guarantees" the account. The rep calls it a formality.`,
+          who: `The supplier's rep`,
           options: [
             ['s', `Strike the guarantee, initial it, and sign for the company with your title.`, `Only the entity is bound. A personal guarantee is a separate decision.`],
             ['g', `Sign as is, adding your title after your name.`, `A title does not cancel express guarantee wording. Courts enforce these.`],

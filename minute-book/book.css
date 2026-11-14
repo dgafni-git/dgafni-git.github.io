@@ -292,3 +292,16 @@ body.locked .tabs, body.locked .standing { visibility: hidden; }
 .reckon li { animation: reveal .4s ease both; }
 @keyframes reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .stamp, .reckon li { animation: none; } }
+
+/* ---------- clarity: role line, tappable terms, goodwill reasons ---------- */
+.role { font-size: 15.5px; color: var(--ink-2); margin-top: 8px; max-width: 64ch; }
+.role .label { margin-right: 6px; }
+.tip { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: help; border-bottom: 1px dashed var(--margin); }
+.tip:hover { background: var(--paper-2); }
+.tip-box { border-left: 3px solid var(--margin); background: #f5f8ef; padding: 10px 14px; font-size: 15.5px; max-width: 64ch; }
+.tip-box[hidden] { display: none; }
+.gw-why { display: block; margin-top: 2px; font-size: 14.5px; color: var(--ink-2); }
+.opt.done.chosen .gw-why { font-size: 15px; }
+.rules { padding-left: 1.2em; display: grid; gap: 6px; }
+.rules b { font-family: var(--typed); }
+.ledger dt { max-width: 30ch; }

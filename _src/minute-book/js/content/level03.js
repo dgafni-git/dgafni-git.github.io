@@ -1,6 +1,7 @@
 MB.level({
   n: 3, title: 'Meetings and the Paper Trail', rank: 'Corporate Secretary', pass: 0.7, draw: { authored: 5, numeric: 1 }, numerics: ['vote'],
   topics: 'Notice, quorum, resolutions, minutes and registers',
+  role: 'You are the corporate secretary. The paperwork is yours.',
   blurb: 'An entity acts only through decisions properly made and recorded. Later, the paper is all that is left.',
   concepts: [
     ['Notice', 'The advance warning of a meeting that the governing documents require. A meeting held without proper notice can be challenged unless everyone entitled to it waives the defect.'],
@@ -20,6 +21,7 @@ MB.level({
         var spe = g.spe('Inc.'), a = g.person();
         return {
           scene: `${spe} has five directors and a quorum of three. A loan needs board approval by tomorrow, and only two directors show up. ${a} suggests listing all five as present. "They would all vote yes."`,
+          who: `${a.first}`,
           options: [
             ['s', `Adjourn. Circulate a written resolution for all five to sign.`, `That produces a real board decision by tomorrow that the lender can rely on.`],
             ['g', `Approve it with two and ratify at the next meeting.`, `Ratification can repair it later, but tomorrow's signature has no authority behind it.`],
@@ -53,6 +55,7 @@ MB.level({
         var a = g.person(), b = g.person();
         return {
           scene: `${a} disclosed an interest in a contract and left the room. The board argued for forty minutes and approved it four to one. The chair, ${b}, says: "Keep the minutes clean. Just say it was approved."`,
+          who: `${b.first}`,
           options: [
             ['s', `Record attendance, the disclosure and recusal, the main points, and the vote.`, `Those minutes prove the decision was informed and untainted.`],
             ['g', `Write "After discussion, the contract was approved."`, `Accurate and nearly useless. It shows neither the recusal nor any deliberation.`],
@@ -68,6 +71,7 @@ MB.level({
         var a = g.person();
         return {
           scene: `An option expires Friday. Three of four directors have emailed "approved" on a written resolution. The fourth, ${a}, is hiking without signal. The president says three out of four is a majority.`,
+          who: `The president`,
           options: [
             ['s', `Call a short-notice meeting. Three directors are a quorum and can pass it.`, `A written resolution needs every director. A meeting needs only a quorum and a majority.`],
             ['g', `Treat it as passed and get ${a.first}'s signature later.`, `On Friday the extension is signed without authority, and the gap is real if anyone objects.`],
@@ -80,11 +84,12 @@ MB.level({
       }
     },
     {
-      id: 'l3-register', title: 'The register says otherwise',
+      id: 'l3-register', role: 'You administer the partnership\'s records and payments.', title: 'The register says otherwise',
       make: function (g) {
         var a = g.person(), amt = g.m(0.2, 0.9, 0.05);
         return {
           scene: `A distribution is due. ${a} emails: "I moved my units to my holding company. Send my ${MB.usd(amt)} there." The register still shows ${a.first}, and transfers need the general partner's consent.`,
+          who: `${a.first}`,
           options: [
             ['s', `Hold that payment. Get the transfer papers and consent, update the register, then pay.`, `The register says who the partners are. Paying on it protects the partnership.`],
             ['g', `Pay the holding company and fix the register afterward.`, `If the transfer was never valid, the partnership paid a stranger and still owes ${a.first}.`],
@@ -95,11 +100,12 @@ MB.level({
       }
     },
     {
-      id: 'l3-limit', title: 'Three purchase orders',
+      id: 'l3-limit', role: 'You check that the project\'s approvals follow the rules.', title: 'Three purchase orders',
       make: function (g) {
         var a = g.person(), lim = g.pick([100000, 150000, 250000]), amt = lim * 3 - 20000;
         return {
           scene: `${a} may approve contracts up to ${MB.usd(lim)}. A drainage contract comes in at ${MB.usd(amt)}, the crew can start Monday, and the board meets in three weeks. ${a.first} suggests three purchase orders.`,
+          who: `${a.first}`,
           options: [
             ['s', `Send it to the board today for a written resolution.`, `The limit exists so the board sees commitments this size. That can take a day.`],
             ['g', `Sign the full contract now and ask the board to ratify.`, `Open about what happened, but the board is asked to approve what it can no longer refuse.`],
