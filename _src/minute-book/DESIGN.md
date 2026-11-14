@@ -234,8 +234,11 @@ Notes from the conversation, for after the online game is settled.
 
 - A card game in the family of Monopoly Deal, for ages eight and up, with terms boiled down
   to basics.
-- Each player has a role with different interests, such as builder, lender, investor and
-  landlord, so that the same deal looks different from each seat.
+- Turn based. On your turn you are the fund manager running a deal. When it is not your
+  turn you play another role in that deal, such as builder, lender, investor or landlord,
+  so everyone is involved on every turn and the same deal looks different from each seat.
+- A "fine print" card lets a player tweak a deal in their favour. Another player may
+  challenge, and the dice decide whether it sticks or backfires.
 - Any player can buy into another player's deal as a passive investor.
 - Dice replace the wheel. Tokens held, such as loose ends and goodwill, change the roll.
 - Players can bend the rules and make better deals with each other. The game needs a simple
