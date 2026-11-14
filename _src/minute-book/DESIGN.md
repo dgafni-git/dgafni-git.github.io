@@ -75,7 +75,9 @@ United States and Canada notes sit behind a disclosure.
 Later items carry a "Draws on" list of the earlier terms they depend on.
 
 **The insight.** After an answer, a short "What was going on" note says what each party was
-after and how they stood to gain. Every scenario has one, in its `behind` field.
+after and how they stood to gain. Every scenario has one, in its `behind` field. A "Go deeper"
+button expands it into three or four short points from the `deep` field: how the money moves,
+who pays, and what a careful operator does, with a worked figure where one helps.
 
 **Repetition.** The game remembers which situations a player has met in each meeting and deals
 the unmet ones first. Meetings VI to IX have twelve situations each. The rest have six, and
@@ -148,6 +150,11 @@ To remove the lock later, publish `dev.html` and the `css` and `js` folders as `
       },
       who: `${a.first}`,        // who is pushing, named when goodwill moves
       behind: `What each party wanted and how they stood to gain.`,
+      deep: [                   // the "Go deeper" points: a lead-in and one or two sentences
+        [`The mechanics`, `How the money moves.`],
+        [`Who pays`, `Where the cost lands.`],
+        [`What to do`, `What a careful operator does.`]
+      ],
       rule: `One sentence.`,
       us: `Optional United States note.`,
       ca: `Optional Canada note.`

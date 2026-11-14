@@ -23,6 +23,11 @@ MB.level({
           scene: `${spe} has five directors and a quorum of three. A loan needs board approval by tomorrow, and only two directors show up. ${a} suggests listing all five as present. "They would all vote yes."`,
           who: `${a.first}`,
           behind: `${a.first} needs the loan approved by tomorrow and is sure of the outcome. The shortcut swaps a real approval for a false record that the lender will be asked to rely on.`,
+          deep: [
+            [`Quorum`, `The minimum number who must be present for a meeting to act at all. Here it is three of five.`],
+            [`Two valid routes`, `A meeting with a quorum decides by majority. A written resolution needs every director's signature.`],
+            [`Why the lender cares`, `Its lawyers will ask an officer to certify that the resolution was properly passed. A false certificate is a personal problem for whoever signs it.`]
+          ],
           options: [
             ['s', `Adjourn. Circulate a written resolution for all five to sign.`, `That produces a real board decision by tomorrow that the lender can rely on.`],
             ['g', `Approve it with two and ratify at the next meeting.`, `Ratification can repair it later, but tomorrow's signature has no authority behind it.`],
@@ -41,6 +46,11 @@ MB.level({
         return {
           scene: `${spe} signed a ${MB.usd(amt)} contract five weeks ago. A lender now wants the board resolution approving it. There is none. A paralegal offers to prepare one "dated the day before."`,
           behind: `The paralegal wants a tidy file, and the lender wants proof the contract was authorized. A backdated page gives both, until someone compares the dates.`,
+          deep: [
+            [`Ratification`, `A later decision that adopts an earlier unauthorized act. It is honest about the dates and fully effective.`],
+            [`Dating a document as of an earlier day`, `Acceptable where the document shows when it was really signed. Deceptive where it hides that.`],
+            [`Why backdating is serious`, `A document that lies about its date can be forgery or fraud once anyone relies on it.`]
+          ],
           options: [
             ['s', `Pass a resolution dated today that ratifies the contract.`, `It tells the truth and still gives the lender what it needs.`],
             ['g', `Sign one "as of" the earlier date, without saying when it was signed.`, `"As of" is fine only when the document shows it was signed later. Otherwise it misleads.`],
@@ -59,6 +69,11 @@ MB.level({
           scene: `${a} disclosed an interest in a contract and left the room. The board argued for forty minutes and approved it four to one. The chair, ${b}, says: "Keep the minutes clean. Just say it was approved."`,
           who: `${b.first}`,
           behind: `${b.first} worries that mentioning a conflict makes the board look bad. It is the reverse. The recorded recusal is the board's proof that it handled the conflict properly.`,
+          deep: [
+            [`What minutes are for`, `Proving later that the board was properly assembled, informed and free of conflict when it decided.`],
+            [`What goes in`, `Who attended, what papers they had, conflicts declared and who stepped out, the main factors weighed, and the vote.`],
+            [`What stays out`, `Word-for-word argument and personal remarks. Minutes record decisions. They are not a transcript.`]
+          ],
           options: [
             ['s', `Record attendance, the disclosure and recusal, the main points, and the vote.`, `Those minutes prove the decision was informed and untainted.`],
             ['g', `Write "After discussion, the contract was approved."`, `Accurate and nearly useless. It shows neither the recusal nor any deliberation.`],
@@ -76,6 +91,11 @@ MB.level({
           scene: `An option expires Friday. Three of four directors have emailed "approved" on a written resolution. The fourth, ${a}, is hiking without signal. The president says three out of four is a majority.`,
           who: `The president`,
           behind: `The president wants the option extended before Friday and reads three approvals as enough. At a meeting it would be. On paper, the missing signature is the whole point.`,
+          deep: [
+            [`Why a written resolution needs everyone`, `There is no discussion and no chance to persuade. Unanimity stands in for the meeting.`],
+            [`Why a meeting needs fewer`, `The absent director had notice and the chance to attend.`],
+            [`Short notice`, `Directors can waive notice. Three of them on a call, with waivers, is a valid meeting.`]
+          ],
           options: [
             ['s', `Call a short-notice meeting. Three directors are a quorum and can pass it.`, `A written resolution needs every director. A meeting needs only a quorum and a majority.`],
             ['g', `Treat it as passed and get ${a.first}'s signature later.`, `On Friday the extension is signed without authority, and the gap is real if anyone objects.`],
@@ -95,6 +115,11 @@ MB.level({
           scene: `A distribution is due. ${a} emails: "I moved my units to my holding company. Send my ${MB.usd(amt)} there." The register still shows ${a.first}, and transfers need the general partner's consent.`,
           who: `${a.first}`,
           behind: `${a.first} wants the money in a holding company, probably for tax reasons. The partnership's risk is paying someone who is not its partner while still owing the one who is.`,
+          deep: [
+            [`What the register is`, `The partnership's official list of who owns what. Distributions, notices and votes all follow it.`],
+            [`Why transfers need consent`, `The partnership must know who its partners are, for tax, for capital calls and for eligibility.`],
+            [`The fraud angle`, `Changing payment details by email is the commonest form of payment fraud. Checking against the register is the control.`]
+          ],
           options: [
             ['s', `Hold that payment. Get the transfer papers and consent, update the register, then pay.`, `The register says who the partners are. Paying on it protects the partnership.`],
             ['g', `Pay the holding company and fix the register afterward.`, `If the transfer was never valid, the partnership paid a stranger and still owes ${a.first}.`],
@@ -112,6 +137,11 @@ MB.level({
           scene: `${a} may approve contracts up to ${MB.usd(lim)}. A drainage contract comes in at ${MB.usd(amt)}, the crew can start Monday, and the board meets in three weeks. ${a.first} suggests three purchase orders.`,
           who: `${a.first}`,
           behind: `${a.first} wants the crew working Monday and sees the board as a three-week delay. Splitting the contract keeps each piece under the limit, and keeps the board from seeing the commitment.`,
+          deep: [
+            [`What a delegation of authority is`, `The board's written list of who may approve what, usually by dollar amount.`],
+            [`Why splitting is worse than overspending`, `An honest overrun is a mistake. A split contract is a deliberate act to avoid oversight.`],
+            [`What auditors look for`, `Several orders to one vendor in the same week, each just under the limit.`]
+          ],
           options: [
             ['s', `Send it to the board today for a written resolution.`, `The limit exists so the board sees commitments this size. That can take a day.`],
             ['g', `Sign the full contract now and ask the board to ratify.`, `Open about what happened, but the board is asked to approve what it can no longer refuse.`],

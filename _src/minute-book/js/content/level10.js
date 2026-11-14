@@ -21,6 +21,11 @@ MB.level({
         return {
           scene: `Two loans are in default, one in ${c1} and one in ${c2}. ${a} wants to send both borrowers the notice letters from the last enforcement file, today.`,
           behind: `${a.first} wants to save legal fees and move fast. Borrowers' lawyers look first for a defective notice, because one mistake can send the lender back to the start.`,
+          deep: [
+            [`Through the court`, `A lawsuit ending in a court-ordered sale. Slow, but hard to attack afterward.`],
+            [`Without the court`, `A sale under a power in the mortgage. Faster, with strict notice periods.`],
+            [`What varies by place`, `The length of notice, the borrower's right to buy the property back, and whether you can sue for a shortfall.`]
+          ],
           options: [
             ['s', `Ask local counsel in each place what notices and remedies apply.`, `Enforcement law is local. An error at the start can void everything after it.`],
             ['g', `Send the template now and have counsel review afterward.`, `If it does not fit, the notice is defective and the clock never started.`],
@@ -40,6 +45,11 @@ MB.level({
         return {
           scene: `The lender is about to take title to a plaza that housed a dry cleaner for thirty years. No environmental report since the loan. "Put it in an entity," says ${a}. "Then it is the entity's problem."`,
           behind: `${a.first} wants the property taken quickly and assumes an entity makes any problem someone else's. The entity still belongs to the fund, and it would own a site nobody may want to buy.`,
+          deep: [
+            [`Why owners pay`, `Cleanup laws often make the current owner liable, whoever caused the pollution.`],
+            [`What an assessment is`, `Phase one reviews records and history. Phase two tests soil and groundwater if phase one raises concerns.`],
+            [`Ways to avoid owning it`, `Sell the loan, or have a receiver sell the property.`]
+          ],
           options: [
             ['s', `Commission an environmental assessment first, and consider a receiver sale.`, `The lender learns what it would own while it can still choose not to own it.`],
             ['g', `Take title in a new entity without an assessment.`, `The entity limits the damage, but now owns possibly contaminated land blind.`],
@@ -69,6 +79,11 @@ MB.level({
           scene: `${a} owes ${MB.usd(amt)} and offers to sign the property over in exchange for release of the guarantee. Title has not been searched in three years. A one-page form is ready to sign.`,
           who: `${a.first}`,
           behind: `${a.first} wants out from under the personal guarantee and offers the property to get there. A fast deal suits ${a.first}, because the lender takes whatever else is registered against the title.`,
+          deep: [
+            [`How it differs from foreclosure`, `Foreclosure wipes out claims ranking behind the mortgage. A deed handed over does not.`],
+            [`Keeping the mortgage alive`, `If the mortgage merges into ownership it disappears, and the claims behind it move up. The documents must say it does not merge.`],
+            [`The guarantee`, `Releasing it is a separate price to negotiate.`]
+          ],
           options: [
             ['s', `Search title, keep the mortgage alive, and get an appraisal before accepting.`, `A handed-over deed leaves junior liens in place. The mortgage is how you clear them.`],
             ['g', `Sign the borrower's form before ${a.first} changes course.`, `Fast, but the guarantor is released and the property comes with whatever is registered.`],
@@ -99,6 +114,11 @@ MB.level({
           scene: `The lender is selling under power of sale. Before listing, ${a}, who co-invests with the partners, offers ${MB.usd(amt)}, matching the one appraisal, closing in ten days. The borrower will be sued for the shortfall.`,
           who: `${a.first}`,
           behind: `${a.first} wants the property without competing for it, and the partners may like a friendly, certain sale. The borrower, who will be sued for the shortfall, pays for any discount.`,
+          deep: [
+            [`The duty`, `A lender selling a borrower's property must take reasonable steps to get a proper price.`],
+            [`Why it matters most here`, `The borrower will be sued for the gap between the sale price and the debt. A low price makes that claim bigger.`],
+            [`The evidence`, `A listing, a marketing period, more than one appraisal, and the offers received.`]
+          ],
           options: [
             ['s', `List it with a broker and get a second appraisal first.`, `A lender selling a borrower's property must take reasonable steps to get a proper price.`],
             ['g', `Accept. The price matches the appraisal.`, `An unmarketed sale to a connected buyer is how borrowers win improvident-sale claims.`],
@@ -129,6 +149,11 @@ MB.level({
           scene: `A foreclosed project moves into a new entity. The loan balance was ${MB.usd(bal)}. The independent appraisal says ${MB.usd(app)}. ${a}, who made the loan, wants the entity's debt to the fund set at the full balance instead. "Why book a loss?"`,
           who: `${a.first}`,
           behind: `${a.first} made the loan, and a recorded loss reflects on that decision and perhaps on pay. Setting the new debt at the old balance makes the loss vanish from this year's results.`,
+          deep: [
+            [`What foreclosure does to the books`, `A loan is replaced by a property. If the property is worth less than the loan, a loss has happened.`],
+            [`The temptation`, `Record the property at the old loan amount and the loss does not appear this year.`],
+            [`Who is misled`, `The fund's investors about performance, and anyone lending to or valuing the new entity.`]
+          ],
           options: [
             ['s', `Set the note at the appraised value and record the loss.`, `The entity starts with a debt it can repay, and the fund's books tell the truth.`],
             ['g', `Use a higher internal valuation from the deal team.`, `A valuation by the team whose loan went bad is not independent.`],
@@ -158,6 +183,11 @@ MB.level({
           scene: `A foreclosure sale is set for ten tomorrow. At six tonight the borrower files for court protection from creditors. ${a} says the sale "was already in motion."`,
           who: `${a.first}`,
           behind: `${a.first} has done months of work and sees a stalling tactic. It may be one. Courts still punish lenders who decide that for themselves.`,
+          deep: [
+            [`What a stay is`, `An automatic freeze on creditor action when a debtor files for court protection.`],
+            [`Why acting anyway fails`, `Steps taken in breach can be undone, and courts can award damages against the lender.`],
+            [`The lender's remedy`, `Ask the court to lift the stay, by showing the filing is abusive or the property is not needed for a restructuring.`]
+          ],
           options: [
             ['s', `Stop until counsel confirms whether a stay applies.`, `A stay halts enforcement at once. The lender's rights now run through the court.`],
             ['g', `Finish the scheduled steps and start nothing new.`, `A stay does not care which steps were already scheduled.`],

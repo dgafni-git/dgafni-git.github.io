@@ -23,6 +23,11 @@ MB.level({
         return {
           scene: `A buyer offers ${MB.usd(amt)} for a loan portfolio in a two-page letter with 60 days of exclusivity. It does not say what is binding. ${a} replies to the broker: "We have a deal."`,
           behind: `${a.first} wants the buyer locked in. The buyer's broker wants the seller locked in. A vague letter with a price and exclusivity can bind the seller more than the buyer.`,
+          deep: [
+            [`What usually binds`, `Confidentiality and exclusivity. Price and terms do not bind until a full agreement is signed.`],
+            [`The risk of saying nothing`, `A court may find a binding deal where the letter has the key terms and no clear statement otherwise.`],
+            [`Exclusivity`, `It stops you talking to other buyers. Sixty days is a real cost if this buyer then lowers its price.`]
+          ],
           options: [
             ['s', `Have counsel mark what binds, subject to board approval, before signing.`, `Both sides know what they committed to, and the price stays negotiable.`],
             ['g', `Sign the form as drafted. It is only a letter of intent.`, `Courts decide whether a document binds by reading it, not by its title.`],
@@ -41,6 +46,11 @@ MB.level({
           scene: `${a} is selling a partnership interest for ${MB.usd(amt)}. The other partners have 30 days to match after written notice. The buyer wants ten days. "${b.first} told me at dinner they are not interested."`,
           who: `The buyer`,
           behind: `${a.first} wants a fast sale and the buyer wants no rival. A formal notice gives the other partners thirty days to take the deal for themselves, which is why it is tempting to skip.`,
+          deep: [
+            [`What the right is`, `The other partners may buy on the same terms an outsider has offered.`],
+            [`Why buyers dislike it`, `They do the work of pricing the deal and may lose it. So they push to close before the right is used.`],
+            [`The clean routes`, `Wait out the period, or collect signed waivers.`]
+          ],
           options: [
             ['s', `Deliver the notice, or get every partner's signed waiver.`, `The right is exercised or released the way the agreement says. A waiver takes a day.`],
             ['g', `Close in ten days and send the notice afterward.`, `If ${b.first} remembers dinner differently, the sale breached the agreement.`],
@@ -59,6 +69,11 @@ MB.level({
           scene: `${a}, the chief executive, leads a group offering ${MB.usd(amt)} for the company, and offers to "run the process" using the company's usual lawyers.`,
           who: `${a.first}`,
           behind: `${a.first} knows the company better than the board does and wants to buy it. Running the sale would let the buyer control the timing, the information and the competition.`,
+          deep: [
+            [`The information gap`, `Management knows more about the company's value than the board does.`],
+            [`The fix`, `Independent directors with their own advisers, the authority to say no, and the freedom to seek other buyers.`],
+            [`Often added`, `Approval by the owners who are not part of the buying group.`]
+          ],
           options: [
             ['s', `Form a committee of independent directors with its own advisers.`, `The person who knows the company best is trying to buy it cheaply.`],
             ['g', `The full board negotiates, with ${a.first} present but not voting.`, `${a.first} hears the board's position, and the lawyers work with ${a.first} daily.`],
@@ -79,6 +94,11 @@ MB.level({
           scene: `The board is asked to buy a management company for ${MB.usd(amt)}. The seller, ${a}, will not show its ten largest contracts until after signing. "They are all in good order."`,
           who: `${a.first}`,
           behind: `${a.first} may be protecting client confidentiality, or hiding weak contracts. The board cannot tell which. That uncertainty is what the protections in a purchase agreement are for.`,
+          deep: [
+            [`Three responses to a risk you cannot check`, `Verify it, get protection against it, or walk away.`],
+            [`What protection means`, `Specific promises about those contracts, part of the price held back, and a right to cancel.`],
+            [`The board's record`, `Minutes showing the risk was seen and how it was dealt with.`]
+          ],
           options: [
             ['s', `See them through counsel, or get specific promises backed by an escrow.`, `Those contracts are the business. Verify them or shift the risk back.`],
             ['g', `Sign on standard representations, with no escrow.`, `A claim on paper. Without an escrow, the buyer is trusting the assurance.`],
@@ -97,6 +117,11 @@ MB.level({
           scene: `The company's one property is ${pct}% of its assets. Management has a buyer. Two of eleven shareholders object. ${a}, the president, says the board can approve the sale alone.`,
           who: `${a.first}`,
           behind: `${a.first} wants to avoid a fight with two unhappy shareholders. A vote would let them object formally and, in many places, demand to be bought out at fair value.`,
+          deep: [
+            [`Why owners vote`, `Selling nearly everything turns their investment into something else. The law reserves that decision to them.`],
+            [`The right to be bought out`, `In many places, shareholders who vote no can require the company to buy their shares at fair value.`],
+            [`If the vote is skipped`, `The sale can be challenged, and the directors are exposed.`]
+          ],
           options: [
             ['s', `Get board approval, then a shareholder vote at the required level.`, `Selling nearly everything changes what shareholders own. The law gives them the vote.`],
             ['g', `Close on board approval and ratify at the annual meeting.`, `If the vote was required, the sale closed without it and can be challenged.`],
@@ -117,6 +142,11 @@ MB.level({
           scene: `${a} owns 70% and may drag ${b}'s ${pct}% into "a sale to a third party on the same terms." The buyer is ${a.first}'s family trust, at a price well below last year's valuation.`,
           who: `${a.first}`,
           behind: `${a.first} wants all of the company cheaply. The drag-along was written to deliver a sale to an outsider. Used on a family trust, it buys ${b.first} out at a price ${a.first} chose.`,
+          deep: [
+            [`What a drag-along is for`, `Letting a majority deliver the whole company to a real buyer, so a minority cannot block a good sale.`],
+            [`The built-in protection`, `The same price and terms for everyone, from an unrelated buyer.`],
+            [`The abuse`, `Using it to buy out the minority yourself, at a price you set.`]
+          ],
           options: [
             ['s', `Refuse. An affiliate sale needs independent valuation and ${b.first}'s agreement.`, `A family trust is not a third party. The right is being used for the wrong purpose.`],
             ['g', `Allow it with a valuation from the company's accountants.`, `Some support, but the valuers answer to ${a.first}.`],

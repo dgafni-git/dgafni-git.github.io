@@ -30,6 +30,11 @@
           return {
             scene: `${s.whistle}, a project accountant, emails you. ${s.officer}, an officer of the general partner, owns the firm managing the fund's properties, on an unapproved contract at inflated fees. A director has a hidden stake. ${s.ceo}, the chief executive, is ${s.officer.first}'s old friend.`,
             behind: `${s.whistle.first} is taking a risk by reporting. ${s.officer.first} profits from the fees. ${s.ceo.first} has a friendship to protect. Who hears the complaint first decides whether it is examined or managed.`,
+            deep: [
+              [`The first hour`, `Protect the person, preserve the records, and choose who investigates.`],
+              [`Why independence comes first`, `Whoever controls the first look controls what gets found.`],
+              [`Retaliation`, `It is unlawful in many settings, and it guarantees there will be no second report.`]
+            ],
             options: [
               ['s', `Protect ${s.whistle.first}, brief the unconflicted directors, hire independent counsel, and preserve records.`, `People without bias judge it, the evidence is secured, and the complainant is safe.`],
               ['g', `Ask ${s.ceo.first} to look into it quietly.`, `The investigator is the accused's close friend. Whatever the result, it will not be believed.`],
@@ -49,6 +54,11 @@
           return {
             scene: `Counsel's first look says the complaint has substance. ${s.dirA} is believed to be the director with the stake. The next scheduled board meeting is five weeks away with a full agenda.`,
             behind: `Delay suits anyone who benefits from the contract, because the fees keep flowing. A weekend of private calls would let the chief executive shape each director's view one at a time.`,
+            deep: [
+              [`The chair's real power`, `The agenda. What gets a meeting gets a decision.`],
+              [`Why not a round of calls`, `A board acts together. One-to-one calls produce no resolution and no minutes.`],
+              [`A session without management`, `It lets the independent directors speak freely.`]
+            ],
             options: [
               ['s', `Call a special meeting on this alone, with a session without ${s.dirA.first} or management.`, `The board acts properly convened and informed, with those under review out of the room.`],
               ['g', `Add it under "other business" in five weeks.`, `Five weeks of fees keep flowing, and a serious matter gets a tired board.`],
@@ -67,6 +77,11 @@
             scene: `${s.dirA} admits a ${s.pct}% interest in ${s.officer.first}'s firm, never disclosed, and insists on staying. "I know the facts best. I will simply not vote."`,
             who: `${s.dirA.first}`,
             behind: `${s.dirA.first} wants to hear what the board thinks, and to influence it by being present. People do not say what they believe about a colleague sitting across the table.`,
+            deep: [
+              [`The rule in practice`, `Disclose, answer questions, leave.`],
+              [`Why leaving matters`, `Even a silent presence changes what people are willing to say.`],
+              [`The minutes`, `Record the disclosure, the departure and the return.`]
+            ],
             options: [
               ['s', `${s.dirA.first} discloses for the minutes, answers questions, then leaves the room.`, `The board gets the facts, then talks freely. Nobody speaks candidly about a colleague who is watching.`],
               ['g', `${s.dirA.first} stays throughout and abstains.`, `One vote is kept out, but the others soften what they say.`],
@@ -85,6 +100,11 @@
             scene: `${s.ceo} proposes a review committee: ${s.dirB}, who vacations with ${s.officer.first}'s family, and ${s.cfo}, whose team paid the invoices. The firm's own lawyers would advise.`,
             who: `${s.ceo.first}`,
             behind: `${s.ceo.first} wants the inquiry in friendly hands. A committee can be designed to find nothing, and its membership usually tells you which kind it is.`,
+            deep: [
+              [`Three tests of a committee`, `Members with no ties, a written mandate with real powers, and advisers who answer only to it.`],
+              [`The lawyers`, `A firm that also acts for the person under review cannot advise the people reviewing them.`],
+              [`The payoff`, `Findings that investors, lenders and regulators will accept.`]
+            ],
             options: [
               ['s', `The two outside directors, a written mandate, and advisers they choose.`, `Independent in fact, with authority on paper. Its findings will carry weight.`],
               ['g', `One outside director and ${s.cfo.first}, with the usual lawyers behind a wall.`, `One independent voice, but finance is reviewing its own payments.`],
@@ -103,6 +123,11 @@
             scene: `The committee reports: an expired one-page engagement letter, fees ${s.over}% above market, about ${MB.usd(s.amt)} too much over two years, and competent work. ${s.ceo} says: "Paper the contract and move on."`,
             who: `${s.ceo.first}`,
             behind: `${s.ceo.first} wants it over without embarrassing a friend. Papering the contract at the old rates would turn two years of overcharging into something the board approved.`,
+            deep: [
+              [`Three steps`, `Recover the overpayment, reset the contract through independent approval, and keep the insider out of both.`],
+              [`Why not paper it retroactively`, `That approves the overcharge with full knowledge of it.`],
+              [`The arithmetic`, `Twenty percent over market on $1.5 million a year, for two years, is $600,000 of the fund's money.`]
+            ],
             options: [
               ['s', `Recover the excess and tender the mandate, with ${s.officer.first} out of both decisions.`, `The fund is made whole, and the firm can keep the work if it wins on merit.`],
               ['g', `Sign a backdated contract at the existing rates.`, `The board has now knowingly approved above-market fees to an insider.`],
@@ -121,6 +146,11 @@
             scene: `The agreement requires prompt reports of related-party dealings and material breaches. A refinancing closes in six weeks with a no-affiliate-contracts certificate. ${s.cfo} says: "Tell them in the annual report."`,
             who: `${s.cfo.first}`,
             behind: `${s.cfo.first} wants to avoid alarming investors and endangering the refinancing. Waiting means the lender relies on a certificate the general partner knows is untrue.`,
+            deep: [
+              [`Who is entitled to know`, `The advisory committee, the investors, and any lender relying on a certificate.`],
+              [`Timing`, `Agreements usually say promptly. An annual report months later is not prompt.`],
+              [`The certificate`, `Signing a statement known to be untrue is a personal risk for whoever signs.`]
+            ],
             options: [
               ['s', `Report now to the investors, and to the lender before it relies on the certificate.`, `They hear it from the general partner, promptly, with the fix under way.`],
               ['g', `A paragraph in the annual report, and nothing to the lender.`, `Each statement might be accurate. Together they are built to keep people from knowing.`],
@@ -139,6 +169,11 @@
             scene: `${s.ceo} sees you alone. "Go after ${s.officer.first} for that money and I resign the week before the refinancing. Drop it and we all get through this." There is no succession plan.`,
             who: `${s.ceo.first}`,
             behind: `${s.ceo.first} is using the refinancing as leverage to protect ${s.officer.first}. The threat works only if the board believes it cannot manage without one person.`,
+            deep: [
+              [`What the threat tests`, `Whether the board governs, or is governed.`],
+              [`Succession`, `A board with a plan for replacing its chief executive cannot be held hostage by one.`],
+              [`The record`, `Report the conversation to the board. Private bargains between a chair and a chief executive are how boards lose their independence.`]
+            ],
             options: [
               ['s', `Hold the board's decision, report the conversation, and prepare interim leadership.`, `The board decides for the fund, not under threat from an executive.`],
               ['g', `Quietly drop the recovery if ${s.ceo.first} stays through the refinancing.`, `It trades the fund's money to settle a personal threat, and teaches that ultimatums work.`],
@@ -156,6 +191,11 @@
           return {
             scene: `The fees are repaid, the mandate was tendered, ${s.dirA} has resigned, and the refinancing closed. A director says: "An isolated incident. Let us not bury the company in policy."`,
             behind: `The director wants to move on, which is human. The gaps that let this run for two years are still open.`,
+            deep: [
+              [`From incident to control`, `Each failure maps to a fix: conflict declarations, a contract register, an approvals list, a channel for reports.`],
+              [`Ownership`, `Each control needs a named person and a review date.`],
+              [`The board's own review`, `Ask every year whether the board would catch this sooner now.`]
+            ],
             options: [
               ['s', `Adopt a few owned controls: conflict declarations, a contract register, an authority matrix.`, `Each control answers a way this went wrong. Next time the system finds it in weeks.`],
               ['g', `Send a memo reminding everyone of their obligations.`, `They knew their obligations. What was missing was anything that would catch a lapse.`],
