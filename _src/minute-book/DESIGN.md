@@ -70,6 +70,9 @@ and that some gains cost nothing.
 - **Another way** (`wider: [text, why]` on a scenario): every decision has a button to look
   wider, at a fifth of the stake. Where a wider answer exists it appears as an extra motion
   paying 1.7 times the sound one. Where none exists the cost is wasted, so it takes judgment.
+  A follow-up beat (`deal` or `sheet`) is written for the usual sound answer. If the player
+  takes the wider answer, that beat is skipped unless the scenario also provides `dealWide`
+  or `sheetWide`, written to follow the wider answer.
 - **Spot it** (`spots` on a level, `spot: 1` in its draw): a document shown as tappable
   phrases, `[text, 'y' | 'n', why]`. Finding a `y` pays. Missing costs nothing but the chance.
 - **Left on the table**: the adjournment screen lists what was available and not taken.

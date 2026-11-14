@@ -327,30 +327,39 @@
         var sOpt = made.options.filter(function (x) { return x.g === 's'; })[0];
         made.wide = { g: 's', wide: true, t: made.wider[0], why: made.wider[1], cash: round2(sOpt.cash * WIDE), gw: 2, risk: 0 };
       }
-      if (made.sheet) {
-        var gs = makeGen(run.seed ^ hash('sheet:' + o.def.id));
-        made.sheet.terms = gs.shuffle(made.sheet.terms.map(function (t) {
-          var val = round2(B * t[4]);
-          return { k: t[0], t: t[1], why: t[2], pain: t[3], val: val, risk: t[0] === 'x' ? round2(val * ASK.x.times) : 0 };
-        }));
-      }
-      if (made.deal) {
-        var ga = makeGen(run.seed ^ hash('ask:' + o.def.id));
-        made.deal.roll = ga.rnd();
-        var asks = ga.shuffle(made.deal.asks.map(function (a) {
-          var R = ASK[a[0]], c = round2(B * (R.pay[0] + ga.rnd() * (R.pay[1] - R.pay[0])));
-          var later = a[0] === 'o' || a[3] === 'later';
-          return { k: a[0], t: a[1], why: a[2], later: later, show: c, opt: a[0] === 'o' ? c : 0,
-            cash: a[0] === 'n' || later ? 0 : a[0] === 'v' ? -c : c, risk: a[0] === 'x' ? round2(c * R.times) : 0 };
-        }));
-        made.deal.asks = asks.filter(function (a) { return a.k !== 'n'; }).concat(asks.filter(function (a) { return a.k === 'n'; }));
-      }
+      /* A follow-up beat is written for one answer. If the player took the wider answer, only a beat written for that applies. */
+      if (made.sheet) buildSheet(made.sheet, B, run.seed ^ hash('sheet:' + o.def.id));
+      if (made.sheetWide) buildSheet(made.sheetWide, B, run.seed ^ hash('sheetw:' + o.def.id));
+      if (made.deal) buildDeal(made.deal, B, run.seed ^ hash('ask:' + o.def.id));
+      if (made.dealWide) buildDeal(made.dealWide, B, run.seed ^ hash('askw:' + o.def.id));
       return made;
     });
     cache = { key: key, items: items };
     return items;
   }
   MB._buildItems = buildItems;
+
+  function buildSheet(sh, B, seed) {
+    var gs = makeGen(seed);
+    sh.terms = gs.shuffle(sh.terms.map(function (t) {
+      var val = round2(B * t[4]);
+      return { k: t[0], t: t[1], why: t[2], pain: t[3], val: val, risk: t[0] === 'x' ? round2(val * ASK.x.times) : 0 };
+    }));
+  }
+  function buildDeal(d, B, seed) {
+    var ga = makeGen(seed);
+    d.roll = ga.rnd();
+    var asks = ga.shuffle(d.asks.map(function (a) {
+      var R = ASK[a[0]], c = round2(B * (R.pay[0] + ga.rnd() * (R.pay[1] - R.pay[0])));
+      var later = a[0] === 'o' || a[3] === 'later';
+      return { k: a[0], t: a[1], why: a[2], later: later, show: c, opt: a[0] === 'o' ? c : 0,
+        cash: a[0] === 'n' || later ? 0 : a[0] === 'v' ? -c : c, risk: a[0] === 'x' ? round2(c * R.times) : 0 };
+    }));
+    d.asks = asks.filter(function (a) { return a.k !== 'n'; }).concat(asks.filter(function (a) { return a.k === 'n'; }));
+  }
+  function dealOf(it, a) { return a && a.wide ? it.dealWide : it.deal; }
+  function sheetOf(it, a) { return a && a.wide ? it.sheetWide : it.sheet; }
+  function hasBeat(it, a) { return !!a && a.g === 's' && !!(dealOf(it, a) || sheetOf(it, a)); }
 
   /* Deal the situations this player has not met yet before any they have. */
   function pickIds(n, seed) {
@@ -507,14 +516,15 @@
       if (it.kind === 'spot') { if (!a.found) out.push({ i: i, t: 'An opportunity in the document went unnoticed.', amt: it.stake }); return; }
       if (it.kind !== 'choice' || a.g !== 's') return;
       if (it.wide && !a.wide) out.push({ i: i, t: 'There was another way: ' + it.wide.t, amt: Math.max(0, it.wide.cash - (a.cash + (a.look || 0))) });
-      if (it.deal && a.ask) {
-        var mine = it.deal.asks[a.ask.pick], empty = mine.k === 'n' || mine.k === 't' || (mine.k === 'r' && !a.ask.ok);
-        if (empty) it.deal.asks.forEach(function (q) {
+      var dl = dealOf(it, a), shl = sheetOf(it, a);
+      if (dl && a.ask && !a.ask.sheet) {
+        var mine = dl.asks[a.ask.pick], empty = mine.k === 'n' || mine.k === 't' || (mine.k === 'r' && !a.ask.ok);
+        if (empty) dl.asks.forEach(function (q) {
           if (q.k === 'o') out.push({ i: i, t: 'A free option was there for the asking: ' + q.t, amt: q.opt, later: true });
           else if (q.k === 'm') out.push({ i: i, t: 'A fair ask would have been agreed: ' + q.t, amt: q.cash });
         });
       }
-      if (it.sheet && a.ask) it.sheet.terms.forEach(function (t, j) {
+      if (shl && a.ask && a.ask.sheet) shl.terms.forEach(function (t, j) {
         if (t.k !== 'x' && t.pain === 0 && a.ask.picks.indexOf(j) < 0) out.push({ i: i, t: 'It would have cost them nothing: ' + t.t, amt: t.val, later: t.k === 'o' });
       });
     });
@@ -653,10 +663,10 @@
 
   function viewPlay(L, run) {
     var items = buildItems(run), it = items[run.step], ans = run.answers[run.step];
-    if (run.sub === 'ask' && ans && it.sheet) return viewTerms(L, run, items, it, ans);
-    if (run.sub === 'ask' && ans && it.deal) return viewAsk(L, run, items, it, ans);
+    if (run.sub === 'ask' && ans && sheetOf(it, ans)) return viewTerms(L, run, items, it, ans);
+    if (run.sub === 'ask' && ans && dealOf(it, ans)) return viewAsk(L, run, items, it, ans);
     var last = run.step === items.length - 1;
-    var pending = ans && (it.deal || it.sheet) && ans.g === 's' && !ans.ask;
+    var pending = hasBeat(it, ans) && !ans.ask;
     var body = '', ruling = '';
     if (it.kind === 'choice') {
       var looked = !!(run.look && run.look[run.step]);
@@ -740,7 +750,7 @@
   }
 
   function viewAsk(L, run, items, it, ans) {
-    var d = it.deal, res = ans.ask, last = run.step === items.length - 1;
+    var d = dealOf(it, ans), res = ans.ask, last = run.step === items.length - 1;
     var body = '<div class="opts" role="group" aria-label="Asks">' + d.asks.map(function (a, i) {
       var letter = 'abcdef'.charAt(i);
       var pay = '<span class="opt-pay">' + (a.k === 'n' ? '$0' : a.k === 'v' ? MB.cash(a.cash) : a.later ? 'up to ' + plus(a.show) + ' later' : plus(a.cash) + ' if agreed') + '</span>';
@@ -761,7 +771,7 @@
   /* The term sheet: tick every term you want. Each has a hidden cost to the other side. */
   function dots(n, of) { var o = ''; for (var i = 0; i < of; i++) o += i < n ? '\u25cf' : '\u25cb'; return o; }
   function viewTerms(L, run, items, it, ans) {
-    var sh = it.sheet, res = ans.ask, last = run.step === items.length - 1, gwNow = liveGoodwill(run);
+    var sh = sheetOf(it, ans), res = ans.ask, last = run.step === items.length - 1, gwNow = liveGoodwill(run);
     var body;
     if (!res) {
       body = '<form class="sheet" data-act="terms" novalidate>' + sh.terms.map(function (t, i) {
@@ -1049,7 +1059,7 @@
       save(); render('review');
     }
     else if (act === 'ask' && run && run.phase === 'play' && run.sub === 'ask' && run.answers[run.step] && !run.answers[run.step].ask) {
-      var d = buildItems(run)[run.step].deal, k = parseInt(el.getAttribute('data-i'), 10), a = d.asks[k], R = ASK[a.k];
+      var d = dealOf(buildItems(run)[run.step], run.answers[run.step]), k = parseInt(el.getAttribute('data-i'), 10), a = d.asks[k], R = ASK[a.k];
       var res = { pick: k, k: a.k, ok: true, cash: 0, risk: 0, gw: R.gw, p: reachOdds(liveGoodwill(run)) };
       if (a.k === 'm' || a.k === 'v') res.cash = a.cash;
       else if (a.k === 'o') { res.opts = [a.opt]; res.optTexts = [a.t]; }
@@ -1062,7 +1072,7 @@
     }
     else if (act === 'next' && run && run.answers[run.step]) {
       var cur = buildItems(run)[run.step], an = run.answers[run.step];
-      if ((cur.deal || cur.sheet) && an.g === 's' && !an.ask && run.sub !== 'ask') { run.sub = 'ask'; save(); render(); return; }
+      if (hasBeat(cur, an) && !an.ask && run.sub !== 'ask') { run.sub = 'ask'; save(); render(); return; }
       run.sub = null;
       if (run.step >= buildItems(run).length - 1) finishRun(); else { run.step++; save(); }
       render();
@@ -1101,7 +1111,7 @@
   function onTerms(form) {
     var run = S.run;
     if (!run || run.phase !== 'play' || run.sub !== 'ask' || !run.answers[run.step] || run.answers[run.step].ask) return;
-    var terms = buildItems(run)[run.step].sheet.terms, tol = patience(liveGoodwill(run));
+    var terms = sheetOf(buildItems(run)[run.step], run.answers[run.step]).terms, tol = patience(liveGoodwill(run));
     var picks = Array.prototype.filter.call(form.querySelectorAll('input[name="term"]'), function (c) { return c.checked; }).map(function (c) { return parseInt(c.value, 10); });
     var legit = picks.filter(function (i) { return terms[i].k !== 'x'; }), xs = picks.filter(function (i) { return terms[i].k === 'x'; });
     var pain = legit.reduce(function (t, i) { return t + terms[i].pain; }, 0), struck = [];

@@ -111,6 +111,17 @@ MB.level({
             ],
             rule: `When you are on both sides of a deal, you do not also get to bargain.`
           },
+          dealWide: {
+            none: true,
+            setup: `The open sale brings in three bids. Your newer fund's is the highest, by a little. You will see every bid before the committees do, and you own more of the buying fund than the selling one.`,
+            asks: [
+              ['x', `Tell the newer fund what the others bid, so it can trim its own.`, `Leaking the bids to the bidder you control rigs the sale you just opened.`],
+              ['x', `Charge each fund a transaction fee for arranging the sale.`, `A fee from both sides of your own deal, unapproved, is double-dipping.`],
+              ['t', `Ask both committees for a bonus for running a good auction.`, `Legal to ask. It tells both committees where your attention is.`],
+              ['n', `Take nothing. Send the committees every bid.`, `When you are on both sides, there is nothing to ask for.`]
+            ],
+            rule: `An open sale protects everyone only if the insider bidder sees what the others see, and no more.`
+          },
           wider: [`Run an open sale, and let the newer fund bid in it.`, `The market sets the price. If the affiliate wins, nobody can say it paid too little.`],
           rule: `When the general partner is on both sides, someone else sets the price and someone else approves.`,
           us: `Registered fund advisers must disclose and obtain consent for principal transactions with funds they manage.`,
