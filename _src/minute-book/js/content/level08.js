@@ -15,9 +15,19 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l8-draw', title: 'Paying for next week\'s work',
+      id: 'l8-draw', twist: true, title: 'Paying for next week\'s work',
       make: function (g) {
         var a = g.person(), draw = g.m(0.6, 1.8, 0.1), short = g.pick([120000, 180000, 240000]);
+        if (g.twist) return {
+          twist: `The loan allowed payment for insured materials stored on site. Refusing all of it was wrong.`,
+          scene: `The contractor's draw is ${MB.usd(draw)}. All is certified except ${MB.usd(short)} for framing: lumber delivered, insured and on site, but not yet installed. The loan allows payment for stored materials that are insured and owned by the project.`,
+          options: [
+            ['s', `Fund the stored lumber as the loan allows, and hold the labour until it is done.`, `The agreement distinguishes materials on site from work not yet performed.`],
+            ['g', `Refuse the whole framing amount.`, `Stricter than the documents, and the contractor is left funding lumber you already hold.`],
+            ['p', `Fund all of it, labour included.`, `The labour has not happened. That part is still prepayment.`]
+          ],
+          rule: `Pay for what the documents let you pay for. No more, and no less.`
+        };
         return {
           scene: `The contractor's draw is ${MB.usd(draw)}. The inspector certifies all of it except ${MB.usd(short)} of framing not yet installed. ${a}, the construction manager, wants it funded in full. "The crew starts Monday."`,
           who: `${a.first}`,
@@ -85,9 +95,19 @@ MB.level({
       }
     },
     {
-      id: 'l8-holdback', title: 'Release it early, just this once',
+      id: 'l8-holdback', twist: true, title: 'Release it early, just this once',
       make: function (g) {
         var a = g.person(), amt = g.pick([90000, 130000, 175000]);
+        if (g.twist) return {
+          twist: `The lien period had already expired with clear title. Holding the money was wrong.`,
+          scene: `A subcontractor asks for its ${MB.usd(amt)} holdback. The lien period ended last week and a title search is clear. The site team wants to keep holding it as leverage in an unrelated dispute about cleanup.`,
+          options: [
+            ['s', `Release the holdback, and deal with the cleanup dispute separately.`, `The conditions are met. The money is the subcontractor's.`],
+            ['g', `Keep holding it until the cleanup is settled.`, `Holdback is for lien protection. Using it as leverage can breach prompt payment rules.`],
+            ['p', `Release it less a "processing fee."`, `An invented deduction from money that is owed.`]
+          ],
+          rule: `When the conditions for release are met, the money is paid.`
+        };
         return {
           scene: `A subcontractor short of cash asks for its ${MB.usd(amt)} holdback weeks before the lien period ends. Its owner, ${a}, offers a waiver of the firm's own lien rights.`,
           who: `${a.first}`,

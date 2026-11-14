@@ -106,10 +106,20 @@ MB.level({
       }
     },
     {
-      id: 'l10-insider-sale', title: 'A quick sale to a friend of the firm',
+      id: 'l10-insider-sale', twist: true, title: 'A quick sale to a friend of the firm',
       builds: ['Conflict of interest', 'Arm\'s length'],
       make: function (g) {
         var a = g.person(), amt = g.m(3, 9, 0.5);
+        if (g.twist) return {
+          twist: `The property had been fully marketed and the connected bidder was highest. Rejecting it would have cost the borrower.`,
+          scene: `The lender is selling under power of sale. The property was listed with a broker for ninety days and appraised twice. Three offers came in. The highest, at ${MB.usd(amt)}, is from ${a}, who co-invests with the partners. A colleague wants to take the second offer "for appearances."`,
+          options: [
+            ['s', `Accept the highest offer, with the connection disclosed and counsel's sign-off.`, `The market set the price. The borrower is owed the best one.`],
+            ['g', `Take the second offer to avoid any appearance of favour.`, `A lower price makes the borrower's shortfall bigger, to spare the lender embarrassment.`],
+            ['p', `Accept ${a.first}'s offer, with a discount for closing fast.`, `The process was clean until the price was cut for a connected buyer.`]
+          ],
+          rule: `A connected buyer who wins a real, open process is simply the best buyer.`
+        };
         return {
           scene: `The lender is selling under power of sale. Before listing, ${a}, who co-invests with the partners, offers ${MB.usd(amt)}, matching the one appraisal, closing in ten days. The borrower will be sued for the shortfall.`,
           who: `${a.first}`,
@@ -176,9 +186,19 @@ MB.level({
       }
     },
     {
-      id: 'l10-stay', title: 'The filing the night before',
+      id: 'l10-stay', twist: true, title: 'The filing the night before',
       make: function (g) {
         var a = g.person();
+        if (g.twist) return {
+          twist: `The filing was by the guarantor, not the owner. The stay did not cover this property.`,
+          scene: `A foreclosure sale is set for ten tomorrow. At six tonight the loan's personal guarantor files for court protection. The borrowing company, which owns the property, has filed nothing. ${a} wants to cancel the sale indefinitely.`,
+          options: [
+            ['s', `Have counsel confirm tonight that the stay does not reach the company's property, then proceed.`, `A stay protects the one who filed. Check, and then act.`],
+            ['g', `Cancel the sale indefinitely.`, `Careful, and costly. Months are lost to a stay that may not apply.`],
+            ['p', `Proceed without checking, and start collecting from the guarantor too.`, `The sale may be fine. Pursuing the guarantor after the filing is not.`]
+          ],
+          rule: `A stay protects whoever filed. Find out exactly who that is.`
+        };
         return {
           scene: `A foreclosure sale is set for ten tomorrow. At six tonight the borrower files for court protection from creditors. ${a} says the sale "was already in motion."`,
           who: `${a.first}`,
@@ -196,6 +216,150 @@ MB.level({
           rule: `When a borrower files for protection, stop and take advice before the next step.`,
           us: `A bankruptcy filing triggers an automatic stay. Lenders move for relief from it.`,
           ca: `Proposals and restructurings stay secured creditors. A straight bankruptcy generally does not.`
+        };
+      }
+    },
+    {
+      id: 'l10-receiver', title: 'Who runs it meanwhile?',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `A half-built site is deteriorating while the foreclosure runs. The borrower has stopped paying security and the roof is open. ${a}, your site manager, offers to send a crew to secure it and "run things until we own it."`,
+          who: `${a.first}`,
+          behind: `${a.first} wants to protect the collateral, which is right. A lender that takes charge of a site before it owns it takes on an occupier's duties, to workers, neighbours and trespassers, without an owner's rights.`,
+          deep: [
+            [`The trap`, `A lender in possession can be liable for accidents, for the state of the site, and to the borrower for how it manages.`],
+            [`What a receiver is`, `An independent person appointed to take control, protect the property and often sell it.`],
+            [`Who pays`, `The receiver's costs come out of the property ahead of the lender, which is usually cheaper than the liability.`]
+          ],
+          options: [
+            ['s', `Apply to have a receiver appointed to secure and manage the site.`, `Control passes to someone with legal authority and insurance for the job.`],
+            ['g', `Send your own crew to secure it and manage it informally.`, `The site is protected, and the lender is now answerable for it.`],
+            ['p', `Leave it until the foreclosure completes.`, `The collateral loses value every week, and someone may be hurt on it.`]
+          ],
+          rule: `A lender protects a property it does not yet own through a receiver, not by moving in.`
+        };
+      }
+    },
+    {
+      id: 'l10-rents', title: 'The rents are disappearing',
+      make: function (g) {
+        var a = g.person(), amt = g.pick([85000, 120000, 160000]);
+        return {
+          scene: `A borrower in default is collecting ${MB.usd(amt)} a month in rent and paying you nothing. Your security includes an assignment of the rents. ${a}, a colleague, suggests phoning the tenants and asking them to pay you directly.`,
+          who: `${a.first}`,
+          behind: `${a.first} wants the money stopped before more leaks out. Tenants who pay the wrong party can be made to pay twice. They need a formal notice they can rely on.`,
+          deep: [
+            [`What the assignment gives`, `The right to collect rents after default, once it is exercised in the way the law requires.`],
+            [`The tenant's position`, `A proper written notice protects a tenant who then pays the lender.`],
+            [`Using the money`, `Rent collected goes to the property's costs and the debt, and must be accounted for.`]
+          ],
+          options: [
+            ['s', `Serve formal notices under the assignment, or have a receiver collect.`, `Tenants know who to pay and are protected for paying.`],
+            ['g', `Phone the tenants and ask them to redirect rent.`, `Some will, some will not, and none are protected.`],
+            ['p', `Change the locks on the borrower's management office.`, `That is taking possession without process.`]
+          ],
+          rule: `Security over rents is exercised by formal notice.`
+        };
+      }
+    },
+    {
+      id: 'l10-anchor', title: 'The tenant you inherit',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `You now own a plaza. The anchor grocery pays below-market rent on a long lease. When the loan was made, the lender signed an agreement not to disturb that tenant after a foreclosure. ${a}, your leasing agent, wants it out. "The foreclosure wiped the leases."`,
+          who: `${a.first}`,
+          behind: `${a.first} is paid on new leases at higher rents. Foreclosure can end leases that rank behind the mortgage. The non-disturbance agreement is the lender's own promise that this one survives.`,
+          deep: [
+            [`What foreclosure does to leases`, `Leases made after the mortgage can usually be ended. Earlier ones cannot.`],
+            [`The three-way agreement`, `The tenant accepts the mortgage ranks first. In return the lender promises to honour the lease if it takes over.`],
+            [`Why lenders sign them`, `Anchor tenants will not sign a lease without one, and the anchor is what makes the plaza worth lending on.`]
+          ],
+          options: [
+            ['s', `Honour the lease, as the lender promised.`, `It is your own agreement, and the anchor is why the plaza has value.`],
+            ['g', `Hint at eviction to push the tenant into a higher rent.`, `Threatening what you have promised not to do is bad faith.`],
+            ['p', `Serve notice to vacate.`, `A breach of your own agreement, with a tenant able to afford the lawsuit.`]
+          ],
+          rule: `A lender that takes over a property takes it with the promises it made to tenants.`,
+          deal: {
+            setup: `The grocer hears you are the new owner and asks for a meeting. It wants ten more years and a bigger store.`,
+            asks: [
+              ['m', `Offer the extension at market rent for the added years.`, `It keeps the anchor and lifts the income over time.`],
+              ['r', `Ask for market rent from today in return for the expansion.`, `The grocer wants the space, but its current rent is protected.`],
+              ['x', `Say the lease will not survive unless the rent goes up.`, `That is the threat you promised in writing not to make.`],
+              ['n', `Hear them out and commit to nothing.`, `Nothing lost. The opening may not come again.`]
+            ],
+            rule: `A protected tenant can still be a willing one. Offer something it wants.`
+          }
+        };
+      }
+    },
+    {
+      id: 'l10-redeem', burn: 2, title: 'They want it back',
+      make: function (g) {
+        var a = g.person(), amt = g.m(5, 12, 0.5);
+        return {
+          scene: `The law gives a borrower until Friday to pay everything owed and keep the property. On Thursday the borrower tenders the full ${MB.usd(amt)}. ${a}, a partner, has a buyer lined up at a much higher price. "Be hard to reach until Monday."`,
+          who: `${a.first}`,
+          behind: `${a.first} sees a profit above the debt and wants the lender to have it. A mortgage is security for a debt. A lender is entitled to be repaid, not to the property's upside.`,
+          deep: [
+            [`The right to redeem`, `Until it is properly cut off, a borrower can pay the debt and keep the property.`],
+            [`Why courts guard it`, `Without it, every lender would have a reason to engineer defaults on valuable properties.`],
+            [`If the lender dodges`, `Courts extend the deadline and award costs, and the buyer's deal collapses anyway.`]
+          ],
+          options: [
+            ['s', `Accept the payment and release the mortgage.`, `The lender is paid in full, which is all it was ever owed.`],
+            ['g', `Process it slowly and see whether the deadline passes.`, `Delay to defeat a payment made on time is bad faith.`],
+            ['p', `Refuse the payment.`, `Refusing a valid payment does not end the right. It adds damages.`]
+          ],
+          rule: `A lender's interest in a property ends when the debt is paid.`
+        };
+      }
+    },
+    {
+      id: 'l10-surplus', title: 'More than you are owed',
+      make: function (g) {
+        var a = g.person(), extra = g.m(0.4, 1.4, 0.1);
+        return {
+          scene: `A foreclosure sale brings in ${MB.usd(extra)} more than the debt and costs. ${a}, in accounting, proposes holding it against "final costs and contingencies," with no end date.`,
+          who: `${a.first}`,
+          behind: `${a.first} sees money in the account and no one yet asking for it. The surplus belongs to whoever ranks next: later lenders, then the borrower. The lender holds it for them.`,
+          deep: [
+            [`The order`, `Costs of sale, then the lender's debt, then creditors ranking behind it, then the borrower.`],
+            [`The lender's role`, `It holds any surplus in trust for those next in line and must account for it.`],
+            [`If nobody is sure who is entitled`, `The money can be paid into court for the claimants to sort out.`]
+          ],
+          options: [
+            ['s', `Account for the sale and pay the surplus to those next in line.`, `The lender keeps what it is owed and nothing else.`],
+            ['g', `Hold it for unspecified future costs.`, `An open-ended hold on other people's money is keeping it.`],
+            ['p', `Book it as a recovery.`, `That is taking money that belongs to someone else.`]
+          ],
+          rule: `A lender keeps its debt and its costs. The rest belongs to others.`
+        };
+      }
+    },
+    {
+      id: 'l10-lowbid', title: 'Bidding against nobody',
+      make: function (g) {
+        var a = g.person(), val = g.m(4, 9, 0.5);
+        return {
+          scene: `No one else comes to the foreclosure auction. The property is appraised at ${MB.usd(val)}. ${a}, a credit officer, wants to bid one dollar of the debt and sue the guarantor for nearly everything.`,
+          who: `${a.first}`,
+          behind: `The less the lender bids, the more debt is left to claim from the guarantor. A one-dollar bid would give the lender a multi-million-dollar property and almost the whole debt as well.`,
+          deep: [
+            [`How a credit bid works`, `The lender bids with the debt it is owed. Whatever it bids is treated as paid.`],
+            [`The double recovery`, `Property worth millions for one dollar, plus a claim for the rest.`],
+            [`How the law responds`, `Many places measure the shortfall against fair value, or refuse it after a grossly low bid.`]
+          ],
+          options: [
+            ['s', `Bid an amount supported by the appraisal.`, `The shortfall claim that is left is one a court will enforce.`],
+            ['g', `Bid half the appraised value.`, `Better than a dollar, and still set to inflate the claim.`],
+            ['p', `Bid one dollar.`, `Courts see this for what it is, and can cancel the shortfall claim or the sale.`]
+          ],
+          rule: `A lender bidding with its own debt may not bid low to be paid twice.`,
+          us: `Many states limit the shortfall to the gap between the debt and the property's fair value.`,
+          ca: `A lender that takes title through foreclosure generally gives up its claim for any shortfall.`
         };
       }
     }

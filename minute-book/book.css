@@ -328,3 +328,5 @@ details.deep > summary:hover { background: var(--paper-2); }
 details.deep ul { list-style: none; padding: 0; margin-top: 12px; display: grid; gap: 10px; }
 details.deep li { font-size: 15.5px; color: #25332b; padding-left: 12px; border-left: 2px solid var(--rule); max-width: 64ch; }
 details.deep li b { color: var(--ink); }
+.twist-note { border-left: 4px solid var(--margin); background: #f5f8ef; padding: 10px 14px; display: grid; gap: 3px; max-width: 66ch; }
+.twist-note p { font-size: 16px; }

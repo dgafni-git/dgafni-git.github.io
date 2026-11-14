@@ -15,10 +15,21 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l6-wheel', title: 'The investor who wants the wheel',
+      id: 'l6-wheel', twist: true, title: 'The investor who wants the wheel',
       builds: ['Limited liability'],
       make: function (g) {
         var a = g.person(), pct = g.pick([28, 35, 40]);
+        if (g.twist) return {
+          burn: 0,
+          twist: `The investor asked only for what the agreement already gave. Refusing was wrong.`,
+          scene: `${a} holds ${pct}% of the units and is unhappy with construction. ${a.first} asks for quarterly calls with the project team and to inspect the construction contracts. The partnership agreement gives every limited partner both rights.`,
+          options: [
+            ['s', `Provide the calls and the contracts.`, `They are rights under the agreement. Using them is not managing.`],
+            ['g', `Resist, warning that involvement risks limited liability.`, `Asking questions and reading contracts does not make an investor a manager.`],
+            ['p', `Give ${a.first} co-signing authority instead.`, `That goes far past what was asked, and does cross the line.`]
+          ],
+          rule: `The line investors must not cross is managing. Information is on their side of it.`
+        };
         return {
           scene: `${a} holds ${pct}% of the units and is unhappy with construction. ${a.first} wants to approve every contract and give the contractor instructions directly.`,
           who: `${a.first}`,
@@ -145,9 +156,20 @@ MB.level({
       }
     },
     {
-      id: 'l6-keyperson', burn: 2, title: 'The key person leaves',
+      id: 'l6-keyperson', twist: true, burn: 2, title: 'The key person leaves',
       make: function (g) {
         var a = g.person(), amt = g.m(6, 18, 1);
+        if (g.twist) return {
+          burn: 0,
+          twist: `The clause needed two departures, not one. Nothing was triggered.`,
+          scene: `${a}, one of two named key persons, resigned last week. The clause is triggered only if both leave. A ${MB.usd(amt)} acquisition signs in twelve days.`,
+          options: [
+            ['s', `Proceed, and tell investors promptly that ${a.first} has left.`, `Nothing is triggered, and investors still deserve to hear it from you.`],
+            ['g', `Proceed, and mention it when someone asks.`, `Permitted. It will not feel that way to investors who find out late.`],
+            ['p', `Keep ${a.first}'s name in the investor materials.`, `That misleads investors about who is running their money.`]
+          ],
+          rule: `When a clause is not triggered, you may proceed. Candour is still owed.`
+        };
         return {
           scene: `${a}, a named key person, resigned last week. The agreement requires notice to investors in ten days and no new investments until they approve a replacement. A ${MB.usd(amt)} acquisition signs in twelve days.`,
           who: `Your remaining partners`,

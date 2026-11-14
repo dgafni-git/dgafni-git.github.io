@@ -71,10 +71,21 @@ MB.level({
       }
     },
     {
-      id: 'l4-call', burn: 2, title: 'Calling capital from the friendly ones',
+      id: 'l4-call', twist: true, burn: 2, title: 'Calling capital from the friendly ones',
       builds: ['Duty of loyalty'],
       make: function (g) {
         var a = g.person(), amt = g.m(0.8, 2.4, 0.2);
+        if (g.twist) return {
+          burn: 0,
+          twist: `The agreement expressly allowed a partner loan here. A full call was the slow option.`,
+          scene: `The partnership needs ${MB.usd(amt)} within days or the contractor leaves the site. The agreement lets the general partner accept loans from partners at up to 10% when a capital call would take too long, with notice to all partners.`,
+          options: [
+            ['s', `Take a partner loan within the cap and notify every partner.`, `The agreement provides this route for exactly this case.`],
+            ['g', `Make a full capital call anyway.`, `Valid, but the notice period means the contractor has gone before the money arrives.`],
+            ['p', `Call only friendly partners and issue them extra units.`, `Still a quiet dilution of everyone not asked.`]
+          ],
+          rule: `Use the tools the agreement gives you. A partner loan is fine where it is permitted and disclosed.`
+        };
         return {
           scene: `The partnership needs ${MB.usd(amt)} for an overrun. The agreement requires capital calls from all partners in proportion. ${a}, who runs the general partner, says: "Call it from the four we know best and give them extra units."`,
           who: `${a.first}`,
@@ -160,10 +171,20 @@ MB.level({
       }
     },
     {
-      id: 'l4-sideletter', title: 'A letter on the side',
+      id: 'l4-sideletter', twist: true, title: 'A letter on the side',
       builds: ['Disclosure and recusal'],
       make: function (g) {
         var a = g.person(), amt = g.m(2, 6, 0.5);
+        if (g.twist) return {
+          twist: `Here the agreement required equal fees for everyone. A side letter could not change that.`,
+          scene: `${a} will invest ${MB.usd(amt)} but wants a lower management fee. The partnership agreement says every limited partner pays the same fee, and says nothing about side letters.`,
+          options: [
+            ['s', `Decline, or propose amending the agreement by the required vote.`, `The agreement promises equal fees. Only the partners can change that promise.`],
+            ['g', `Grant it in a side letter and disclose the letter.`, `Disclosure does not help. The term itself breaks the agreement.`],
+            ['p', `Grant it quietly.`, `A secret breach of a promise made to every other investor.`]
+          ],
+          rule: `A side letter cannot grant what the main agreement forbids.`
+        };
         return {
           scene: `${a} will invest ${MB.usd(amt)} but wants a side letter with a lower fee. The agreement permits side letters and lets two other investors elect any better terms granted.`,
           who: `${a.first}`,
@@ -179,6 +200,158 @@ MB.level({
             ['p', `Sign a secret letter that also puts ${a.first} first for distributions.`, `A secret priority changes the deal every other partner signed.`]
           ],
           rule: `Special terms are fine when permitted, written and disclosed. Secret ones never are.`
+        };
+      }
+    },
+    {
+      id: 'l4-senior-units', title: 'Ahead of everyone else',
+      make: function (g) {
+        var a = g.person(), amt = g.m(2, 6, 0.5);
+        return {
+          scene: `The project company needs ${MB.usd(amt)}. A new investor will provide it for units paying 12% a year ahead of all existing owners. The operating agreement requires the existing owners' consent to issue anything ranking ahead of them. ${a} suggests calling it a "member loan."`,
+          who: `${a.first}`,
+          behind: `${a.first} wants the money without a vote that might fail. Whatever it is called, the new money is paid first. The existing owners' consent right exists so nobody can be pushed down the line without agreeing.`,
+          deep: [
+            [`What ranking ahead means`, `If the project earns less than hoped, the new investor is paid in full before the others see anything.`],
+            [`The size of it`, `12% on $4 million is $480,000 a year that now comes out before any existing owner is paid.`],
+            [`Why owners often agree`, `If the alternative is a stalled project, senior money can still be the best deal for them.`]
+          ],
+          options: [
+            ['s', `Ask the existing owners for the consent the agreement requires.`, `They decide whether the project needs the money enough to step back.`],
+            ['g', `Issue it as a member loan to avoid the vote.`, `A loan with the same priority has the same effect. A relabel does not remove the consent right.`],
+            ['p', `Issue the units and tell the owners afterward.`, `That subordinates them without their agreement, in breach of the agreement.`]
+          ],
+          rule: `Nobody is moved down the line of payment without the consent they were promised.`,
+          deal: {
+            setup: `The owners understand the project needs the money. They ask whether the terms can be improved before they vote.`,
+            asks: [
+              ['m', `Offer every existing owner the right to take part of the new units.`, `Those who can invest keep their position. An easy yes.`],
+              ['r', `Ask the new investor to drop to 10% in return for a faster closing.`, `Worth asking. The investor knows you need the money.`],
+              ['x', `Tell owners the lender will foreclose next week unless they consent today.`, `If that is not true, you have obtained a consent by misrepresentation.`],
+              ['n', `Put the terms to a vote as they are.`, `Straightforward. Some will vote no.`]
+            ],
+            rule: `Improve the terms for the people being asked to step back.`
+          }
+        };
+      }
+    },
+    {
+      id: 'l4-carveout', burn: 2, title: 'The guarantee that sleeps',
+      make: function (g) {
+        var a = g.person(), amt = g.m(0.5, 1.5, 0.1);
+        return {
+          scene: `The project loan cannot reach the sponsor personally, except for listed "bad acts," which include putting any other debt on the property. Cash is tight. ${a}, the sponsor's principal, wants to borrow ${MB.usd(amt)} against the property from a friend. "It is small. Nobody will notice."`,
+          who: `${a.first}`,
+          behind: `${a.first} sees a small bridge loan. The loan documents see a listed act that makes the sponsor personally liable for the entire loan. A cash problem becomes a personal one.`,
+          deep: [
+            [`How these guarantees work`, `The lender agrees to look only to the property, unless the borrower does one of a list of things within its control.`],
+            [`What is usually on the list`, `Other debt on the property, transfers without consent, misuse of rents, and a voluntary bankruptcy filing.`],
+            [`The scale`, `A $1 million second loan can trigger liability for a $30 million first one.`]
+          ],
+          options: [
+            ['s', `Read the list, and ask the lender's consent before any new debt.`, `Lenders often consent to small, subordinated money. They never forgive not being asked.`],
+            ['g', `Borrow it unsecured in the company's name without checking.`, `Many lists include any other debt at all, secured or not.`],
+            ['p', `Register the friend's loan against the property.`, `That is a listed act. The whole loan may now be the sponsor's personal debt.`]
+          ],
+          rule: `Before doing anything to a financed property, read what turns the loan into personal liability.`
+        };
+      }
+    },
+    {
+      id: 'l4-cure', title: 'A convenient prepayment',
+      make: function (g) {
+        var a = g.person(), amt = g.pick([180000, 240000, 310000]);
+        return {
+          scene: `The property will miss its income covenant by ${MB.usd(amt)} this year. The loan lets the owners fix a miss by putting in cash, at most twice. ${a}, the finance lead, would rather have an affiliated tenant "prepay" next year's rent in December.`,
+          who: `${a.first}`,
+          behind: `${a.first} wants to pass the test without using a cure or admitting a miss. Rent paid a year early by a related tenant is not this year's income. It is the owners' money dressed as revenue.`,
+          deep: [
+            [`What the covenant measures`, `Whether the property's own income covers its loan payments.`],
+            [`What a cure right is`, `A negotiated way to fix a shortfall with new cash, openly, a limited number of times.`],
+            [`Why disguise is worse than a miss`, `A miss is a business problem. A false compliance report is a misrepresentation.`]
+          ],
+          options: [
+            ['s', `Use the cure right as written, or report the miss.`, `Both are honest, and the lender expects one or the other.`],
+            ['g', `Take the prepayment and count it.`, `Income pulled forward from a related party overstates what the property earns.`],
+            ['p', `Book the prepayment and certify compliance.`, `A certificate you know to be misleading is the serious breach here.`]
+          ],
+          rule: `A covenant test is passed with real results or cured in the open.`
+        };
+      }
+    },
+    {
+      id: 'l4-recap', title: 'Borrowing to pay yourselves',
+      make: function (g) {
+        var a = g.person(), amt = g.m(4, 10, 1);
+        return {
+          scene: `A finished property can be refinanced to release ${MB.usd(amt)} of cash. ${a}, who controls the majority owner, wants it paid to the majority as a "management fee," skipping the minority.`,
+          who: `${a.first}`,
+          behind: `Cash taken out by refinancing belongs to all the owners in their shares. Calling it a fee to one owner moves the minority's share to the majority. It may also dodge the lender's limits on payouts.`,
+          deep: [
+            [`What a refinancing payout is`, `New debt replaces old, and the difference is paid out to the owners.`],
+            [`The three checks`, `Can the company still pay its debts? Does the loan allow the payout? Is it shared as the agreement requires?`],
+            [`The relabel`, `On $8 million, a 25% minority would lose $2 million if it is paid as a fee to the majority.`]
+          ],
+          options: [
+            ['s', `Check solvency and the loan terms, then pay all owners in their shares.`, `Everyone gets what they own of it, after the creditors are safe.`],
+            ['g', `Pay it out in shares without checking the loan's limits.`, `Fair between owners, and possibly a breach of the loan.`],
+            ['p', `Pay it to the majority as a management fee.`, `That takes the minority's share by renaming it.`]
+          ],
+          rule: `Cash taken out of a company goes to its owners in their shares, after its creditors are safe.`
+        };
+      }
+    },
+    {
+      id: 'l4-equity-in', title: 'What counts as equity?',
+      make: function (g) {
+        var a = g.person(), amt = g.m(5, 12, 1);
+        return {
+          scene: `The construction lender requires ${MB.usd(amt)} of owners' money in the project before it advances. ${a}, the developer, proposes counting a deferred developer fee and a marked-up land value toward that figure.`,
+          who: `${a.first}`,
+          behind: `${a.first} wants the loan without finding more cash. The lender wants real money at risk ahead of its own. A fee not yet paid and a markup on paper put nothing at risk.`,
+          deep: [
+            [`Why lenders want owners' money in first`, `It absorbs the first losses and keeps the owner committed.`],
+            [`Cash versus paper`, `Land at what was paid for it is real. Land at a higher appraised value, and fees owed to yourself, are not cash.`],
+            [`The right way to count them`, `Ask. Lenders sometimes accept part of an appraised increase, knowingly.`]
+          ],
+          options: [
+            ['s', `Show the lender exactly what makes up the figure and let it decide.`, `If it accepts non-cash items, it does so knowing what they are.`],
+            ['g', `Count the land at appraised value without saying how.`, `Nothing false is said. The lender is left believing cash went in.`],
+            ['p', `State it all as cash invested.`, `That is a false statement made to obtain a loan.`]
+          ],
+          rule: `Tell a lender what your equity is made of. Let it decide what counts.`
+        };
+      }
+    },
+    {
+      id: 'l4-own-loan', title: 'Lending to your own deal',
+      make: function (g) {
+        var a = g.person(), amt = g.m(3, 8, 0.5);
+        return {
+          scene: `The partnership needs ${MB.usd(amt)} quickly. A bank will lend at 9% in six weeks. An affiliate of the general partner will lend at 13% tomorrow. ${a}, who runs the general partner, prefers the affiliate. "Speed has a price."`,
+          who: `${a.first}`,
+          behind: `Speed may be worth paying for. But ${a.first} is choosing the lender and owns the lender. Four points on the loan is money moving from the investors to the general partner's side.`,
+          deep: [
+            [`The spread`, `Four points on $5 million is $200,000 a year.`],
+            [`What makes it defensible`, `Evidence that the bank really cannot move in time, a rate checked against other fast lenders, and approval by the advisory committee.`],
+            [`A middle path`, `A short affiliate loan at a fair rate, repaid when the bank loan arrives.`]
+          ],
+          options: [
+            ['s', `Test the rate against other fast lenders and ask the advisory committee.`, `If speed is worth 13%, someone independent can agree.`],
+            ['g', `Take the affiliate loan now and disclose it afterward.`, `Investors learn of a related-party loan once it cannot be refused.`],
+            ['p', `Take it, and add an arrangement fee for the affiliate.`, `A premium rate and a fee, both decided by the party being paid.`]
+          ],
+          rule: `A sponsor may lend to its own deal on terms someone else has checked.`,
+          deal: {
+            setup: `The advisory committee accepts the need for speed. It asks what terms the affiliate proposes.`,
+            asks: [
+              ['m', `Lend at the bank's rate plus one point, repayable when the bank funds.`, `A fair price for speed that nobody will question.`],
+              ['r', `Lend at 12% with a three-month minimum.`, `Defensible for fast money. The committee may think it rich.`],
+              ['x', `Lend at 13% and take a share of the project's profit as well.`, `Taking upside on top of a premium rate, from a deal you control, is self-dealing.`],
+              ['n', `Wait six weeks for the bank.`, `Cheapest money. The delay has its own cost.`]
+            ],
+            rule: `When you are both lender and manager, price it so a stranger would call it fair.`
+          }
         };
       }
     }

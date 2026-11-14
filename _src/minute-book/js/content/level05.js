@@ -61,10 +61,20 @@ MB.level({
       }
     },
     {
-      id: 'l5-reserve', title: 'Everything out today',
+      id: 'l5-reserve', twist: true, title: 'Everything out today',
       builds: ['Limited liability'],
       make: function (g) {
         var a = g.person(), net = g.m(4, 12, 0.5), owed = g.m(0.3, 0.9, 0.1);
+        if (g.twist) return {
+          twist: `Nothing was left to reserve for. Holding money back was the error.`,
+          scene: `The project sold and the entity holds ${MB.usd(net)}. Every contractor is paid, with releases. The buyer took the building with no warranty, and final tax is paid. ${a}, the largest investor, wants the cash distributed. The controller wants to keep 10% back for a year, "just in case."`,
+          options: [
+            ['s', `Distribute it all, after confirming nothing is outstanding.`, `A reserve needs a reason. With none, the money is the investors'.`],
+            ['g', `Hold 10% back for a year anyway.`, `Caution with other people's money, for a risk nobody can name.`],
+            ['p', `Distribute it and dissolve without final filings.`, `The money was right. Skipping the filings leaves the directors exposed.`]
+          ],
+          rule: `Reserve for real liabilities. With none, investors are owed their money.`
+        };
         return {
           scene: `The project sold and the entity holds ${MB.usd(net)}. It still owes ${MB.usd(owed)} to contractors and gave the buyer a one-year warranty. ${a}, the largest investor, wants every dollar out this week.`,
           who: `${a.first}`,
@@ -86,10 +96,20 @@ MB.level({
       }
     },
     {
-      id: 'l5-fee', title: 'A fee nobody agreed to',
+      id: 'l5-fee', twist: true, title: 'A fee nobody agreed to',
       builds: ['Conflict of interest'],
       make: function (g) {
         var pct = g.pick(['1%', '1.25%', '1.5%']);
+        if (g.twist) return {
+          twist: `This fee was in the agreement and had been approved. Stopping it helped nobody.`,
+          scene: `An affiliate of the general partner charges an asset management fee of ${pct} of project cost. The agreement permits it "as approved each year by the advisory committee," which approved it in January. A new analyst suggests stopping the fee to be safe.`,
+          options: [
+            ['s', `Keep charging it as approved, and show it in the reports.`, `It is authorized, approved by the right body, and disclosed.`],
+            ['g', `Stop charging it, to be safe.`, `Nothing was wrong. The affiliate is now working unpaid for no reason.`],
+            ['p', `Raise it above the approved rate.`, `Approval covers the rate approved, and no more.`]
+          ],
+          rule: `A related-party fee that is written down, approved and disclosed is simply a fee.`
+        };
         return {
           scene: `An affiliate of the general partner starts charging an "asset management fee" of ${pct} of project cost. The agreement does not mention it. It is paid before investors get anything. The work is real. What should happen to the fee?`,
           who: `The affiliate`,
@@ -148,6 +168,139 @@ MB.level({
             ['p', `Leave it. It is immaterial.`, `A known overpayment to the party doing the maths becomes a deliberate one.`]
           ],
           rule: `An error in your own favour gets fixed, disclosed and prevented. Size matters less than response.`
+        };
+      }
+    },
+    {
+      id: 'l5-first-out', title: 'Whose capital comes back first?',
+      make: function (g) {
+        var a = g.person(), amt = g.m(1, 3, 0.5);
+        return {
+          scene: `A sale returns cash to a partnership. The agreement repays capital to all partners in proportion. The general partner put in ${MB.usd(amt)} late, calling it a "bridge." ${a}, its principal, wants that repaid in full before anyone else.`,
+          who: `${a.first}`,
+          behind: `${a.first} thinks of that money as temporary. Nothing in the agreement says so. Paying it back first puts the general partner ahead of the investors it is meant to stand beside.`,
+          deep: [
+            [`In proportion`, `Each dollar returned is shared by how much capital each partner still has in.`],
+            [`A real bridge`, `It would be a loan, documented as one, with a rate and a repayment date agreed in advance.`],
+            [`The effect`, `If the sale returns less than everyone's capital, going first means others bear the loss.`]
+          ],
+          options: [
+            ['s', `Repay capital in proportion, as the agreement says.`, `The general partner invested alongside the investors, and is repaid alongside them.`],
+            ['g', `Repay the bridge first, on the basis it was always meant to be temporary.`, `What was meant and what was documented are different things.`],
+            ['p', `Repay the general partner in full and adjust the others later.`, `That jumps the queue with the investors' money.`]
+          ],
+          rule: `Capital is returned in the order written down when it went in.`
+        };
+      }
+    },
+    {
+      id: 'l5-tax-advance', title: 'The tax advance',
+      make: function (g) {
+        var a = g.person(), amt = g.pick([220000, 340000, 460000]);
+        return {
+          scene: `The agreement lets the general partner take cash to pay tax on profit allocated to it, as an advance against its later promote. It has taken ${MB.usd(amt)}. At the sale, ${a} wants the full promote paid with no deduction.`,
+          who: `${a.first}`,
+          behind: `${a.first} would like to be paid twice. The tax advances were an early slice of the promote. Leaving them out of the final sum means the investors fund the same money again.`,
+          deep: [
+            [`Why tax advances exist`, `Partners can owe tax on profit allocated to them before any cash arrives.`],
+            [`The condition`, `They are an advance. Later payments are reduced by what was already taken.`],
+            [`What to show investors`, `The promote calculated, less advances, equals the amount paid.`]
+          ],
+          options: [
+            ['s', `Deduct the advances from the promote, and show the working.`, `The general partner gets its promote once.`],
+            ['g', `Deduct them only if an investor asks.`, `Doing the right sum only when challenged is the wrong sum by default.`],
+            ['p', `Pay the full promote on top of the advances.`, `That pays part of the promote twice.`]
+          ],
+          rule: `An advance is repaid from what it was advanced against.`
+        };
+      }
+    },
+    {
+      id: 'l5-in-kind', title: 'Paid in land',
+      make: function (g) {
+        var a = g.person(), amt = g.m(2, 6, 0.5);
+        return {
+          scene: `The fund's last asset is an awkward land parcel. ${a}, a principal, proposes giving it to the investors at a value of ${MB.usd(amt)}, set by the general partner, and taking the general partner's promote in cash.`,
+          who: `${a.first}`,
+          behind: `The higher the land is valued, the more profit the fund appears to have made, and the bigger the promote. Investors get an asset they cannot easily sell, and the general partner gets cash calculated on a number it chose.`,
+          deep: [
+            [`Why value drives the promote`, `Promote is a share of profit. Profit here depends on what the land is said to be worth.`],
+            [`Who bears the risk`, `If the land later sells for less, the investors take the loss and the promote has already been paid.`],
+            [`Fair versions`, `An independent valuation, the general partner taking its share in land too, or holding the promote until the land sells.`]
+          ],
+          options: [
+            ['s', `Get an independent valuation, and take the promote in the same form as the investors.`, `The general partner shares the risk of the number it is paid on.`],
+            ['g', `Use the general partner's value and disclose how it was reached.`, `Disclosed, and still set by the party it pays.`],
+            ['p', `Go ahead as proposed.`, `Cash to the general partner on its own valuation, land to everyone else.`]
+          ],
+          rule: `If investors are paid in something hard to value, so is the sponsor.`
+        };
+      }
+    },
+    {
+      id: 'l5-credit-line', title: 'Timing the hurdle',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `The promote starts once investors earn a set yearly return, measured from when their money is called. ${a}, the finance head, wants to buy deals on a bank line for a year before calling any capital. "Same profit, shorter clock, higher return."`,
+          who: `${a.first}`,
+          behind: `Return is profit measured against time. Borrowing first shortens the time the investors' money is counted as invested, so the same profit looks like a higher yearly return and clears the hurdle sooner.`,
+          deep: [
+            [`An illustration`, `A 30% gain over three years is roughly 9% a year. The same gain over two years of called capital is roughly 14%.`],
+            [`Who pays`, `The investors pay the interest on the bank line, and a larger promote as well.`],
+            [`What good practice is`, `Limits on how long the line may be used, and returns reported both with and without it.`]
+          ],
+          options: [
+            ['s', `Use the line within the agreement's limits, and report returns both ways.`, `Investors can see what the property earned and what the timing added.`],
+            ['g', `Use the line heavily. The agreement sets no limit.`, `Permitted, and it raises the general partner's pay in a way investors cannot see.`],
+            ['p', `Record the capital as called later than it was.`, `That falsifies the dates the promote is calculated from.`]
+          ],
+          rule: `A return can be raised by performance or by timing. Investors are owed the difference.`
+        };
+      }
+    },
+    {
+      id: 'l5-escrow', title: 'Half now, half held',
+      make: function (g) {
+        var a = g.person(), amt = g.m(0.6, 1.8, 0.1);
+        return {
+          scene: `The agreement holds back 30% of each promote payment in escrow until the fund ends, in case some must be returned. The escrow holds ${MB.usd(amt)}. ${a} and the other principals want it released now and offer personal promises to repay.`,
+          who: `${a.first}`,
+          behind: `The principals want their money, and their promises are sincere. The escrow exists because a promise from someone who has spent the money is hard to collect.`,
+          deep: [
+            [`What it secures`, `The general partner's duty to give back promote if later deals lose money.`],
+            [`Cash versus a promise`, `Cash in escrow is there. A promise depends on what the person has in five years.`],
+            [`Who can agree to change it`, `The investors, by the vote the agreement requires.`]
+          ],
+          options: [
+            ['s', `Leave it in escrow, or ask the investors to approve a release.`, `It is their protection. Only they can give it up.`],
+            ['g', `Release it against the principals' signed promises.`, `Security the investors bargained for is swapped for a weaker one without asking.`],
+            ['p', `Release it. The fund is doing well.`, `Doing well so far is exactly when a clawback seems unnecessary.`]
+          ],
+          rule: `Security held for investors is released by the investors.`
+        };
+      }
+    },
+    {
+      id: 'l5-broken-deal', title: 'Who pays for the deal that died?',
+      make: function (g) {
+        var a = g.person(), amt = g.pick([260000, 380000, 520000]);
+        return {
+          scene: `A large acquisition fell through after ${MB.usd(amt)} of legal and study costs. Co-investors had committed to take half of it. ${a}, the controller, proposes charging all the cost to the fund. "Chasing the co-investors is awkward."`,
+          who: `${a.first}`,
+          behind: `The co-investors are relationships the general partner wants to keep sweet. Charging the fund spares them, and makes the fund's investors pay for a deal that was only half theirs.`,
+          deep: [
+            [`The principle`, `Costs follow the deal. Whoever would have shared the profit shares the cost of pursuing it.`],
+            [`What agreements say`, `Good ones state how failed-deal costs are split with co-investors.`],
+            [`Why it draws attention`, `Regulators have penalized sponsors for loading these costs onto funds.`]
+          ],
+          options: [
+            ['s', `Split the cost with the co-investors as the agreements provide, and disclose it.`, `Each party pays for the share of the deal it had signed up to.`],
+            ['g', `Charge it all to the fund, for simplicity.`, `Simple for the general partner, at the fund investors' expense.`],
+            ['p', `Charge the fund and fold it into another deal's costs.`, `Now the misallocation is hidden as well.`]
+          ],
+          rule: `The cost of a failed deal is shared by those who would have shared the deal.`,
+          us: `Misallocating failed-deal costs between funds and co-investors has led to enforcement actions against sponsors.`
         };
       }
     }

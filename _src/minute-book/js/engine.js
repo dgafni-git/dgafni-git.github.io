@@ -25,7 +25,7 @@
     v: { label: 'A gift', tone: 's', pay: [0.25, 0.45], gw: 10 },
     n: { label: 'No ask', tone: 'n', pay: [0, 0], gw: 1, gwRight: 3 }
   };
-  var RUN_V = 4;
+  var RUN_V = 5;
   var START_RANK = 'Analyst';
   var SEED_EQUITY = 100000;
   var KEY = 'minute-book-v2';
@@ -164,7 +164,7 @@
   /* ---------- state ---------- */
 
   var S = fresh();
-  function fresh() { return { passed: {}, seen: {}, bestEquity: null, unlockAll: false, run: null }; }
+  function fresh() { return { passed: {}, seen: {}, seenV: {}, bestEquity: null, unlockAll: false, run: null }; }
 
   function load() {
     try {
@@ -221,7 +221,7 @@
   var cache = { key: '', items: [] };
 
   function buildItems(run) {
-    var key = run.n + ':' + run.seed + ':' + run.trust + ':' + RUN_V + ':' + (run.ids ? run.ids.join(',') : '');
+    var key = run.n + ':' + run.seed + ':' + run.trust + ':' + RUN_V + ':' + (run.ids ? run.ids.join(',') : '') + ':' + JSON.stringify(run.tw || 0) + (run.alt ? 'A' : '') + (run.twAll ? 'T' : '');
     if (cache.key === key) return cache.items;
     var L = level(run.n), g0 = makeGen(run.seed), B = stake(run.n), trust = run.trust || 1;
     var authored = L.fixed ? L.scenarios.slice() : g0.shuffle(L.scenarios).slice(0, L.draw.authored);
@@ -238,6 +238,7 @@
       order.splice(at, 0, { kind: 'numeric', key: k });
     });
     var story = L.story ? L.story(makeGen(run.seed ^ hash('story'))) : null;
+    if (story) story.alt = !!run.alt;
     var items = order.map(function (o) {
       if (o.kind === 'numeric') {
         var gn = makeGen(run.seed ^ hash('n:' + o.key));
@@ -247,14 +248,24 @@
       }
       var gc = makeGen(run.seed ^ hash(o.def.id));
       gc.story = story;
+      gc.twist = !!(o.def.twist && (run.twAll || (run.tw && run.tw[o.def.id])));
       var made = o.def.make(gc);
+      if ((gc.twist || (story && story.alt)) && (!made.deep || !made.behind)) {
+        /* A twist changes one fact. It borrows whatever it does not restate from the plain version. */
+        var gb = makeGen(run.seed ^ hash(o.def.id)); gb.twist = false;
+        gb.story = story ? Object.assign({}, story, { alt: false }) : null;
+        var plain = o.def.make(gb);
+        made.deep = made.deep || plain.deep; made.behind = made.behind || plain.behind;
+      }
+      if (gc.twist || (story && story.alt)) made.who = null;
       var gm = makeGen(run.seed ^ hash('cash:' + o.def.id));
       made.kind = 'choice'; made.id = o.def.id; made.title = o.def.title; made.builds = o.def.builds || [];
       made.role = made.role || o.def.role || L.role || '';
       made.options = gc.shuffle(made.options.map(function (a) {
         var range = PAY[a[0]], m = range[0] + gm.rnd() * (range[1] - range[0]);
         var cash = round2(B * m * (a[0] === 's' ? trust : 1));
-        var gw = a[0] === 's' ? BURN[o.def.burn === undefined ? 1 : o.def.burn] : GW[a[0]];
+        var burnLevel = made.burn !== undefined ? made.burn : gc.twist ? 0 : (o.def.burn === undefined ? 1 : o.def.burn);
+        var gw = a[0] === 's' ? BURN[burnLevel] : (gc.twist && a[0] === 'g') ? -1 : GW[a[0]];
         return { g: a[0], t: a[1], why: a[2], cash: cash, gw: gw, risk: a[0] === 's' ? 0 : round2(cash * GRADE[a[0]].times) };
       }));
       if (made.deal) {
@@ -283,16 +294,35 @@
     if (fresh_.length < need) S.seen[n] = [];
     return g.shuffle(fresh_.concat(old).slice(0, need)).map(function (sc) { return sc.id; });
   }
-  function markSeen(n, id) {
+  function markSeen(n, id, variant) {
     if (!S.seen) S.seen = {};
+    if (!S.seenV) S.seenV = {};
     var list = S.seen[n] || (S.seen[n] = []);
     if (list.indexOf(id) < 0) list.push(id);
+    var v = S.seenV[n] || (S.seenV[n] = {}), had = v[id] || '';
+    if (had.indexOf(variant) < 0) v[id] = had + variant;
+  }
+  /* Plain version first as a rule, the twist once the plain one has been met. Never predictable. */
+  function variantFor(n, id, g, first) {
+    var had = ((S.seenV || {})[n] || {})[id] || '';
+    var b = had.indexOf('b') >= 0, t = had.indexOf('t') >= 0;
+    if (b && !t) return g.rnd() < 0.8;
+    if (t && !b) return g.rnd() < 0.2;
+    return g.rnd() < (b && t ? 0.5 : (first === undefined ? 0.25 : first));
+  }
+  function pickTwists(n, ids, seed) {
+    var L = level(n), g = makeGen(seed ^ hash('twist')), tw = {};
+    L.scenarios.forEach(function (sc) { if (sc.twist && ids.indexOf(sc.id) >= 0) tw[sc.id] = variantFor(n, sc.id, g); });
+    return tw;
   }
 
   function startRun(n) {
     if (!S.seen) S.seen = {};
     var seed0 = (Math.random() * 4294967296) >>> 0;
-    S.run = { v: RUN_V, n: n, seed: seed0, ids: pickIds(n, seed0), trust: trustOf(standing()), practice: !!S.passed[n], phase: 'brief', step: 0, sub: null, answers: [], result: null };
+    var L0 = level(n), ids0 = pickIds(n, seed0);
+    var tw0 = L0.fixed ? null : pickTwists(n, ids0, seed0);
+    var alt0 = L0.fixed ? variantFor(n, 'story', makeGen(seed0 ^ hash('alt')), 0) : false;
+    S.run = { v: RUN_V, n: n, seed: seed0, ids: ids0, tw: tw0, alt: alt0, trust: trustOf(standing()), practice: !!S.passed[n], phase: 'brief', step: 0, sub: null, answers: [], result: null };
     save();
   }
 
@@ -492,6 +522,7 @@
       (it.role ? '<p class="role"><span class="label">You</span> ' + it.role + '</p>' : '') +
       '<div class="scene">' + tipify(paras(it.scene)) + '</div><div class="tip-box" id="tip-box" hidden></div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
       (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
+        (it.twist ? '<div class="twist-note"><span class="label">The twist</span><p>' + it.twist + '</p></div>' : '') +
         (it.behind ? '<div class="behind"><span class="label">What was going on</span><p>' + it.behind + '</p>' +
           (it.deep ? '<details class="deep"><summary>Go deeper</summary><ul>' + it.deep.map(function (d) { return '<li><b>' + d[0] + '.</b> ' + d[1] + '</li>'; }).join('') + '</ul></details>' : '') + '</div>' : '') +
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
@@ -692,7 +723,9 @@
     else if (act === 'choose' && run && run.phase === 'play' && !run.answers[run.step]) {
       var i = parseInt(el.getAttribute('data-i'), 10), o = buildItems(run)[run.step].options[i];
       run.answers[run.step] = { pick: i, g: o.g, cash: o.cash, risk: o.risk, gw: o.gw };
-      markSeen(run.n, buildItems(run)[run.step].id);
+      var itSeen = buildItems(run)[run.step];
+      markSeen(run.n, itSeen.id, (run.tw && run.tw[itSeen.id]) ? 't' : 'b');
+      if (level(run.n).fixed) markSeen(run.n, 'story', run.alt ? 't' : 'b');
       save(); render('outcome');
     }
     else if (act === 'ask' && run && run.phase === 'play' && run.sub === 'ask' && run.answers[run.step] && !run.answers[run.step].ask) {
@@ -732,7 +765,7 @@
     }
     else if (act === 'career-no') { render(false); }
     else if (act === 'career-yes') {
-      var keep = { bestEquity: S.bestEquity, unlockAll: S.unlockAll, seen: S.seen || {} };
+      var keep = { bestEquity: S.bestEquity, unlockAll: S.unlockAll, seen: S.seen || {}, seenV: S.seenV || {} };
       S = Object.assign(fresh(), keep); cache = { key: '', items: [] }; save();
       if (route().view !== 'contents') window.location.hash = 'contents'; else render();
     }

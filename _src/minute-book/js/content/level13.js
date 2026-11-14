@@ -27,6 +27,16 @@
         builds: ['Litigation hold', 'Disclosure and recusal'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `The complaint touched you this time. Even a small mention means someone else leads.`,
+            scene: `${s.whistle}, a project accountant, emails you. ${s.officer}, an officer of the general partner, owns the firm managing the fund's properties, on a contract nobody approved. A director has a hidden stake. The email adds that you signed one of the firm's invoices last year.`,
+            options: [
+              ['s', `Hand the lead to an independent director, protect ${s.whistle.first}, and preserve records.`, `You are named, however slightly. Someone untouched should run the first look.`],
+              ['g', `Lead it yourself, and mention the invoice when you brief the board.`, `Open about it, and still directing an inquiry that touches you.`],
+              ['p', `Brief the board and leave out the invoice.`, `Hiding your own part in a complaint about hidden interests ends your authority as chair.`]
+            ],
+            rule: `Anyone named in a complaint, however lightly, steps back from running it.`
+          };
           return {
             scene: `${s.whistle}, a project accountant, emails you. ${s.officer}, an officer of the general partner, owns the firm managing the fund's properties, on an unapproved contract at inflated fees. A director has a hidden stake. ${s.ceo}, the chief executive, is ${s.officer.first}'s old friend.`,
             behind: `${s.whistle.first} is taking a risk by reporting. ${s.officer.first} profits from the fees. ${s.ceo.first} has a friendship to protect. Who hears the complaint first decides whether it is examined or managed.`,
@@ -51,6 +61,16 @@
         builds: ['Notice', 'Quorum'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `A proper meeting was already two days away. A special one would only have been slower.`,
+            scene: `An independent director's first look clears your one invoice as routine, and says the rest has substance. ${s.dirA} is believed to be the director with the stake. The regular board meeting is in two days, with a full agenda.`,
+            options: [
+              ['s', `Put it first on that agenda, with a written summary and a session without ${s.dirA.first} or management.`, `A proper meeting is two days away. Use it, and give this the first hour.`],
+              ['g', `Call a separate special meeting for next week.`, `Proper, and a week slower than it needs to be while fees keep flowing.`],
+              ['p', `Phone each director beforehand to settle the outcome.`, `A meeting whose result was fixed by private calls is not a board deciding.`]
+            ],
+            rule: `Use the fastest proper forum, and give a serious matter real time in it.`
+          };
           return {
             scene: `Counsel's first look says the complaint has substance. ${s.dirA} is believed to be the director with the stake. The next scheduled board meeting is five weeks away with a full agenda.`,
             behind: `Delay suits anyone who benefits from the contract, because the fees keep flowing. A weekend of private calls would let the chief executive shape each director's view one at a time.`,
@@ -73,6 +93,16 @@
         builds: ['Conflict of interest', 'Minutes'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `The director resigned on the spot. That ended the seat, not the inquiry.`,
+            scene: `${s.dirA} admits a ${s.pct}% interest in ${s.officer.first}'s firm, never disclosed, and offers to resign on the spot. "Accept it, and we can all skip the discussion."`,
+            options: [
+              ['s', `Accept it, and still record the disclosure and continue the review.`, `A resignation ends the seat. It does not end the questions, or the fund's claims.`],
+              ['g', `Accept it and close the item.`, `The board never learns what the interest was or what it cost.`],
+              ['p', `Refuse the resignation, to keep ${s.dirA.first} under the board's authority.`, `A board cannot refuse a resignation. The attempt achieves nothing.`]
+            ],
+            rule: `Resignation is not disclosure. Get the facts on the record first.`
+          };
           return {
             scene: `${s.dirA} admits a ${s.pct}% interest in ${s.officer.first}'s firm, never disclosed, and insists on staying. "I know the facts best. I will simply not vote."`,
             who: `${s.dirA.first}`,
@@ -96,6 +126,16 @@
         builds: ['Special committee'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `Only one director was truly independent. The committee needed help from outside the board.`,
+            scene: `${s.ceo} proposes a review committee of the two outside directors. You learn that one of them, ${s.dirB}, has a consulting contract with ${s.officer.first}'s firm.`,
+            options: [
+              ['s', `The one independent director, joined by an outside lawyer or retired judge, under a written mandate.`, `Independence can be borrowed from outside the board when there is too little inside it.`],
+              ['g', `Both outside directors, with ${s.dirB.first}'s contract disclosed.`, `Disclosed, and half the committee is still paid by the firm under review.`],
+              ['p', `Accept the proposal and say nothing about the contract.`, `The committee's findings would be worthless the day the contract surfaced.`]
+            ],
+            rule: `If the board has too few independent members, bring in independent outsiders.`
+          };
           return {
             scene: `${s.ceo} proposes a review committee: ${s.dirB}, who vacations with ${s.officer.first}'s family, and ${s.cfo}, whose team paid the invoices. The firm's own lawyers would advise.`,
             who: `${s.ceo.first}`,
@@ -119,6 +159,16 @@
         builds: ['Related-party transaction', 'Arm\'s length'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `The fees turned out to be at market. The failure was process, so the remedy was process.`,
+            scene: `The committee reports: an expired one-page engagement letter, no approval by anyone, and fees in line with three comparable managers. The work is good. ${s.ceo} says: "No harm done. Leave it."`,
+            options: [
+              ['s', `Put a written contract through independent approval and the advisory committee. No money is owed back.`, `Nothing was overpaid, so nothing is recovered. The missing approval is still fixed properly.`],
+              ['g', `Demand a partial refund anyway, to make a point.`, `There was no loss. Taking money to make a point is its own unfairness.`],
+              ['p', `Leave it, as ${s.ceo.first} says.`, `An unapproved insider contract stays unapproved.`]
+            ],
+            rule: `Match the remedy to the harm. Fix the approval even when the price was fair.`
+          };
           return {
             scene: `The committee reports: an expired one-page engagement letter, fees ${s.over}% above market, about ${MB.usd(s.amt)} too much over two years, and competent work. ${s.ceo} says: "Paper the contract and move on."`,
             who: `${s.ceo.first}`,
@@ -142,6 +192,16 @@
         builds: ['Advisory committee', 'Good faith'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `No money was lost, and the duty to tell the investors was exactly the same.`,
+            scene: `The agreement requires related-party dealings to be reported to the investors' advisory committee. No money was lost. ${s.cfo} says: "Nothing to report, then. Why worry them over paperwork?"`,
+            options: [
+              ['s', `Report it to the advisory committee now, with the findings.`, `The duty is to report the dealing, whether or not it cost anything.`],
+              ['g', `Mention it briefly in the annual report.`, `Late, and framed so that nobody notices.`],
+              ['p', `Report nothing, since there was no loss.`, `The duty has no exception for dealings that turned out fine.`]
+            ],
+            rule: `A duty to disclose a conflict does not depend on the conflict having cost anything.`
+          };
           return {
             scene: `The agreement requires prompt reports of related-party dealings and material breaches. A refinancing closes in six weeks with a no-affiliate-contracts certificate. ${s.cfo} says: "Tell them in the annual report."`,
             who: `${s.cfo.first}`,
@@ -165,6 +225,16 @@
         builds: ['Duty of loyalty', 'Business judgment rule'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `The pressure this time was to stay silent about a harmless breach. The answer did not change.`,
+            scene: `${s.ceo} sees you alone. "Nothing was lost. Report this to the investors and you humiliate ${s.officer.first} for nothing, and I resign before the refinancing. Keep it inside the board."`,
+            options: [
+              ['s', `Hold the decision to report, tell the board about this conversation, and prepare interim leadership.`, `What the investors are owed is not the chief executive's to trade.`],
+              ['g', `Agree to delay the report until after the refinancing.`, `It swaps a duty to investors for six quiet weeks.`],
+              ['p', `Agree to keep it inside the board.`, `The chair has joined in withholding what the agreement says must be told.`]
+            ],
+            rule: `What investors are entitled to hear is not the chief executive's to bargain with.`
+          };
           return {
             scene: `${s.ceo} sees you alone. "Go after ${s.officer.first} for that money and I resign the week before the refinancing. Drop it and we all get through this." There is no succession plan.`,
             who: `${s.ceo.first}`,
@@ -188,6 +258,16 @@
         builds: ['Delegation of authority', 'Registers'],
         make: function (g) {
           var s = g.story;
+          if (s.alt) return {
+            twist: `No loss this time. The controls that failed were the same ones.`,
+            scene: `The contract is approved, the investors were told, ${s.dirA} has left the board, and the refinancing closed. A director says: "Nothing was even lost. We do not need new controls for a paperwork slip."`,
+            options: [
+              ['s', `Adopt a few owned controls: conflict declarations, a contract register, an authority matrix.`, `The slip ran for two years unnoticed. Next time the price may not be fair.`],
+              ['g', `Send a memo reminding everyone of their obligations.`, `They knew their obligations. Nothing existed to catch a lapse.`],
+              ['p', `Nothing further.`, `A board that learns nothing from a near miss is waiting for a real one.`]
+            ],
+            rule: `A near miss is the cheapest lesson a board gets. Use it.`
+          };
           return {
             scene: `The fees are repaid, the mandate was tendered, ${s.dirA} has resigned, and the refinancing closed. A director says: "An isolated incident. Let us not bury the company in policy."`,
             behind: `The director wants to move on, which is human. The gaps that let this run for two years are still open.`,

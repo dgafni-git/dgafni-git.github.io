@@ -16,9 +16,20 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l9-late', title: 'Three late payments',
+      id: 'l9-late', twist: true, title: 'Three late payments',
       make: function (g) {
         var a = g.person(), days = g.pick([12, 15, 18]);
+        if (g.twist) return {
+          burn: 0,
+          twist: `Each late payment had been accepted in writing with rights reserved. No waiver had built up.`,
+          scene: `A borrower has paid ${days} days late for three months. Each time the lender wrote: "Accepted with all rights reserved. Time remains of the essence." It is late again. ${a}, a credit officer, wants to act.`,
+          options: [
+            ['s', `Enforce as the documents allow, giving the default notice they require.`, `The reservations kept the lender's rights intact. It may now use them.`],
+            ['g', `Accept this one too, without a letter this time.`, `The one silent acceptance starts the pattern the letters were preventing.`],
+            ['p', `Accelerate without the notice the documents require.`, `Reserved rights still have to be exercised by the contract's own steps.`]
+          ],
+          rule: `Rights that were reserved each time can be enforced, by the steps the contract sets.`
+        };
         return {
           scene: `A borrower has paid ${days} days late for three months, accepted each time without comment. It is late again. ${a}, a credit officer, wants to call the loan today.`,
           who: `${a.first}`,
@@ -117,10 +128,20 @@ MB.level({
       }
     },
     {
-      id: 'l9-control', title: 'Holding the cheque book',
+      id: 'l9-control', twist: true, title: 'Holding the cheque book',
       builds: ['Piercing the veil'],
       make: function (g) {
         var a = g.person();
+        if (g.twist) return {
+          twist: `The loan documents already gave the lender control of the cash. Not using it was the error.`,
+          scene: `A borrower is in default. The loan documents provide that on default all rents flow to an account the lender controls, and are released against a budget the lender approves. ${a}, the workout officer, wants to go further and choose the borrower's contractor.`,
+          options: [
+            ['s', `Switch on the account and approve the budget by category.`, `These are rights the borrower agreed to. They control the cash without running the business.`],
+            ['g', `Leave the account dormant to avoid looking heavy-handed.`, `An agreed protection goes unused while the cash leaks.`],
+            ['p', `Switch it on, and choose the contractor as well.`, `Approving a budget is a lender's right. Picking suppliers is managing.`]
+          ],
+          rule: `Use every control the documents give you, and stop where they stop.`
+        };
         return {
           scene: `A borrower is in default and in workout talks. ${a}, the workout officer, wants the lender to approve every payment the borrower makes and replace its contractor.`,
           who: `${a.first}`,

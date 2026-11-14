@@ -80,8 +80,19 @@ button expands it into three or four short points from the `deep` field: how the
 who pays, and what a careful operator does, with a worked figure where one helps.
 
 **Repetition.** The game remembers which situations a player has met in each meeting and deals
-the unmet ones first. Meetings VI to IX have twelve situations each. The rest have six, and
-the last meeting is one fixed story. Expanding those is the next content job.
+the unmet ones first. Meetings I to XII have twelve situations each.
+
+**Twists.** Two situations in each of those meetings have a twist: the same setup with one
+fact changed, so that the right answer changes with it. A scenario marks itself `twist: true`
+and its `make` returns the twisted version when `g.twist` is set. A situation whose plain
+version has been met usually returns as its twist. A new one arrives twisted about a quarter
+of the time, so the title is never a safe guide. After the answer, a "The twist" line names
+the fact that changed. A twist borrows `behind` and `deep` from the plain version unless it
+restates them, and has no deal beat.
+
+**The final story.** Meeting XIII is one story in a fixed order. It has a twist version of
+all eight beats, chosen for the whole sitting through `g.story.alt`, so the through line
+holds. The first sitting is always the plain story.
 
 ## How scenarios are generated
 
@@ -177,8 +188,8 @@ Helpers: `g.person()`, `g.city('us' | 'ca')`, `g.spe('LP' | 'LLC' | 'Inc.')`, `g
 
 ## Ideas not yet built
 
-- Six more situations and deal beats for the remaining meetings, and a second story for the last.
-- Twists: a known situation with one fact changed, so the right answer changes with it.
+- Deal beats for the meetings that have none, and more twists.
+- A planning and debrief layer between meetings.
 - Deal flow that depends on goodwill, and a deal table for investing equity between meetings.
 - Per-motion payouts written to fit each scenario, in place of generated ones.
 - Loose ends that stay buried and resurface in later meetings.

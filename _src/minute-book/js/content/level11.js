@@ -39,9 +39,19 @@ MB.level({
       }
     },
     {
-      id: 'l11-rofr', role: 'You are closing the sale for the selling partner.', title: 'The right of first refusal',
+      id: 'l11-rofr', twist: true, role: 'You are closing the sale for the selling partner.', title: 'The right of first refusal',
       make: function (g) {
         var a = g.person(), b = g.person(), amt = g.m(3, 9, 0.5);
+        if (g.twist) return {
+          twist: `Transfers to the seller's own holding company were exempt. No matching right applied.`,
+          scene: `${a} is moving a partnership interest worth ${MB.usd(amt)} into ${a.first}'s wholly owned holding company. The agreement exempts such transfers from the other partners' right to match, on written notice. ${b}, another partner, insists on a 30-day offer process.`,
+          options: [
+            ['s', `Give the written notice the exemption requires and complete the transfer.`, `The agreement carved this out. The notice is the condition.`],
+            ['g', `Run the 30-day process anyway to keep ${b.first} happy.`, `Harmless, slow, and it suggests a right exists where it does not.`],
+            ['p', `Use the exemption, then sell the holding company to an outsider next week.`, `That uses the exemption to disguise the sale it was never meant to cover.`]
+          ],
+          rule: `An exemption applies to what it describes, and not to what it can be bent to cover.`
+        };
         return {
           scene: `${a} is selling a partnership interest for ${MB.usd(amt)}. The other partners have 30 days to match after written notice. The buyer wants ten days. "${b.first} told me at dinner they are not interested."`,
           who: `The buyer`,
@@ -109,10 +119,20 @@ MB.level({
       }
     },
     {
-      id: 'l11-substantially', role: 'You advise the company\'s board.', title: 'Board approval is enough, surely',
+      id: 'l11-substantially', twist: true, role: 'You advise the company\'s board.', title: 'Board approval is enough, surely',
       builds: ['Resolution'],
       make: function (g) {
         var a = g.person(), pct = g.pick([85, 90, 95]);
+        if (g.twist) return {
+          twist: `This property was a third of the assets. The board could decide alone.`,
+          scene: `The company owns several properties and a lending business. Management has a buyer for one property, about 30% of its assets. Two of eleven shareholders object. ${a}, the president, says the board can approve it. A director wants a shareholder vote anyway.`,
+          options: [
+            ['s', `Approve it at the board, properly, and report it to shareholders.`, `Selling one asset among many is ordinary business, which is the board's job.`],
+            ['g', `Call a shareholder vote anyway.`, `Not required, and the delay may cost the sale.`],
+            ['p', `Close without a board resolution, since management has authority.`, `A sale this size still needs the board.`]
+          ],
+          rule: `Owners vote on selling the business. The board decides on selling part of it.`
+        };
         return {
           scene: `The company's one property is ${pct}% of its assets. Management has a buyer. Two of eleven shareholders object. ${a}, the president, says the board can approve the sale alone.`,
           who: `${a.first}`,
@@ -155,6 +175,139 @@ MB.level({
           rule: `Rights over other owners' interests are read for their purpose.`,
           us: `Controlling stockholders owe duties to the minority when they stand on both sides.`,
           ca: `The oppression remedy lets a court undo conduct that unfairly disregards a minority's reasonable expectations.`
+        };
+      }
+    },
+    {
+      id: 'l11-clean-team', title: 'Showing a rival your prices',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `A competitor wants to buy your company. Its deal team asks for your customer list with prices, "to finish our model." ${a}, your sales head, says: "If the deal dies, they have our whole pricing book."`,
+          who: `The buyer`,
+          behind: `The buyer wants certainty about what it is paying for. If the deal fails, a rival knows exactly how to undercut you. Competitors exchanging live prices can also break competition law.`,
+          deep: [
+            [`The commercial risk`, `Most deals between competitors that start do not finish. The information stays with the other side.`],
+            [`The legal risk`, `Until closing, the two are still competitors. Sharing current prices can be unlawful coordination.`],
+            [`The usual answer`, `A small group of outside advisers sees the detail and reports totals and ranges only.`]
+          ],
+          options: [
+            ['s', `Share it only with outside advisers, who report in summary.`, `The buyer gets what it needs to price the deal and nothing it could use against you.`],
+            ['g', `Share it with the buyer's deal team under a confidentiality agreement.`, `A promise not to misuse it does not make them forget it.`],
+            ['p', `Send the full list.`, `A gift to a competitor, and possibly an offence.`]
+          ],
+          rule: `Until a deal closes, a competitor who wants to buy you is still a competitor.`
+        };
+      }
+    },
+    {
+      id: 'l11-mac', title: 'One bad quarter',
+      make: function (g) {
+        var a = g.person(), amt = g.m(20, 60, 5);
+        return {
+          scene: `You signed to buy a company for ${MB.usd(amt)}. Before closing, it reports one weak quarter. The contract lets you walk away for a "material adverse change." ${a}, your chief executive, wants to invoke it to force a lower price.`,
+          who: `${a.first}`,
+          behind: `${a.first} has buyer's remorse and sees leverage. Courts set that bar very high: a lasting blow to the business, not a bad quarter. Claiming it weakly can make you the party in breach.`,
+          deep: [
+            [`What the clause covers`, `A serious, lasting decline in the business as a whole.`],
+            [`How courts treat it`, `Buyers almost never win. Short-term dips and industry-wide problems do not count.`],
+            [`The risk of bluffing`, `A buyer that refuses to close without good grounds can be ordered to close, or to pay damages.`]
+          ],
+          options: [
+            ['s', `Assess it honestly with counsel, then close or open a candid price talk.`, `You keep your options without making a claim you cannot support.`],
+            ['g', `Threaten the clause, knowing it is weak, to open a renegotiation.`, `It may work. It may also be the bad faith the seller's lawyers needed.`],
+            ['p', `Refuse to close.`, `On one weak quarter, you are probably the party in breach.`]
+          ],
+          rule: `A right to walk away is used when its conditions are met, not when the price looks high.`
+        };
+      }
+    },
+    {
+      id: 'l11-earnout', title: 'Running it to miss the target',
+      make: function (g) {
+        var a = g.person(), amt = g.m(2, 6, 0.5);
+        return {
+          scene: `You bought a business and owe the seller another ${MB.usd(amt)} if first-year revenue reaches a target. It is on track. ${a}, your finance chief, suggests signing this year's renewals through a sister company.`,
+          who: `${a.first}`,
+          behind: `${a.first} wants to save the payment by keeping revenue out of the measured business. The seller accepted a lower price up front on your promise to run it fairly.`,
+          deep: [
+            [`What an earn-out is`, `Part of the price, paid later if the business performs. It bridges a gap over what the business is worth.`],
+            [`The buyer's control`, `After closing, the buyer runs the business and so controls whether the target is hit.`],
+            [`The limit`, `Contracts and good faith stop a buyer from running the business for the purpose of defeating the payment.`]
+          ],
+          options: [
+            ['s', `Run the business as you would anyway, and pay if the target is met.`, `That is the bargain. The seller took a lower price for it.`],
+            ['g', `Hold back signing renewals until the year is over.`, `No diversion on paper, and the same intent.`],
+            ['p', `Book the renewals in the sister company.`, `Moving revenue to defeat the payment is a breach, and easy to trace.`]
+          ],
+          rule: `If you control whether a payment falls due, you may not arrange for it not to.`
+        };
+      }
+    },
+    {
+      id: 'l11-knowledge', role: 'You are an officer of the company being sold.', title: 'What the seller knew',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `You are selling a company. You know of an environmental notice it received last month. The contract says there are none "to the seller's knowledge," defined as what the chief executive actually knows. ${a}, the deal lead, says: "So do not tell the chief executive."`,
+          who: `${a.first}`,
+          behind: `${a.first} wants a clean contract and a full price. Keeping the one named person uninformed, so that a statement stays technically true, is building a false statement on purpose.`,
+          deep: [
+            [`What a knowledge qualifier is for`, `Protecting a seller from what it truly did not know.`],
+            [`What it does not cover`, `Facts deliberately kept from the named person. Courts treat that as knowing.`],
+            [`The honest route`, `List the notice as an exception. The price may move. The fraud claim disappears.`]
+          ],
+          options: [
+            ['s', `Disclose the notice in the contract's schedule of exceptions.`, `The buyer prices it, and the seller sleeps.`],
+            ['g', `Sign as drafted, relying on the definition.`, `The words may hold. A court will ask who decided the chief executive should not know.`],
+            ['p', `Keep the chief executive in the dark and sign.`, `That is arranging ignorance to make a false statement.`]
+          ],
+          rule: `A statement limited to what you know cannot be kept true by arranging not to know.`
+        };
+      }
+    },
+    {
+      id: 'l11-fairness', title: 'The adviser paid to say yes',
+      make: function (g) {
+        var a = g.person(), fee = g.m(1, 3, 0.5);
+        return {
+          scene: `The board is selling the company and has an opinion from its financial adviser that the price is fair. The adviser's ${MB.usd(fee)} fee is paid almost entirely if the sale closes. ${a}, the chair, would rather not mention the fee to shareholders.`,
+          who: `${a.first}`,
+          behind: `${a.first} wants the opinion to carry weight. An adviser paid only if the deal closes has every reason to find the price fair. Shareholders deciding how to vote are entitled to know that.`,
+          deep: [
+            [`What the opinion is for`, `Evidence that the board had expert support for the price.`],
+            [`Why the fee matters`, `A success fee is a conflict. It can be managed by disclosing it, or by a second opinion for a fixed fee.`],
+            [`What courts have done`, `Delayed or criticised deals where an adviser's conflicts were hidden from shareholders.`]
+          ],
+          options: [
+            ['s', `Disclose the fee structure, and consider a second opinion for a fixed fee.`, `Shareholders can weigh the opinion knowing how it was paid for.`],
+            ['g', `Rely on the opinion and leave the fee to the fine print.`, `Technically disclosed, practically hidden.`],
+            ['p', `Leave the fee out of what shareholders are sent.`, `Hiding the adviser's stake in the outcome from the people voting on it.`]
+          ],
+          rule: `An opinion is worth what its author's independence is worth. Say how they were paid.`
+        };
+      }
+    },
+    {
+      id: 'l11-lockup', title: 'Locked in',
+      make: function (g) {
+        var a = g.person(), amt = g.m(40, 90, 10);
+        return {
+          scene: `A buyer offers ${MB.usd(amt)} for the company, on two conditions: an 8% fee if the company accepts any other offer, and no right for the board to consider a better one. ${a}, the chief executive, says: "Sign before they change their mind."`,
+          who: `${a.first}`,
+          behind: `The buyer wants certainty and ${a.first} wants the deal. Terms this tight mean a higher bidder would have to pay the price plus the fee, so none will come. The board would be giving up its ability to get more for the owners.`,
+          deep: [
+            [`What these terms do`, `They make a rival bid expensive or impossible.`],
+            [`What is normal`, `A fee of roughly 2% to 4%, and a right for the board to accept a clearly better offer.`],
+            [`The board's duty in a sale`, `To get the best value reasonably available for the owners.`]
+          ],
+          options: [
+            ['s', `Negotiate the fee down and keep the board's right to accept a better offer.`, `The buyer gets reasonable protection, and the owners keep a chance at more.`],
+            ['g', `Accept the terms to secure the price.`, `A good price today, and no way to know whether it was the best one.`],
+            ['p', `Accept, and give the buyer an option over the main property as well.`, `That makes any rival bid pointless, which is the intent.`]
+          ],
+          rule: `A board selling a company may protect the deal, but not so tightly that no better one can appear.`,
+          us: `Delaware courts strike down deal protections that prevent a board from accepting a better offer.`
         };
       }
     }

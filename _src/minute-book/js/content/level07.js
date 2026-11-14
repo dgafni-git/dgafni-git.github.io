@@ -48,9 +48,19 @@ MB.level({
       }
     },
     {
-      id: 'l7-release', burn: 0, title: 'The fee that was never released',
+      id: 'l7-release', twist: true, burn: 0, title: 'The fee that was never released',
       make: function (g) {
         var a = g.person(), fee = g.m(0.25, 0.9, 0.05);
+        if (g.twist) return {
+          twist: `A release had been signed at the exit. Nothing was owed.`,
+          scene: `The entity ended ${a}'s management contract early, which would trigger a ${MB.usd(fee)} termination fee. The exit agreement both sides signed includes a full mutual release. Accounts are being prepared for a lender. A colleague suggests paying ${a.first} something anyway, "to be safe."`,
+          options: [
+            ['s', `Rely on the release, and put it in the lender's file.`, `The claim was given up in writing. The paper answers the lender's question.`],
+            ['g', `Pay ${a.first} something anyway.`, `Giving away the entity's money for a claim that no longer exists needs the owners' agreement.`],
+            ['p', `Leave the exit agreement out of the lender's file to avoid questions.`, `Withholding the document that answers the question creates the doubt.`]
+          ],
+          rule: `A signed release ends the matter. Keep it where it can be found.`
+        };
         return {
           scene: `The entity ended ${a}'s management contract early, which triggers a ${MB.usd(fee)} termination fee. ${a.first} left on good terms, never asked for it, and nothing was signed. Accounts are now being prepared for a lender, who will ask what the entity owes.`,
           behind: `${a.first} may simply have forgotten. The exposure is with the lender. It will lend against accounts that say nothing is owed, while a signed contract says a fee is.`,
@@ -112,9 +122,20 @@ MB.level({
       }
     },
     {
-      id: 'l7-anti-assign', role: 'You advise the company buying the site.', title: 'Assigning the purchase agreement',
+      id: 'l7-anti-assign', twist: true, role: 'You advise the company buying the site.', title: 'Assigning the purchase agreement',
       make: function (g) {
         var a = g.person(), amt = g.m(5, 16, 1);
+        if (g.twist) return {
+          burn: 0,
+          twist: `The contract allowed a transfer to a controlled affiliate. No consent was needed.`,
+          scene: `A company has a contract to buy a ${MB.usd(amt)} site and wants a new joint venture, which it controls with 80%, to take title. The contract allows assignment to an affiliate the buyer controls, on written notice to the seller.`,
+          options: [
+            ['s', `Assign it to the joint venture and give the seller written notice.`, `The contract permits it. The notice is the only condition.`],
+            ['g', `Ask the seller's consent anyway.`, `Polite, and it invites the seller to ask a price for something you already have.`],
+            ['p', `Assign it and skip the notice.`, `The right came with one condition, and it was left undone.`]
+          ],
+          rule: `Read what the contract already allows before asking permission for it.`
+        };
         return {
           scene: `A company has a contract to buy a ${MB.usd(amt)} site and wants a new joint venture to take title. The contract bars assignment without consent. ${a} suggests selling the company's shares instead.`,
           who: `${a.first}`,

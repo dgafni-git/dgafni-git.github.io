@@ -84,9 +84,20 @@ MB.level({
       }
     },
     {
-      id: 'l3-email', title: 'Approval by reply-all',
+      id: 'l3-email', twist: true, title: 'Approval by reply-all',
       make: function (g) {
         var a = g.person();
+        if (g.twist) return {
+          burn: 0,
+          twist: `This entity's own agreement allowed a majority to act in writing.`,
+          scene: `An option expires Friday. The owner is an LLC whose operating agreement lets a majority of its four managers act by written consent. Three have emailed "approved." The fourth, ${a}, is hiking without signal.`,
+          options: [
+            ['s', `Record the consent of the three, sign the extension, and notify ${a.first}.`, `The agreement sets the rule, and a majority in writing is enough here.`],
+            ['g', `Insist on a meeting, and risk missing Friday.`, `More process than the agreement asks for, at the cost of the option.`],
+            ['p', `Add ${a.first}'s name to make it unanimous.`, `Unnecessary, and a forgery.`]
+          ],
+          rule: `How an entity decides is set by its own documents. Read them before assuming.`
+        };
         return {
           scene: `An option expires Friday. Three of four directors have emailed "approved" on a written resolution. The fourth, ${a}, is hiking without signal. The president says three out of four is a majority.`,
           who: `The president`,
@@ -130,9 +141,20 @@ MB.level({
       }
     },
     {
-      id: 'l3-limit', role: 'You check that the project\'s approvals follow the rules.', title: 'Three purchase orders',
+      id: 'l3-limit', twist: true, role: 'You check that the project\'s approvals follow the rules.', title: 'Three purchase orders',
       make: function (g) {
         var a = g.person(), lim = g.pick([100000, 150000, 250000]), amt = lim * 3 - 20000;
+        if (g.twist) return {
+          burn: 0,
+          twist: `An emergency clause covered this. Waiting for the board would have flooded the site.`,
+          scene: `${a} may approve contracts up to ${MB.usd(lim)}. A storm has overwhelmed the excavation, and emergency drainage will cost ${MB.usd(amt)}. The authority policy lets the project manager exceed the limit to prevent imminent damage, with notice to the chair within a day.`,
+          options: [
+            ['s', `Have ${a.first} sign under the emergency clause and notify the chair today.`, `The policy foresaw this. Use the clause and meet its condition.`],
+            ['g', `Send it to the board for a written resolution first.`, `Correct on an ordinary day. Today the excavation floods while signatures are collected.`],
+            ['p', `Split it into three orders under the limit.`, `There was an honest route. This is still evasion.`]
+          ],
+          rule: `A good authority policy has an emergency route. Know it before the emergency.`
+        };
         return {
           scene: `${a} may approve contracts up to ${MB.usd(lim)}. A drainage contract comes in at ${MB.usd(amt)}, the crew can start Monday, and the board meets in three weeks. ${a.first} suggests three purchase orders.`,
           who: `${a.first}`,
@@ -148,6 +170,138 @@ MB.level({
             ['p', `Split it into three orders under the limit.`, `Splitting a contract to dodge a limit is deliberate evasion of a control.`]
           ],
           rule: `When a limit is in the way, get a faster approval. Never a smaller-looking contract.`
+        };
+      }
+    },
+    {
+      id: 'l3-short-notice', title: 'The meeting nobody was told about',
+      make: function (g) {
+        var a = g.person(), b = g.person();
+        return {
+          scene: `The by-laws require five days' notice of board meetings. Yesterday's was called with one. Four of five directors came and approved a sale. The fifth, ${b}, was travelling and now objects. ${a}, the president, says a quorum was there.`,
+          who: `${a.first}`,
+          behind: `${a.first} wanted the sale approved fast, and perhaps without ${b.first}'s questions. Notice exists so that every director can attend and argue. A quorum does not cure leaving one out.`,
+          deep: [
+            [`Notice and quorum are different`, `Quorum is how many must attend. Notice is whether everyone had the chance.`],
+            [`The cure`, `A written waiver from the director who missed it, or a properly called meeting that confirms the decision.`],
+            [`Why it matters to a buyer`, `Its lawyers will ask for proof the sale was validly approved.`]
+          ],
+          options: [
+            ['s', `Get ${b.first}'s waiver, or hold a properly called meeting to confirm it.`, `Either one gives the sale an approval nobody can attack.`],
+            ['g', `Rely on the quorum and move on.`, `The approval can be challenged by the one director with a reason to.`],
+            ['p', `Change the date on the notice.`, `That is falsifying a record to hide a defect that could have been cured.`]
+          ],
+          rule: `Every director is entitled to notice. A quorum of the others does not replace it.`
+        };
+      }
+    },
+    {
+      id: 'l3-proxy', title: 'Voting by proxy',
+      make: function (g) {
+        var a = g.person(), b = g.person();
+        return {
+          scene: `${a}, a director, cannot attend tomorrow's board meeting and sends an assistant, ${b}, with a signed note: "${b.first} votes for me on all items."`,
+          who: `${a.first}`,
+          behind: `${a.first} wants to be counted without attending. Shareholders can send someone to vote for them. Directors are chosen for their own judgment and cannot hand it to anyone.`,
+          deep: [
+            [`Shareholders versus directors`, `A shareholder votes their own property and may appoint a proxy. A director exercises a duty and may not.`],
+            [`What attendance can be`, `By phone or video, in almost every set of by-laws.`],
+            [`If the vote is counted`, `Any resolution that needed it can be challenged.`]
+          ],
+          options: [
+            ['s', `Tell ${a.first} to join by phone, or be recorded as absent.`, `A director's vote has to be the director's own.`],
+            ['g', `Count the vote "as instructed" and note the proxy.`, `It is recorded honestly, and it is still not a valid vote.`],
+            ['p', `Let ${b.first} sign the resolutions for ${a.first}.`, `Nobody can sign a director's decision for them.`]
+          ],
+          rule: `Shareholders may vote by proxy. Directors may not.`
+        };
+      }
+    },
+    {
+      id: 'l3-signature', title: 'Signed by the assistant',
+      make: function (g) {
+        var a = g.person(), amt = g.m(2, 8, 0.5);
+        return {
+          scene: `A ${MB.usd(amt)} guarantee must be signed today. ${a}, the only authorized officer, is abroad and tells an assistant by phone: "Use my signature stamp. I approve."`,
+          who: `${a.first}`,
+          behind: `${a.first} wants it done without finding a printer in another time zone. A guarantee is the document most likely to be tested in court, where the first question is who actually signed.`,
+          deep: [
+            [`Why it matters more for a guarantee`, `Guarantees are read strictly, and a guarantor's best defence is that it never properly signed.`],
+            [`What works`, `The officer signing electronically from a phone. It takes minutes and leaves a trail.`],
+            [`What a stamp leaves behind`, `A dispute about whether the officer saw the final text.`]
+          ],
+          options: [
+            ['s', `Have ${a.first} sign electronically from the phone.`, `The officer signs the actual document, with a record of when and where.`],
+            ['g', `Apply the stamp and note the phone approval in the file.`, `Honest, but it invites the argument that the officer never saw what was signed.`],
+            ['p', `Have the assistant imitate the signature in ink.`, `That is forging a signature, whatever was said on the phone.`]
+          ],
+          rule: `The person with authority signs. Technology makes that easy from anywhere.`
+        };
+      }
+    },
+    {
+      id: 'l3-rewrite', title: 'Improving last month\'s minutes',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `Minutes approved last month record a decision that has since gone badly. ${a}, a director, wants them amended to add a warning ${a.first} "meant to give" at the time.`,
+          who: `${a.first}`,
+          behind: `${a.first} wants to be on record as having seen it coming. Minutes are trusted because they are fixed once approved. Change them after the event and nothing in the book can be relied on.`,
+          deep: [
+            [`What minutes are`, `Evidence of what happened, written near the time and approved by those present.`],
+            [`Correcting a real error`, `A dated correction at a later meeting, saying what is corrected and why.`],
+            [`What it does to the rest`, `One altered entry casts doubt on every other entry.`]
+          ],
+          options: [
+            ['s', `Leave the minutes. ${a.first} can state the view at the next meeting, dated now.`, `The record stays true, and the view is still recorded.`],
+            ['g', `Add the warning to the old minutes, with everyone's agreement.`, `Agreement does not make it true that the warning was given then.`],
+            ['p', `Rewrite the minutes and reprint the page.`, `That is falsifying a corporate record.`]
+          ],
+          rule: `Minutes record what happened. Later thoughts get a later date.`
+        };
+      }
+    },
+    {
+      id: 'l3-inspection', title: 'The investor asks for the books',
+      make: function (g) {
+        var a = g.person(), b = g.person();
+        return {
+          scene: `${b}, a minority shareholder, asks in writing to inspect the minutes and the financial statements, saying it is to value the shares. ${a}, the president, says: "Send a summary. The rest is none of ${b.first}'s business."`,
+          who: `${a.first}`,
+          behind: `${a.first} would rather not be examined. Owners with no seat on the board have few ways to check on those who run the company. The right to look at its records is the main one.`,
+          deep: [
+            [`The right`, `Shareholders may generally inspect core records for a proper purpose, such as valuing their shares.`],
+            [`The limits`, `Trade secrets and unrelated material can be withheld or protected.`],
+            [`Refusing`, `Courts order inspection and often make the company pay the costs.`]
+          ],
+          options: [
+            ['s', `Provide the records the law entitles ${b.first} to, on time.`, `It is their right, and refusing only suggests there is something to find.`],
+            ['g', `Send summaries prepared by management.`, `A summary written by the people being checked is not inspection.`],
+            ['p', `Refuse.`, `A court will order it, at the company's expense.`]
+          ],
+          rule: `Owners are entitled to see how their company is run.`
+        };
+      }
+    },
+    {
+      id: 'l3-incumbency', title: 'Certify the president',
+      make: function (g) {
+        var a = g.person();
+        return {
+          scene: `A lender wants a certificate from you that ${a} is "the duly appointed President." ${a.first} has acted as president for two years. The records show no resolution ever appointing ${a.first}.`,
+          who: `${a.first}`,
+          behind: `Everyone treated ${a.first} as president, so nobody papered it. The lender will rely on your certificate. If it is wrong, the loan documents ${a.first} signs are open to question, and so are you.`,
+          deep: [
+            [`What the certificate does`, `It tells an outsider who may sign for the company.`],
+            [`The gap`, `Acting as an officer is not the same as being appointed one.`],
+            [`The fix`, `One resolution appointing the president and confirming past acts. Then the certificate is true.`]
+          ],
+          options: [
+            ['s', `Have the board appoint ${a.first} and confirm past acts, then certify.`, `An hour of paperwork makes the certificate true.`],
+            ['g', `Certify it. ${a.first} has plainly been acting as president.`, `You would be certifying an appointment that never happened.`],
+            ['p', `Certify it, and add a backdated resolution to the file.`, `A false certificate supported by a false record.`]
+          ],
+          rule: `Certify only what the records show. If they are missing, fix the records first.`
         };
       }
     }
