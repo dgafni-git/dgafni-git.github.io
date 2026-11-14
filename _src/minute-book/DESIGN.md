@@ -221,6 +221,28 @@ Helpers: `g.person()`, `g.city('us' | 'ca')`, `g.spe('LP' | 'LLC' | 'Inc.')`, `g
 - The sound motion is general best practice, not a ruling on any one jurisdiction.
 - The game is a teaching tool and says so. It is not legal advice.
 
+## Look
+
+One visual world: a cloth-bound ledger on pale green paper. Each meeting has its own colour and
+line icon, set in `TONE` and `MARK` in the engine, in the manner of the colour groups on a set
+of property cards. The colour appears on the meeting's card in the contents, on its token on
+the cover shelf, along the top of the sheet while the meeting is in session, and on its seal.
+
+## A board game, later
+
+Notes from the conversation, for after the online game is settled.
+
+- A card game in the family of Monopoly Deal, for ages eight and up, with terms boiled down
+  to basics.
+- Each player has a role with different interests, such as builder, lender, investor and
+  landlord, so that the same deal looks different from each seat.
+- Any player can buy into another player's deal as a passive investor.
+- Dice replace the wheel. Tokens held, such as loose ends and goodwill, change the roll.
+- Players can bend the rules and make better deals with each other. The game needs a simple
+  way to mark where bending ends and breaking begins.
+- Earnings must be countable at a glance: coins on cards, no arithmetic beyond adding.
+- Possibly something to sell from buckshot.sbs one day.
+
 ## Ideas not yet built
 
 - Deal beats for the meetings that have none, and more twists.

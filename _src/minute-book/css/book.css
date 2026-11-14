@@ -380,3 +380,58 @@ form.sheet { display: grid; gap: 8px; }
 .w-pointer { fill: var(--ink); }
 @media (max-width: 520px) { .spin-card { grid-template-columns: 1fr; justify-items: center; } .spin-body { justify-items: center; text-align: center; } }
 @media (prefers-reduced-motion: reduce) { .w-spin.spinning { transition: none; } }
+
+/* ---------- colour: every meeting has its own, like a set of property cards ---------- */
+.ico { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* a shelf of tokens on the cover, one per meeting */
+.shelf { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 0 16px; }
+.token { --m: #4c5c52; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 700 11px/1 var(--display); letter-spacing: .02em; text-decoration: none; border: 2px solid var(--m); color: var(--m); background: transparent; font-variant-numeric: lining-nums; }
+.token.open { color: #f1e3b8; border-style: dashed; }
+.token.won { background: var(--m); color: var(--on); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+.token.won.gold { box-shadow: 0 0 0 2px var(--cloth), 0 0 0 4px var(--foil); }
+.token.locked { opacity: .45; border-style: dotted; }
+.token.now { outline: 2px solid #f1e3b8; outline-offset: 2px; }
+a.token:hover { transform: translateY(-2px); }
+body.locked .shelf { display: none; }
+
+/* contents as a wall of deeds */
+.meetings.deeds { border-top: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; margin-top: 26px; }
+.deeds .meeting { border: 0; }
+.deeds .meeting > a, .deeds .meeting > div { display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; height: 100%; background: #f8faf3; border: 1px solid var(--ink); box-shadow: 3px 3px 0 var(--m); transition: transform .12s ease, box-shadow .12s ease; }
+.deeds .meeting > a:hover { background: #fcfdf9; transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--m); }
+.deed-band { display: flex; align-items: center; justify-content: space-between; background: var(--m); color: var(--on); padding: 10px 14px; border-bottom: 1px solid var(--ink); }
+.deed-band .m-num { color: inherit; font-size: 24px; }
+.deeds .m-main { padding: 12px 14px 4px; gap: 4px; flex: 1; }
+.deeds .m-title { font-size: 21px; }
+.deed-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 14px 14px; }
+.deed-won { font-family: var(--typed); font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--m); font-weight: 700; }
+.deed-won.gold { color: #8a6a12; }
+.deeds .m-status.passed { background: var(--m); border-color: var(--m); color: var(--on); }
+.deeds .is-locked > div { box-shadow: none; border-style: dashed; border-color: var(--ink-2); background: transparent; }
+.deeds .is-locked .deed-band { background: transparent; color: var(--ink-2); border-bottom-style: dashed; border-bottom-color: var(--ink-2); }
+.deeds .is-locked .m-title, .deeds .is-locked .m-num { color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .deeds .meeting > a, a.token { transition: none; } .deeds .meeting > a:hover, a.token:hover { transform: none; } }
+
+/* inside a meeting, its colour runs along the top of the sheet and through the page */
+.sheet.in-meeting { border-top: 10px solid var(--m); }
+.sheet.in-meeting .folio { border-bottom-color: var(--m); border-bottom-width: 2px; }
+.sheet.in-meeting .pips li.now { background: var(--m); }
+.sheet.in-meeting .item-title::after { content: ""; display: block; width: 56px; height: 4px; background: var(--m); margin-top: 12px; }
+.sheet.in-meeting .clause, .sheet.in-meeting .sheet-row { border-left-color: var(--m); }
+.sheet.in-meeting .seal.wax .seal-edge { fill: var(--m); }
+.sheet.in-meeting .behind { border-top: 2px solid var(--m); }
+.brief-mark { display: flex; align-items: center; gap: 12px; margin-top: 26px; }
+.brief-badge { width: 54px; height: 54px; border-radius: 50%; background: var(--m); color: var(--on); display: grid; place-items: center; box-shadow: 3px 3px 0 var(--ink); }
+.brief-badge .ico { width: 30px; height: 30px; }
+.brief-num { font-family: var(--typed); font-weight: 700; font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--m); }
+.brief-mark + .display { margin-top: 12px; }
+.stakes li { border-color: var(--m, var(--rule)); border-bottom-width: 3px; }
+
+/* money reads as money */
+.career { border-left-width: 6px; border-left-color: var(--foil); }
+.career-rank { color: #1e5b3a; }
+.opt-money b, .ruling-money b, .min-cash, .ledger .total dd { color: #1e5b3a; }
+.reckon .due b, .left b { color: var(--poor); }
+.left b { color: #8a6a12; }
+.tally { background: #f5f8ef; border: 1px solid var(--rule); border-left: 4px solid var(--m, var(--rule)); padding: 8px 12px; }

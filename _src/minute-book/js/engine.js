@@ -521,6 +521,32 @@
     return out;
   }
 
+  /* ---------- colour ---------- */
+
+  /* Each meeting has its own colour and mark, like the colour groups on a set of property cards. */
+  var TONE = [null,
+    { c: '#8a5a2b', on: '#fff' }, { c: '#1f7a8c', on: '#fff' }, { c: '#b5477e', on: '#fff' }, { c: '#c4621a', on: '#fff' },
+    { c: '#b53a2f', on: '#fff' }, { c: '#dcae1d', on: '#2a2105' }, { c: '#2f7d4f', on: '#fff' }, { c: '#284b8c', on: '#fff' },
+    { c: '#6b4aa0', on: '#fff' }, { c: '#0f7b6c', on: '#fff' }, { c: '#9c2f52', on: '#fff' }, { c: '#4a5568', on: '#fff' },
+    { c: '#14251d', on: '#cfae62' }];
+  var MARK = [null,
+    'M5 21V4h14v17M3 21h18M9 8h2M13 8h2M9 12h2M13 12h2M11 21v-4h2v4',
+    'M12 3v18M7 21h10M4 7h16M4 7l-2.5 6a2.5 2.5 0 0 0 5 0L4 7M20 7l-2.5 6a2.5 2.5 0 0 0 5 0L20 7',
+    'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h7M9 8h3',
+    'M12 3l9 4.5-9 4.5-9-4.5zM3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5',
+    'M3 5h6v5h6v5h6v5M6 13v2M6 17v1M12 18v2M18 3v2',
+    'M4 12a5 5 0 1 0 10 0a5 5 0 1 0-10 0M10 12a5 5 0 1 0 10 0a5 5 0 1 0-10 0',
+    'M4 20h16M6 16l10-10 3 3-10 10H6z',
+    'M6 21V4M3 21h8M6 4h13M6 7l5-3M17 4v6M15.5 10h3v3h-3z',
+    'M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M9 15l6-6M9.2 9.2h.01M14.8 14.8h.01',
+    'M4 8a4 4 0 1 0 8 0a4 4 0 1 0-8 0M11 11l9 9M17 17l2-2M14 14l2-2',
+    'M4 8h16v12H4zM9 8V5h6v3M4 13h16',
+    'M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M8 12a4 4 0 1 0 8 0a4 4 0 1 0-8 0M5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6',
+    'M7 3v10h10V3M7 13v8M17 13v8M5 13h14M7 7h10'];
+  function tone(n) { return TONE[n] || TONE[13]; }
+  function toneStyle(n) { var t = tone(n); return ' style="--m:' + t.c + ';--on:' + t.on + '"'; }
+  function mark(n) { return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="' + (MARK[n] || MARK[1]) + '"/></svg>'; }
+
   /* ---------- views ---------- */
 
   function chip(k) { return '<span class="chip g-' + k + '"><span aria-hidden="true">' + GRADE[k].mark + '</span> ' + GRADE[k].label + '</span>'; }
@@ -554,22 +580,25 @@
       var p = S.passed[L.n], open = isOpen(L.n);
       var st = p ? '<span class="m-status passed">' + plus(p.net) + '</span>'
         : open ? '<span class="m-status open">Open</span>' : '<span class="m-status locked">Locked</span>';
-      var inner = '<span class="m-num">' + ROMAN[L.n] + '</span><span class="m-main"><span class="m-title">' + L.title + '</span><span class="m-topics">' + L.topics + '</span></span>' + st;
-      return open ? '<li class="meeting"><a href="#meeting-' + L.n + '">' + inner + '</a></li>'
-        : '<li class="meeting is-locked"><div aria-disabled="true">' + inner + '</div></li>';
+      var inner = '<span class="deed-band"><span class="m-num">' + ROMAN[L.n] + '</span>' + mark(L.n) + '</span>' +
+        '<span class="m-main"><span class="m-title">' + L.title + '</span><span class="m-topics">' + L.topics + '</span></span>' +
+        '<span class="deed-foot">' + st + (p ? '<span class="deed-won' + (p.gold ? ' gold' : '') + '">' + (p.gold ? 'Gold seal' : 'Sealed') + '</span>' : '') + '</span>';
+      return open ? '<li class="meeting deed"' + toneStyle(L.n) + '><a href="#meeting-' + L.n + '">' + inner + '</a></li>'
+        : '<li class="meeting deed is-locked"' + toneStyle(L.n) + '><div aria-disabled="true">' + inner + '</div></li>';
     }).join('');
     var best = S.bestEquity !== null ? '<span class="career-best">Best career ' + MB.cash(S.bestEquity) + '</span>' : '';
     return folio('Contents', done + ' of ' + MB.levels.length + ' meetings on record') +
       '<h1 class="display">Get rich. Stay out of court.</h1>' +
       '<p class="lede">A corporate equity and governance game. Thirteen meetings, a few decisions each. Every decision pays today. Some come back for the money later. Stay clean, and find the deal anyway.</p>' +
       '<div class="career"><div><span class="label">Your equity</span><span class="career-rank">' + MB.cash(equity()) + '</span>' + best + '</div><div id="career-zone">' + cta + '</div></div>' +
-      '<ol class="meetings">' + rows + '</ol>';
+      '<ol class="meetings deeds">' + rows + '</ol>';
   }
 
   function viewBrief(L, run) {
     var terms = L.concepts.map(function (c) { return '<div class="term"><dt>' + c[0] + '</dt><dd>' + c[1] + '</dd></div>'; }).join('');
     var n = (L.fixed ? L.scenarios.length : L.draw.authored + (L.draw.numeric || 0));
     return folio('Meeting ' + ROMAN[L.n], run.practice ? 'Practice sitting' : 'Before the meeting') +
+      '<div class="brief-mark"><span class="brief-badge">' + mark(L.n) + '</span><span class="brief-num">Meeting ' + ROMAN[L.n] + '</span></div>' +
       '<h1 class="display">' + L.title + '</h1>' +
       '<p class="lede">' + L.blurb + '</p>' +
       '<ul class="stakes"><li><b>' + n + '</b> decisions</li><li>about <b>' + MB.cash(stake(L.n)) + '</b> each</li><li>pass at <b>' + Math.round(L.pass * 100) + '%</b></li></ul>' +
@@ -923,7 +952,20 @@
 
   var sheet, standingEl;
 
+  function renderShelf() {
+    var el = document.getElementById('shelf');
+    if (!el) return;
+    el.innerHTML = MB.levels.map(function (L) {
+      var p = S.passed[L.n], open = isOpen(L.n), now = S.run && S.run.n === L.n && S.run.phase !== 'done';
+      var cls = 'token' + (p ? ' won' + (p.gold ? ' gold' : '') : open ? ' open' : ' locked') + (now ? ' now' : '');
+      var label = 'Meeting ' + ROMAN[L.n] + ', ' + L.title + (p ? ', sealed' : open ? ', open' : ', locked');
+      return open ? '<a class="' + cls + '"' + toneStyle(L.n) + ' href="#meeting-' + L.n + '" aria-label="' + label + '">' + ROMAN[L.n] + '</a>'
+        : '<span class="' + cls + '"' + toneStyle(L.n) + ' aria-label="' + label + '">' + ROMAN[L.n] + '</span>';
+    }).join('');
+  }
+
   function renderStanding() {
+    renderShelf();
     var st = standing(), label = !passedCount() ? 'Unproven' : st >= 85 ? 'Relied upon' : 'Trusted';
     var gwv = S.run && S.run.phase !== 'done' && !S.run.practice ? liveGoodwill(S.run) : goodwill();
     standingEl.innerHTML =
@@ -952,6 +994,8 @@
     else if (r.view === 'about') html = viewAbout();
     else html = viewContents();
     sheet.innerHTML = html;
+    if (r.view === 'meeting') { var tn = tone(r.n); sheet.style.setProperty('--m', tn.c); sheet.style.setProperty('--on', tn.on); sheet.classList.add('in-meeting'); }
+    else { sheet.style.removeProperty('--m'); sheet.style.removeProperty('--on'); sheet.classList.remove('in-meeting'); }
     Array.prototype.forEach.call(document.querySelectorAll('.tabs a'), function (a) {
       if (a.getAttribute('data-tab') === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
