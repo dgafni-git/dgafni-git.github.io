@@ -31,8 +31,9 @@ pays, from 1.0 up to 1.25. Trust compounds.
 $100,000.
 
 **Reading load.** Targets, checked by the test script: situation under 46 words, motion under
-17, explanation under 22, principle under 24. After a choice the player sees one ruling and one
-principle. The other motions and the United States and Canada notes sit behind a disclosure.
+17, explanation under 22, principle under 24. After a choice every motion shows its grade, what
+it paid or would have paid, what it risked, and one line on why. One principle follows. The
+United States and Canada notes sit behind a disclosure.
 
 ## The curriculum
 

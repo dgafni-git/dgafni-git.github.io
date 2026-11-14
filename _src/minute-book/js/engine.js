@@ -326,22 +326,20 @@
       '<span class="' + (t.open ? 'has-risk' : '') + '"><span class="label">Loose ends</span> <b>' + t.open + '</b>' + (t.open ? ' <span class="at-risk">' + MB.cash(t.risk) + ' at risk</span>' : '') + '</span></div>';
   }
 
-  function moneyLine(o) {
-    if (o.g === 's') return '<b>' + plus(o.cash) + '</b> banked. Nothing follows you.';
-    return '<b>' + plus(o.cash) + '</b> today, and a ' + GRADE[o.g].name + ' that could cost <b>' + MB.cash(o.risk) + '</b>.';
+  function moneyLine(o, mine) {
+    if (mine) {
+      if (o.g === 's') return '<b>' + plus(o.cash) + '</b> banked. Nothing follows you.';
+      return '<b>' + plus(o.cash) + '</b> today, and a ' + GRADE[o.g].name + ' that could cost <b>' + MB.cash(o.risk) + '</b>.';
+    }
+    if (o.g === 's') return 'Would have paid <b>' + plus(o.cash) + '</b>, with nothing to follow.';
+    return 'Would have paid <b>' + plus(o.cash) + '</b>, with a ' + GRADE[o.g].name + ' of up to <b>' + MB.cash(o.risk) + '</b>.';
   }
 
-  function moreBlock(it, ans) {
+  function moreBlock(it) {
     var parts = '';
-    if (it.kind === 'choice') {
-      parts += '<ul class="others">' + it.options.map(function (o, i) {
-        if (i === ans.pick) return '';
-        return '<li>' + chip(o.g) + ' <span><b>(' + 'abcdef'.charAt(i) + ')</b> ' + o.why + '</span></li>';
-      }).join('') + '</ul>';
-    }
     if (it.us) parts += '<div class="juris-one"><span class="label">United States</span><p>' + it.us + '</p></div>';
     if (it.ca) parts += '<div class="juris-one"><span class="label">Canada</span><p>' + it.ca + '</p></div>';
-    return parts ? '<details class="more"><summary>The other motions, and country notes</summary>' + parts + '</details>' : '';
+    return parts ? '<details class="more"><summary>Country notes</summary>' + parts + '</details>' : '';
   }
 
   function viewPlay(L, run) {
@@ -349,17 +347,15 @@
     var last = run.step === items.length - 1;
     var body = '', ruling = '';
     if (it.kind === 'choice') {
-      body = '<div class="opts" role="group" aria-label="Motions">' + it.options.map(function (o, i) {
+      body = '<div class="opts"' + (ans ? ' id="outcome" tabindex="-1"' : '') + ' role="group" aria-label="Motions">' + it.options.map(function (o, i) {
         var letter = 'abcdef'.charAt(i);
         var pay = '<span class="opt-pay">' + plus(o.cash) + '</span>';
         if (!ans) return '<button class="opt" data-act="choose" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span>' + pay + '</button>';
         var mine = ans.pick === i;
-        return '<div class="opt done g-' + o.g + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span><span class="opt-tags">' + chip(o.g) + '</span></div>';
+        return '<div class="opt done g-' + o.g + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t +
+          '<span class="opt-money">' + moneyLine(o, mine) + '</span><span class="opt-why">' + o.why + '</span></span>' +
+          '<span class="opt-tags">' + chip(o.g) + (mine ? '<span class="yours">Your motion</span>' : '') + '</span></div>';
       }).join('') + '</div>';
-      if (ans) {
-        var mineO = it.options[ans.pick];
-        ruling = '<div class="ruling g-' + mineO.g + '"><p class="ruling-money">' + moneyLine(mineO) + '</p><p>' + mineO.why + '</p></div>';
-      }
     } else if (!ans) {
       body = '<form class="ledger-form" data-act="figure" novalidate><label for="figure">Your figure <span class="opt-pay">' + plus(it.stake) + ' if right</span></label>' +
         '<div class="ledger-row"><input id="figure" name="figure" inputmode="decimal" autocomplete="off" aria-describedby="figure-hint figure-err"><button class="btn" type="submit">Enter in the ledger</button></div>' +
@@ -374,7 +370,7 @@
       (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
         '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
-        moreBlock(it, ans) + '</div>' : '');
+        moreBlock(it) + '</div>' : '');
   }
 
   function viewDone(L, run) {
@@ -500,7 +496,7 @@
     else if (act === 'choose' && run && run.phase === 'play' && !run.answers[run.step]) {
       var i = parseInt(el.getAttribute('data-i'), 10), o = buildItems(run)[run.step].options[i];
       run.answers[run.step] = { pick: i, g: o.g, cash: o.cash, risk: o.risk };
-      save(); render('review');
+      save(); render('outcome');
     }
     else if (act === 'next' && run && run.answers[run.step]) {
       if (run.step >= buildItems(run).length - 1) finishRun(); else { run.step++; save(); }

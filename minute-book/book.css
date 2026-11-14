@@ -152,7 +152,11 @@ label .opt-pay { font-weight: 400; margin-left: 8px; }
 .opt.done.chosen.g-s { border-left-color: var(--sound); }
 .opt.done.chosen.g-g { border-left-color: var(--grey); }
 .opt.done.chosen.g-p { border-left-color: var(--poor); }
-.opt-why { display: block; margin-top: 7px; font-size: 15.5px; color: #2c3a32; }
+.opt-money { display: block; margin-top: 8px; font-size: 15.5px; color: #2c3a32; }
+.opt-money b { font-family: var(--typed); font-variant-numeric: tabular-nums; color: var(--ink); }
+.opt-why { display: block; margin-top: 3px; font-size: 15.5px; color: #2c3a32; }
+.opt.done.chosen .opt-money { font-size: 17px; color: var(--ink); }
+.opts:focus { outline: none; }
 .opt-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; padding-left: 10px; }
 .yours { font-family: var(--typed); font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
 @media (max-width: 560px) {
