@@ -448,14 +448,12 @@
     var pending = ans && it.deal && ans.g === 's' && !ans.ask;
     var body = '', ruling = '';
     if (it.kind === 'choice') {
-      body = '<div class="opts"' + (ans ? ' id="outcome" tabindex="-1"' : '') + ' role="group" aria-label="Motions">' + it.options.map(function (o, i) {
+      body = '<div class="opts" role="group" aria-label="Motions">' + it.options.map(function (o, i) {
         var letter = 'abcdef'.charAt(i);
         var pay = '<span class="opt-pay">' + plus(o.cash) + '</span>';
         if (!ans) return '<button class="opt" data-act="choose" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t + '</span>' + pay + '</button>';
         var mine = ans.pick === i;
-        return '<div class="opt done g-' + o.g + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + o.t +
-          '<span class="opt-money">' + moneyLine(o, mine, it.who) + '</span><span class="opt-why">' + o.why + '</span></span>' +
-          '<span class="opt-tags">' + chip(o.g) + (mine ? '<span class="yours">Your motion</span>' : '') + '</span></div>';
+        return doneCard(mine, o.g, letter, o.t, moneyLine(o, mine, it.who), o.why, chip(o.g) + (mine ? '<span class="yours">Your motion</span>' : ''));
       }).join('') + '</div>';
     } else if (!ans) {
       body = '<form class="ledger-form" data-act="figure" novalidate><label for="figure">Your figure <span class="opt-pay">' + plus(it.stake) + ' if right</span></label>' +
@@ -473,6 +471,14 @@
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
         '<div class="actions"><button class="btn" data-act="next">' + (pending ? 'One more thing' : last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
         moreBlock(it) + '</div>' : '');
+  }
+
+  function doneCard(mine, tone, letter, text, money, why, tags) {
+    var inner = '<span class="opt-l">(' + letter + ')</span><span class="opt-t">' + text +
+      '<span class="opt-more"><span class="opt-money">' + money + '</span><span class="opt-why">' + why + '</span></span></span>' +
+      '<span class="opt-tags">' + tags + (mine ? '' : '<span class="peek-hint">See why</span>') + '</span>';
+    if (mine) return '<div class="opt done chosen g-' + tone + '" id="outcome" tabindex="-1">' + inner + '</div>';
+    return '<button type="button" class="opt done peek g-' + tone + '" data-act="peek" aria-expanded="false">' + inner + '</button>';
   }
 
   function askChip(k) {
@@ -494,15 +500,13 @@
 
   function viewAsk(L, run, items, it, ans) {
     var d = it.deal, res = ans.ask, last = run.step === items.length - 1;
-    var body = '<div class="opts"' + (res ? ' id="outcome" tabindex="-1"' : '') + ' role="group" aria-label="Asks">' + d.asks.map(function (a, i) {
+    var body = '<div class="opts" role="group" aria-label="Asks">' + d.asks.map(function (a, i) {
       var letter = 'abcdef'.charAt(i);
       var pay = '<span class="opt-pay">' + (a.k === 'n' ? '$0' : a.k === 'v' ? MB.cash(a.cash) : plus(a.cash) + ' if agreed') + '</span>';
       if (!res) return '<button class="opt" data-act="ask" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + a.t + '</span>' + pay + '</button>';
       var mine = res.pick === i, tone = ASK[a.k].tone;
       var stamp = mine && (a.k === 'r' || a.k === 'm' || a.k === 't') ? '<span class="stamp ' + (res.ok ? 'yes' : 'no') + '">' + (res.ok ? 'Agreed' : 'Refused') + '</span>' : '';
-      return '<div class="opt done g-' + tone + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + a.t +
-        '<span class="opt-money">' + askLine(a, mine, res, d) + '</span><span class="opt-why">' + a.why + '</span></span>' +
-        '<span class="opt-tags">' + askChip(a.k) + (mine ? '<span class="yours">Your ask</span>' : '') + stamp + '</span></div>';
+      return doneCard(mine, tone, letter, a.t, askLine(a, mine, res, d), a.why, askChip(a.k) + (mine ? '<span class="yours">Your ask</span>' : '') + stamp);
     }).join('') + '</div>';
     return folio('Meeting ' + ROMAN[L.n] + ' ' + DOT + ' ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + ' ' + DOT + ' the ask') + pips(items, run) + tallyRow(run) +
       '<h1 class="item-title">What do you ask for?</h1>' +
@@ -684,6 +688,11 @@
     }
     else if (act === 'again' && run) { startRun(run.n); render(); }
     else if (act === 'unlock') { S.unlockAll = el.checked; save(); }
+    else if (act === 'peek') {
+      var open = !el.classList.contains('open'), hint = el.querySelector('.peek-hint');
+      el.classList.toggle('open', open); el.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (hint) hint.textContent = open ? 'Hide' : 'See why';
+    }
     else if (act === 'tip') {
       var box = document.getElementById('tip-box'), term = el.getAttribute('data-term');
       if (!box) return;

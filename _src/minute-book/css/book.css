@@ -305,3 +305,13 @@ body.locked .tabs, body.locked .standing { visibility: hidden; }
 .rules { padding-left: 1.2em; display: grid; gap: 6px; }
 .rules b { font-family: var(--typed); }
 .ledger dt { max-width: 30ch; }
+
+/* ---------- after a choice: yours is open, the rest fold until tapped ---------- */
+.opt-more { display: block; }
+.opt.peek { cursor: pointer; }
+.opt.peek .opt-more { display: none; }
+.opt.peek.open .opt-more { display: block; }
+.opt.peek:hover { background: #f5f8ef; }
+.peek-hint { font-family: var(--typed); font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap; border-bottom: 1px dashed var(--ink-2); }
+.opt.done.chosen { scroll-margin: 16px; }
+.opt.done.chosen:focus { outline: none; }
