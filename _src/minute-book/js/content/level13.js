@@ -22,7 +22,7 @@
     ],
     scenarios: [
       {
-        id: 'l13-1', title: 'The email arrives',
+        id: 'l13-1', burn: 0, title: 'The email arrives',
         builds: ['Litigation hold', 'Disclosure and recusal'],
         make: function (g) {
           var s = g.story;
@@ -40,7 +40,7 @@
         }
       },
       {
-        id: 'l13-2', title: 'Calling the meeting',
+        id: 'l13-2', burn: 0, title: 'Calling the meeting',
         builds: ['Notice', 'Quorum'],
         make: function (g) {
           var s = g.story;
@@ -72,7 +72,7 @@
         }
       },
       {
-        id: 'l13-4', title: 'Who investigates?',
+        id: 'l13-4', burn: 2, title: 'Who investigates?',
         builds: ['Special committee'],
         make: function (g) {
           var s = g.story;
@@ -120,7 +120,7 @@
         }
       },
       {
-        id: 'l13-7', title: 'The ultimatum',
+        id: 'l13-7', burn: 2, title: 'The ultimatum',
         builds: ['Duty of loyalty', 'Business judgment rule'],
         make: function (g) {
           var s = g.story;
@@ -136,7 +136,7 @@
         }
       },
       {
-        id: 'l13-8', title: 'Closing the loop',
+        id: 'l13-8', burn: 0, title: 'Closing the loop',
         builds: ['Delegation of authority', 'Registers'],
         make: function (g) {
           var s = g.story;

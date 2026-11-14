@@ -47,7 +47,7 @@ MB.level({
       }
     },
     {
-      id: 'l8-contingency', title: 'Raiding the contingency',
+      id: 'l8-contingency', burn: 2, title: 'Raiding the contingency',
       builds: ['Related-party transaction'],
       make: function (g) {
         var a = g.person(), amt = g.pick([150000, 220000, 300000]);
@@ -80,7 +80,7 @@ MB.level({
       }
     },
     {
-      id: 'l8-balance', title: 'Out of balance',
+      id: 'l8-balance', burn: 2, title: 'Out of balance',
       builds: ['Duty of care'],
       make: function (g) {
         var a = g.person(), gap = g.m(0.6, 2, 0.1);
@@ -96,7 +96,7 @@ MB.level({
       }
     },
     {
-      id: 'l8-insurance', title: 'The policy that ran out',
+      id: 'l8-insurance', burn: 0, title: 'The policy that ran out',
       make: function (g) {
         var a = g.person(), days = g.pick([19, 26, 33]);
         return {

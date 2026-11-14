@@ -13,7 +13,7 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l5-advance', title: 'An advance on the promote',
+      id: 'l5-advance', burn: 2, title: 'An advance on the promote',
       builds: ['Duty of loyalty'],
       make: function (g) {
         var a = g.person(), amt = g.m(2, 6, 0.5);
@@ -81,7 +81,7 @@ MB.level({
       }
     },
     {
-      id: 'l5-clawback', title: 'When the last deal loses',
+      id: 'l5-clawback', burn: 0, title: 'When the last deal loses',
       make: function (g) {
         var a = g.person(), amt = g.m(0.3, 1.2, 0.1);
         return {
@@ -96,7 +96,7 @@ MB.level({
       }
     },
     {
-      id: 'l5-error', title: 'The formula was wrong',
+      id: 'l5-error', burn: 0, title: 'The formula was wrong',
       make: function (g) {
         var amt = g.pick([38000, 52000, 74000, 96000]);
         return {

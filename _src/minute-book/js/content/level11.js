@@ -15,7 +15,7 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l11-loi', title: 'A letter of intent, or a deal?',
+      id: 'l11-loi', burn: 0, title: 'A letter of intent, or a deal?',
       builds: ['Authority to bind'],
       make: function (g) {
         var a = g.person(), amt = g.m(12, 40, 2);
@@ -47,7 +47,7 @@ MB.level({
       }
     },
     {
-      id: 'l11-buyout', title: 'The chief executive wants to buy',
+      id: 'l11-buyout', burn: 2, title: 'The chief executive wants to buy',
       builds: ['Duty of loyalty', 'Disclosure and recusal'],
       make: function (g) {
         var a = g.person(), amt = g.m(30, 90, 5);

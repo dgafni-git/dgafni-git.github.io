@@ -25,6 +25,16 @@ MB.level({
             ['g', `Let ${a.first} join management calls and weigh in informally.`, `One investor now steers decisions the others cannot see, and looks like a manager.`],
             ['p', `Give ${a.first} co-signing authority.`, `A limited partner who signs contracts is managing, and risks limited liability.`]
           ],
+          deal: {
+            setup: `${a.first} calms down once the advisory seat is offered. "Fine. But I want to see you earn it."`,
+            asks: [
+              ['m', `Ask ${a.first} to be a reference for investors in your next raise.`, `An easy yes that turns a critic into an advocate.`],
+              ['r', `Ask ${a.first} to commit capital to your next fund now.`, `A big ask of someone who was angry an hour ago.`],
+              ['x', `Offer ${a.first} a private fee rebate to stay quiet.`, `A secret payment to one investor is unequal treatment of all the others.`],
+              ['n', `Ask for nothing and get back to work.`, `The relationship is repaired, and that is all.`]
+            ],
+            rule: `Turn a critic into an ally with access and candour, never with a private payment.`
+          },
           rule: `Limited partners act through the rights the agreement gives them. Managing is the general partner's job and liability.`,
           us: `Delaware lists many things a limited partner can do without being treated as taking part in control.`,
           ca: `Provincial statutes are stricter. In Ontario a limited partner who takes part in control can be liable as a general partner.`
@@ -43,6 +53,17 @@ MB.level({
             ['g', `Close at one broker's opinion of value and report it afterward.`, `Some price support, but chosen by the conflicted party and disclosed too late.`],
             ['p', `Close it. The agreement gives sole discretion over sales.`, `Discretion over sales is not permission to deal with yourself.`]
           ],
+          deal: {
+            none: true,
+            setup: `The independent valuation comes in as a range. You own more of the buying fund than the selling one, and nobody would notice a price at the low end.`,
+            asks: [
+              ['x', `Set the price at the bottom of the range.`, `You sit on both sides. Tilting the price toward your own pocket is the conflict itself.`],
+              ['x', `Charge each fund a transaction fee for arranging the sale.`, `A fee from both sides of your own deal, unapproved, is double-dipping.`],
+              ['t', `Ask both committees for a bonus for saving the broker's fee.`, `Legal to ask. It tells both committees where your attention is.`],
+              ['n', `Take nothing. Let the committees settle the price.`, `When you are on both sides, there is nothing to ask for.`]
+            ],
+            rule: `When you are on both sides of a deal, you do not also get to bargain.`
+          },
           rule: `When the general partner is on both sides, someone else sets the price and someone else approves.`,
           us: `Registered fund advisers must disclose and obtain consent for principal transactions with funds they manage.`,
           ca: `Registered fund managers must address material conflicts in the fund's best interest.`
@@ -77,12 +98,22 @@ MB.level({
             ['g', `Ask for clarifications and let the deadline drift.`, `The delay will be the first exhibit when investors argue there is cause.`],
             ['p', `Refuse and warn ${a.first} about confidentiality.`, `Denying a right and threatening a partner turns unhappy investors into plaintiffs.`]
           ],
+          deal: {
+            setup: `You send the list and call ${a.first}. The investors are angry about delays, not out for blood. They want a reason to stand down.`,
+            asks: [
+              ['v', `Waive management fees until the project is back on schedule.`, `It costs real money and shows whose side you are on.`],
+              ['m', `Ask for a 90-day standstill in return for monthly reporting and a recovery plan.`, `Time to fix it, on terms everyone can see.`],
+              ['x', `Offer the lead investor a private payment to drop the campaign.`, `Buying off the organizer with a side payment betrays every other partner.`],
+              ['n', `Ask for nothing. Let the vote happen.`, `Principled, and you may lose the mandate.`]
+            ],
+            rule: `Win investors back with terms offered to all of them, in the open.`
+          },
           rule: `Investor rights to information and to organize are what hold a general partner accountable.`
         };
       }
     },
     {
-      id: 'l6-keyperson', title: 'The key person leaves',
+      id: 'l6-keyperson', burn: 2, title: 'The key person leaves',
       make: function (g) {
         var a = g.person(), amt = g.m(6, 18, 1);
         return {
@@ -92,12 +123,22 @@ MB.level({
             ['g', `Sign the deal, since it predates the departure, then give notice.`, `Arguable, but the general partner is deciding the investors' question in its own favour.`],
             ['p', `Close and mention it in the quarterly report.`, `That breaches the notice and the freeze, and is likely cause for removal.`]
           ],
+          deal: {
+            setup: `Investors take the news calmly. Several say they still like the acquisition and ask what you propose.`,
+            asks: [
+              ['m', `Ask them to approve this one acquisition, with a right to co-invest.`, `They keep control and share the upside. Easy to say yes to.`],
+              ['r', `Ask them to approve your replacement and extend the investment period a year.`, `Much more than the clause contemplates. They may want to wait.`],
+              ['x', `Say the deal dies unless they waive the clause by tomorrow.`, `Inventing a deadline to rush a consent misleads your own investors.`],
+              ['n', `Ask only for what the clause requires.`, `By the book. The acquisition waits.`]
+            ],
+            rule: `Ask investors for more if you like. Never manufacture the urgency.`
+          },
           rule: `When an agreement says what happens on a trigger, the party in control does it on time.`
         };
       }
     },
     {
-      id: 'l6-reporting', title: 'The late audit',
+      id: 'l6-reporting', burn: 0, title: 'The late audit',
       make: function (g) {
         var pct = g.pick([18, 22, 30]);
         return {

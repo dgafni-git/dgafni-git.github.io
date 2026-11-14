@@ -30,7 +30,7 @@ MB.level({
       }
     },
     {
-      id: 'l2-nominee', title: 'The director who was sent',
+      id: 'l2-nominee', burn: 2, title: 'The director who was sent',
       make: function (g) {
         var spe = g.spe('Inc.'), a = g.person(), amt = g.m(0.5, 2, 0.25);
         return {
@@ -81,7 +81,7 @@ MB.level({
       }
     },
     {
-      id: 'l2-confidential', title: 'What you learned in the boardroom',
+      id: 'l2-confidential', burn: 0, title: 'What you learned in the boardroom',
       make: function (g) {
         var a = g.person();
         return {

@@ -32,7 +32,7 @@ MB.level({
       }
     },
     {
-      id: 'l3-backdate', title: 'The resolution that was never passed',
+      id: 'l3-backdate', burn: 0, title: 'The resolution that was never passed',
       make: function (g) {
         var spe = g.spe(), amt = g.m(2, 9, 0.5);
         return {

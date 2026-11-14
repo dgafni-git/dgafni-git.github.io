@@ -25,6 +25,16 @@ MB.level({
             ['g', `Accept it and warn the borrower by phone.`, `A call changes nothing on the record. The pattern is now four months.`],
             ['p', `Accelerate today, with no warning.`, `After three silent acceptances, a court may find waiver or bad faith.`]
           ],
+          deal: {
+            setup: `The borrower calls, shaken by the notice. The late payments track when its own tenants pay rent, on the tenth.`,
+            asks: [
+              ['m', `Offer to move the due date to the fifteenth for a small amendment fee.`, `It fixes the real problem, and the borrower pays you for it.`],
+              ['r', `Ask for a three-month interest reserve, funded now.`, `Real protection. The borrower may not have the cash.`],
+              ['x', `Bill default interest for the three months you already accepted.`, `You took those payments without objection. Charging for them now invites a bad-faith fight.`],
+              ['n', `Leave the terms as they are.`, `The notice stands and nothing changes.`]
+            ],
+            rule: `Solve the borrower's problem and charge for it. Do not charge for the past you waived.`
+          },
           rule: `Reserve rights you are not using. Give written notice before returning to strict terms.`,
           us: `No-waiver clauses help, but courts still look at conduct. A reservation of rights letter is the standard precaution.`,
           ca: `Lenders must give reasonable notice before enforcing, and may not mislead a borrower about their intentions.`
@@ -43,6 +53,16 @@ MB.level({
             ['g', `Email: "We will hold off for ninety days."`, `A written promise with no acknowledgement, milestones, guarantors or release.`],
             ['p', `Shake on it. ${a.first} has always been straight.`, `In ninety days each side will remember a different deal.`]
           ],
+          deal: {
+            setup: `${a.first} needs the ninety days badly and says so. "Tell me what it costs."`,
+            asks: [
+              ['m', `A 1% forbearance fee, with interest kept current.`, `Market terms. The borrower pays for time and keeps its dignity.`],
+              ['r', `A fee, a charge on ${a.first}'s other property, and a share of sale proceeds above the debt.`, `More security and some upside, all documented. Counsel checks the total cost against rate limits.`],
+              ['x', `All of that, plus a signed deed held in escrow, to record if a date is missed.`, `A pre-signed deed skips foreclosure. Courts often refuse it as a clog on the right to redeem.`],
+              ['n', `Just the standard forbearance terms.`, `Time given, rights preserved, nothing extra.`]
+            ],
+            rule: `Price the time and take more security. Never take the borrower's right to redeem.`
+          },
           rule: `Forbearance is a trade, and it goes in a contract.`
         };
       }
@@ -58,6 +78,16 @@ MB.level({
             ['g', `Close on the advance consent clause, after counsel reads it.`, `It may hold, but courts read guarantees narrowly and a rate increase is material.`],
             ['p', `Close. The guarantee says what it says.`, `Nobody checked. A material change behind a guarantor's back is the classic discharge.`]
           ],
+          deal: {
+            setup: `${a.first} reads the amendment and is not eager to sign. "Why would I extend my exposure for a partner I no longer speak to?"`,
+            asks: [
+              ['m', `Offer to cap the guarantee at today's balance in return for the signature.`, `A fair trade. You give up growth in the guarantee and keep the guarantee.`],
+              ['r', `Ask for the signature plus a pledge of ${a.first}'s interest in another property.`, `More security than you had. ${a.first} has no reason to give it cheaply.`],
+              ['x', `Say the loan will be called tomorrow unless ${a.first} signs tonight.`, `The loan is not in default. A threat you have no right to carry out is duress.`],
+              ['n', `Simply ask ${a.first} to sign.`, `No sweetener. It may take a while.`]
+            ],
+            rule: `Give a guarantor a reason to sign. Do not invent a threat.`
+          },
           rule: `Any change to a guaranteed loan goes to the guarantor for signed consent.`,
           us: `Guarantors are generally discharged by material changes they did not consent to, unless the guarantee clearly waives that.`,
           ca: `The same rule applies. Alberta also requires individual guarantors to acknowledge the guarantee before a lawyer.`
@@ -109,6 +139,16 @@ MB.level({
             ['g', `Reply "no objection" to stay cooperative.`, `A casual consent may waive conditions the agreement gave you, like cure of your default.`],
             ['p', `Ignore it and race to foreclose first.`, `The mezzanine lender usually has notice and cure rights. Racing past them is a breach.`]
           ],
+          deal: {
+            setup: `The agreement lets the mezzanine lender foreclose if it cures your arrears, and gives it an option to buy your loan at par. ${a.first} is waiting.`,
+            asks: [
+              ['m', `Confirm consent once the senior arrears are cured, and waive nothing else.`, `Exactly what the agreement provides. You get paid current.`],
+              ['r', `Invite them to use the option and buy your loan at par plus costs.`, `A clean exit at full value. They may not have the money.`],
+              ['x', `Ask for a consent fee the agreement does not provide for.`, `Charging for a consent you are bound to give is a breach, and they will have it in writing.`],
+              ['n', `Reply that you reserve all rights.`, `Safe, and it moves nothing forward.`]
+            ],
+            rule: `Take everything the intercreditor agreement gives you, and nothing it does not.`
+          },
           rule: `When several lenders have claims, the intercreditor agreement governs. Read it first.`
         };
       }

@@ -25,6 +25,16 @@ MB.level({
             ['g', `Take the money on a one-page receipt, with terms to follow.`, `Investors paid for something undefined, and an exemption cannot be confirmed after the sale.`],
             ['p', `Collect the wires and sort the paper later.`, `An undocumented securities sale. Investors may be entitled to their money back.`]
           ],
+          deal: {
+            setup: `The investors are in and the paper is clean. Nobody has yet discussed what the sponsors earn for finding and running the deal.`,
+            asks: [
+              ['m', `Take a standard fee and promote, written into the partnership agreement.`, `Disclosed sponsor pay is how this business works. Investors expect it.`],
+              ['r', `Ask for a larger promote above a higher return hurdle, fully disclosed.`, `More upside only if investors do well first. Some will push back.`],
+              ['x', `Take a finder's fee from the loan seller and keep it to yourselves.`, `A secret commission from the other side of your investors' deal is a breach, and in places a crime.`],
+              ['n', `Take nothing on this one.`, `Generous, and friends will remember. You also worked for free.`]
+            ],
+            rule: `Sponsors may be paid well. Every dollar of it must be in the documents.`
+          },
           rule: `Raising money from people you know is still a securities offering. Paper it before the money arrives.`,
           us: `Most private raises rely on Regulation D, which limits non-accredited investors, restricts advertising, and requires a filing within 15 days of the first sale.`,
           ca: `Common exemptions cover accredited investors and close family, friends and business associates. Some provinces require a signed risk acknowledgement and a report of the sale.`
@@ -32,7 +42,7 @@ MB.level({
       }
     },
     {
-      id: 'l4-loan-or-equity', title: 'Was that a loan?',
+      id: 'l4-loan-or-equity', burn: 0, title: 'Was that a loan?',
       make: function (g) {
         var a = g.person(), amt = g.m(0.3, 1.2, 0.05);
         return {
@@ -47,7 +57,7 @@ MB.level({
       }
     },
     {
-      id: 'l4-call', title: 'Calling capital from the friendly ones',
+      id: 'l4-call', burn: 2, title: 'Calling capital from the friendly ones',
       builds: ['Duty of loyalty'],
       make: function (g) {
         var a = g.person(), amt = g.m(0.8, 2.4, 0.2);
@@ -73,6 +83,16 @@ MB.level({
             ['g', `Quietly give ${a.first} sixty more days.`, `A private favour to a friend, paid for by the partners who funded on time.`],
             ['p', `Declare the whole interest forfeited to the general partner.`, `The agreement gives dilution, not forfeiture. That is taking a partner's property.`]
           ],
+          deal: {
+            setup: `${a.first} takes the dilution notice badly, then calls back. "I cannot fund. Would anyone just buy me out?"`,
+            asks: [
+              ['m', `Arrange a buyout at an independent valuation, offered to every partner pro rata.`, `Everyone gets the same chance at a fair price, and ${a.first} exits cleanly.`],
+              ['r', `Offer to fund ${a.first}'s share as a loan at the agreement's default rate, with the partners' approval.`, `A real return, properly approved. ${a.first} may prefer to sell.`],
+              ['x', `Buy the interest yourself at a discount before the other partners hear of it.`, `An insider using inside knowledge to buy cheap from a distressed partner is self-dealing.`],
+              ['n', `Leave it at the dilution formula.`, `The agreement is applied, and nothing more.`]
+            ],
+            rule: `You can buy a partner out. You cannot do it quietly, cheaply and first.`
+          },
           rule: `Default remedies come from the agreement and apply to every partner alike.`
         };
       }
@@ -88,6 +108,16 @@ MB.level({
             ['g', `Use the preferred equity structure and stay quiet.`, `Equity with a repayment date and takeover rights behaves like debt, and may breach anyway.`],
             ['p', `Take a mezzanine loan and say nothing.`, `A knowing covenant breach, and often a trigger for the guarantor's liability.`]
           ],
+          deal: {
+            setup: `The senior lender takes your call. They are not thrilled about more debt, but they are listening.`,
+            asks: [
+              ['m', `Offer a consent fee and monthly reporting in return for consent.`, `Cheap for you, and the lender is paid for the extra risk.`],
+              ['r', `Ask the senior lender to advance the extra money itself at a blended rate.`, `One lender, no intercreditor fight, lower cost. It is a lot to ask.`],
+              ['x', `Say the new loan closes Friday with or without consent.`, `Threatening a breach to force consent is bad faith, and now it is in writing.`],
+              ['n', `Just ask for the consent.`, `A plain request. It may come with conditions.`]
+            ],
+            rule: `Offer value for consent. Never threaten the breach you are asking permission to avoid.`
+          },
           rule: `Before adding a layer, read what the existing layers were promised. Relabelling changes nothing.`,
           us: `Mezzanine lenders enforce pledges of ownership interests under the Uniform Commercial Code, which is faster than foreclosure.`,
           ca: `Pledges are enforced under provincial personal property security statutes. Subordinate money is often a second mortgage with a priority agreement.`

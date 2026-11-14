@@ -13,6 +13,19 @@
   };
   /* What a decision pays today, as a multiple of the meeting's stake. Ranges overlap on purpose. */
   var PAY = { s: [0.7, 1.3], g: [0.9, 1.7], p: [1.1, 2.4] };
+  /* Goodwill a first choice costs or earns. A sound choice burns more the harder someone pushed. */
+  var BURN = [0, -1, -4];
+  var GW = { g: 1, p: 2, due: -6, pass: 6, gold: 10 };
+  /* The asks in a deal beat. pay is a multiple of the meeting's stake. */
+  var ASK = {
+    m: { label: 'Fair ask', tone: 's', pay: [0.4, 0.7], gw: 5 },
+    r: { label: 'Strong ask', tone: 's', pay: [1.3, 2.2], gw: -1, gwNo: -5 },
+    x: { label: 'Overreach', tone: 'p', pay: [1.8, 3.0], gw: -8, chance: 0.7, times: 3 },
+    t: { label: 'Tone-deaf', tone: 'g', pay: [0.3, 0.6], gw: -7 },
+    v: { label: 'A gift', tone: 's', pay: [0.25, 0.45], gw: 10 },
+    n: { label: 'No ask', tone: 'n', pay: [0, 0], gw: 1, gwRight: 3 }
+  };
+  var RUN_V = 3;
   var START_RANK = 'Analyst';
   var SEED_EQUITY = 100000;
   var KEY = 'minute-book-v2';
@@ -151,6 +164,20 @@
     return Math.round(ks.reduce(function (t, k) { return t + S.passed[k].pct; }, 0) / ks.length * 100);
   }
   function trustOf(st) { return 0.75 + st / 200; }
+  function clamp(v) { return Math.max(0, Math.min(100, v)); }
+  /* Goodwill is what partners, borrowers and vendors think of dealing with you. It starts at 50. */
+  function goodwill() {
+    var gw = 50;
+    Object.keys(S.passed).forEach(function (k) { gw += S.passed[k].gw || 0; });
+    return clamp(gw);
+  }
+  function runGw(run) {
+    return run.answers.reduce(function (t, a) { return t + (a.gw || 0) + (a.ask ? a.ask.gw : 0); }, 0);
+  }
+  function liveGoodwill(run) { return clamp(goodwill() + runGw(run)); }
+  function reachOdds(gw) { return Math.max(0.1, Math.min(0.95, 0.15 + 0.008 * gw)); }
+  /* An overreach in the deal beat costs the item a governance point. */
+  function eff(a) { return a.ask && a.ask.k === 'x' && a.g === 's' ? 'g' : a.g; }
   function stake(n) { return round2(20000 * Math.pow(1.4, n - 1)); }
 
   /* ---------- runs ---------- */
@@ -158,7 +185,7 @@
   var cache = { key: '', items: [] };
 
   function buildItems(run) {
-    var key = run.n + ':' + run.seed + ':' + run.trust;
+    var key = run.n + ':' + run.seed + ':' + run.trust + ':' + RUN_V;
     if (cache.key === key) return cache.items;
     var L = level(run.n), g0 = makeGen(run.seed), B = stake(run.n), trust = run.trust || 1;
     var authored = L.fixed ? L.scenarios.slice() : g0.shuffle(L.scenarios).slice(0, L.draw.authored);
@@ -184,8 +211,18 @@
       made.options = gc.shuffle(made.options.map(function (a) {
         var range = PAY[a[0]], m = range[0] + gm.rnd() * (range[1] - range[0]);
         var cash = round2(B * m * (a[0] === 's' ? trust : 1));
-        return { g: a[0], t: a[1], why: a[2], cash: cash, risk: a[0] === 's' ? 0 : round2(cash * GRADE[a[0]].times) };
+        var gw = a[0] === 's' ? BURN[o.def.burn === undefined ? 1 : o.def.burn] : GW[a[0]];
+        return { g: a[0], t: a[1], why: a[2], cash: cash, gw: gw, risk: a[0] === 's' ? 0 : round2(cash * GRADE[a[0]].times) };
       }));
+      if (made.deal) {
+        var ga = makeGen(run.seed ^ hash('ask:' + o.def.id));
+        made.deal.roll = ga.rnd();
+        var asks = ga.shuffle(made.deal.asks.map(function (a) {
+          var R = ASK[a[0]], c = round2(B * (R.pay[0] + ga.rnd() * (R.pay[1] - R.pay[0])));
+          return { k: a[0], t: a[1], why: a[2], cash: a[0] === 'n' ? 0 : a[0] === 'v' ? -c : c, risk: a[0] === 'x' ? round2(c * R.times) : 0 };
+        }));
+        made.deal.asks = asks.filter(function (a) { return a.k !== 'n'; }).concat(asks.filter(function (a) { return a.k === 'n'; }));
+      }
       return made;
     });
     cache = { key: key, items: items };
@@ -194,7 +231,7 @@
   MB._buildItems = buildItems;
 
   function startRun(n) {
-    S.run = { n: n, seed: (Math.random() * 4294967296) >>> 0, trust: trustOf(standing()), practice: !!S.passed[n], phase: 'brief', step: 0, answers: [], result: null };
+    S.run = { v: RUN_V, n: n, seed: (Math.random() * 4294967296) >>> 0, trust: trustOf(standing()), practice: !!S.passed[n], phase: 'brief', step: 0, sub: null, answers: [], result: null };
     save();
   }
 
@@ -225,33 +262,43 @@
   };
 
   function tally(run) {
-    var t = { cash: 0, open: 0, risk: 0 };
-    run.answers.forEach(function (a) { t.cash += a.cash; if (a.risk) { t.open++; t.risk += a.risk; } });
+    var t = { cash: 0, open: 0, risk: 0, gw: runGw(run) };
+    run.answers.forEach(function (a) {
+      t.cash += a.cash; if (a.risk) { t.open++; t.risk += a.risk; }
+      if (a.ask) { t.cash += a.ask.cash; if (a.ask.risk) { t.open++; t.risk += a.ask.risk; } }
+    });
     return t;
   }
 
   function finishRun() {
     var run = S.run, items = buildItems(run), L = level(run.n);
-    var pts = run.answers.reduce(function (t, a) { return t + GRADE[a.g].pts; }, 0);
+    var pts = run.answers.reduce(function (t, a) { return t + GRADE[eff(a)].pts; }, 0);
     var max = items.length * 2, pct = pts / max;
     var passed = pct >= L.pass - 1e-9;
-    var before = rank(), first = false, gross = 0, losses = 0, reckon = [];
+    var before = rank(), first = false, gross = 0, losses = 0, reckon = [], gw = runGw(run);
     run.answers.forEach(function (a, i) {
-      gross += a.cash;
-      if (passed && a.risk) {
+      gross += a.cash + (a.ask ? a.ask.cash : 0);
+      if (!passed) return;
+      if (a.risk) {
         var due = makeGen(run.seed ^ hash('reckon:' + i)).rnd() < GRADE[a.g].chance;
-        if (due) losses += a.risk;
-        reckon.push({ i: i, g: a.g, due: due, cost: a.risk });
+        if (due) { losses += a.risk; gw += GW.due; }
+        reckon.push({ i: i, due: due, cost: a.risk, what: 'the ' + GRADE[a.g].name });
+      }
+      if (a.ask && a.ask.risk) {
+        var due2 = makeGen(run.seed ^ hash('reckon-ask:' + i)).rnd() < ASK.x.chance;
+        if (due2) { losses += a.ask.risk; gw += GW.due; }
+        reckon.push({ i: i, due: due2, cost: a.ask.risk, what: 'the overreach' });
       }
     });
+    if (passed) gw += pct === 1 ? GW.gold : GW.pass;
     var net = passed ? gross - losses : 0;
     if (passed && !S.passed[run.n]) {
       first = true;
-      S.passed[run.n] = { pct: pct, net: net, gold: pct === 1 };
+      S.passed[run.n] = { pct: pct, net: net, gw: gw, gold: pct === 1 };
       if (passedCount() === MB.levels.length) S.bestEquity = Math.max(S.bestEquity === null ? -Infinity : S.bestEquity, equity());
     }
-    run.phase = 'done';
-    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, net: net, reckon: reckon, promoted: rank() !== before ? rank() : null };
+    run.phase = 'done'; run.sub = null;
+    run.result = { pts: pts, max: max, pct: pct, passed: passed, first: first, gross: gross, losses: losses, net: net, gw: passed ? gw : 0, reckon: reckon, promoted: rank() !== before ? rank() : null };
     save();
   }
 
@@ -295,7 +342,7 @@
     var best = S.bestEquity !== null ? '<span class="career-best">Best career ' + MB.cash(S.bestEquity) + '</span>' : '';
     return folio('Contents', done + ' of ' + MB.levels.length + ' meetings on record') +
       '<h1 class="display">Get rich. Stay out of court.</h1>' +
-      '<p class="lede">A corporate equity and governance game. Thirteen meetings, a few decisions each. Every decision pays today. Some come back for the money later.</p>' +
+      '<p class="lede">A corporate equity and governance game. Thirteen meetings, a few decisions each. Every decision pays today. Some come back for the money later. Stay clean, and find the deal anyway.</p>' +
       '<div class="career"><div><span class="label">Your equity</span><span class="career-rank">' + MB.cash(equity()) + '</span>' + best + '</div><div id="career-zone">' + cta + '</div></div>' +
       '<ol class="meetings">' + rows + '</ol>';
   }
@@ -315,24 +362,28 @@
   function pips(items, run) {
     return '<ol class="pips" aria-label="Agenda progress">' + items.map(function (it, i) {
       var a = run.answers[i];
-      var cls = a ? 'g-' + a.g : (i === run.step ? 'now' : '');
-      return '<li class="' + cls + '"><span class="vh">Item ' + (i + 1) + (a ? ': ' + GRADE[a.g].label : i === run.step ? ': current' : '') + '</span></li>';
+      var cls = a ? 'g-' + eff(a) : (i === run.step ? 'now' : '');
+      return '<li class="' + cls + '"><span class="vh">Item ' + (i + 1) + (a ? ': ' + GRADE[eff(a)].label : i === run.step ? ': current' : '') + '</span></li>';
     }).join('') + '</ol>';
   }
 
   function tallyRow(run) {
     var t = tally(run);
     return '<div class="tally"><span><span class="label">On the table</span> <b>' + plus(t.cash) + '</b></span>' +
-      '<span class="' + (t.open ? 'has-risk' : '') + '"><span class="label">Loose ends</span> <b>' + t.open + '</b>' + (t.open ? ' <span class="at-risk">' + MB.cash(t.risk) + ' at risk</span>' : '') + '</span></div>';
+      '<span class="' + (t.open ? 'has-risk' : '') + '"><span class="label">Loose ends</span> <b>' + t.open + '</b>' + (t.open ? ' <span class="at-risk">' + MB.cash(t.risk) + ' at risk</span>' : '') + '</span>' +
+      '<span><span class="label">Goodwill</span> <b>' + liveGoodwill(run) + '</b>' + (t.gw ? ' <span class="gw-delta">' + (t.gw > 0 ? '+' : MINUS) + Math.abs(t.gw) + '</span>' : '') + '</span></div>';
   }
+
+  var MINUS = String.fromCharCode(8722), DOT = String.fromCharCode(183), TIMES = String.fromCharCode(215);
+  function gwText(n) { return n ? ' Goodwill ' + (n > 0 ? '+' : MINUS) + Math.abs(n) + '.' : ''; }
 
   function moneyLine(o, mine) {
     if (mine) {
-      if (o.g === 's') return '<b>' + plus(o.cash) + '</b> banked. Nothing follows you.';
-      return '<b>' + plus(o.cash) + '</b> today, and a ' + GRADE[o.g].name + ' that could cost <b>' + MB.cash(o.risk) + '</b>.';
+      if (o.g === 's') return '<b>' + plus(o.cash) + '</b> banked. Nothing follows you.' + gwText(o.gw);
+      return '<b>' + plus(o.cash) + '</b> today, and a ' + GRADE[o.g].name + ' that could cost <b>' + MB.cash(o.risk) + '</b>.' + gwText(o.gw);
     }
-    if (o.g === 's') return 'Would have paid <b>' + plus(o.cash) + '</b>, with nothing to follow.';
-    return 'Would have paid <b>' + plus(o.cash) + '</b>, with a ' + GRADE[o.g].name + ' of up to <b>' + MB.cash(o.risk) + '</b>.';
+    if (o.g === 's') return 'Would have paid <b>' + plus(o.cash) + '</b>, with nothing to follow.' + gwText(o.gw);
+    return 'Would have paid <b>' + plus(o.cash) + '</b>, with a ' + GRADE[o.g].name + ' of up to <b>' + MB.cash(o.risk) + '</b>.' + gwText(o.gw);
   }
 
   function moreBlock(it) {
@@ -344,7 +395,9 @@
 
   function viewPlay(L, run) {
     var items = buildItems(run), it = items[run.step], ans = run.answers[run.step];
+    if (run.sub === 'ask' && it.deal && ans) return viewAsk(L, run, items, it, ans);
     var last = run.step === items.length - 1;
+    var pending = ans && it.deal && ans.g === 's' && !ans.ask;
     var body = '', ruling = '';
     if (it.kind === 'choice') {
       body = '<div class="opts"' + (ans ? ' id="outcome" tabindex="-1"' : '') + ' role="group" aria-label="Motions">' + it.options.map(function (o, i) {
@@ -369,15 +422,52 @@
       '<div class="scene">' + paras(it.scene) + '</div>' + (it.ask ? '<p class="ask">' + it.ask + '</p>' : '') + body +
       (ans ? '<div class="review" id="review" tabindex="-1">' + ruling +
         '<p class="rule-line"><span class="label">The principle</span> ' + it.rule + '</p>' +
-        '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
+        '<div class="actions"><button class="btn" data-act="next">' + (pending ? 'One more thing' : last ? 'Adjourn the meeting' : 'Next item') + '</button></div>' +
         moreBlock(it) + '</div>' : '');
+  }
+
+  function askChip(k) {
+    var A = ASK[k];
+    return '<span class="chip g-' + A.tone + '">' + A.label + '</span>';
+  }
+
+  function askLine(a, mine, res, deal) {
+    var R = ASK[a.k];
+    if (a.k === 'n') return mine ? 'Nothing asked.' + gwText(res.gw) : 'Nothing gained, nothing risked.';
+    if (a.k === 'm') return (mine ? 'Agreed. <b>' + plus(a.cash) + '</b>.' : 'Would have been agreed, for <b>' + plus(a.cash) + '</b>.') + gwText(R.gw);
+    if (a.k === 'v') return (mine ? 'Done. <b>' + MB.cash(a.cash) + '</b>.' : 'Would have cost <b>' + MB.cash(-a.cash) + '</b>.') + gwText(R.gw);
+    if (a.k === 't') return (mine ? 'Refused, and remembered.' : 'Would have been refused, and remembered.') + gwText(R.gw);
+    if (a.k === 'x') return (mine ? 'They signed. <b>' + plus(a.cash) + '</b> today, and a liability that could cost <b>' + MB.cash(a.risk) + '</b>. It also costs you a governance point.' : 'They would have signed for <b>' + plus(a.cash) + '</b>, leaving a liability of up to <b>' + MB.cash(a.risk) + '</b>.') + gwText(R.gw);
+    var ok = deal.roll < res.p;
+    if (mine) return (res.ok ? 'Agreed. <b>' + plus(a.cash) + '</b>.' : 'Refused. Nothing gained.') + gwText(res.gw);
+    return (ok ? 'Would have been agreed, for <b>' + plus(a.cash) + '</b>.' : 'Would have been refused at your goodwill.') + gwText(ok ? R.gw : R.gwNo);
+  }
+
+  function viewAsk(L, run, items, it, ans) {
+    var d = it.deal, res = ans.ask, last = run.step === items.length - 1;
+    var body = '<div class="opts"' + (res ? ' id="outcome" tabindex="-1"' : '') + ' role="group" aria-label="Asks">' + d.asks.map(function (a, i) {
+      var letter = 'abcdef'.charAt(i);
+      var pay = '<span class="opt-pay">' + (a.k === 'n' ? '$0' : a.k === 'v' ? MB.cash(a.cash) : plus(a.cash) + ' if agreed') + '</span>';
+      if (!res) return '<button class="opt" data-act="ask" data-i="' + i + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + a.t + '</span>' + pay + '</button>';
+      var mine = res.pick === i, tone = ASK[a.k].tone;
+      var stamp = mine && (a.k === 'r' || a.k === 'm' || a.k === 't') ? '<span class="stamp ' + (res.ok ? 'yes' : 'no') + '">' + (res.ok ? 'Agreed' : 'Refused') + '</span>' : '';
+      return '<div class="opt done g-' + tone + (mine ? ' chosen' : '') + '"><span class="opt-l">(' + letter + ')</span><span class="opt-t">' + a.t +
+        '<span class="opt-money">' + askLine(a, mine, res, d) + '</span><span class="opt-why">' + a.why + '</span></span>' +
+        '<span class="opt-tags">' + askChip(a.k) + (mine ? '<span class="yours">Your ask</span>' : '') + stamp + '</span></div>';
+    }).join('') + '</div>';
+    return folio('Meeting ' + ROMAN[L.n] + ' ' + DOT + ' ' + L.title, 'Item ' + (run.step + 1) + ' of ' + items.length + ' ' + DOT + ' the ask') + pips(items, run) + tallyRow(run) +
+      '<h1 class="item-title">What do you ask for?</h1>' +
+      '<div class="scene">' + paras(d.setup) + '</div>' + body +
+      (res ? '<div class="review">' + (d.rule ? '<p class="rule-line"><span class="label">The line</span> ' + d.rule + '</p>' : '') +
+        '<div class="actions"><button class="btn" data-act="next">' + (last ? 'Adjourn the meeting' : 'Next item') + '</button></div></div>'
+        : '<p class="note">Bigger asks land more often when goodwill is high. Not every opening is one.</p>');
   }
 
   function viewDone(L, run) {
     var items = buildItems(run), res = run.result;
     var minutes = items.map(function (it, i) {
       var a = run.answers[i];
-      return '<li><span class="min-n">' + (i + 1) + '.</span><span class="min-body">' + it.title + '</span><span class="min-cash">' + plus(a.cash) + '</span>' + chip(a.g) + '</li>';
+      return '<li><span class="min-n">' + (i + 1) + '.</span><span class="min-body">' + it.title + (a.ask ? '<span class="min-ask">' + ASK[a.ask.k].label + (a.ask.k === 'r' ? (a.ask.ok ? ', agreed' : ', refused') : '') + '</span>' : '') + '</span><span class="min-cash">' + plus(a.cash + (a.ask ? a.ask.cash : 0)) + '</span>' + chip(eff(a)) + '</li>';
     }).join('');
     var nxt = L.n < MB.levels.length ? L.n + 1 : null;
     var head, sub, money = '';
@@ -386,14 +476,15 @@
       sub = res.pts + ' of ' + res.max + ' points. ' +
         (run.practice ? 'A practice sitting. Nothing is banked.' : (res.promoted ? 'You now sit as <b>' + res.promoted + '</b>.' : ''));
       var reck = res.reckon.length
-        ? '<ul class="reckon">' + res.reckon.map(function (r) {
-          return '<li class="' + (r.due ? 'due' : 'quiet') + '"><span>Item ' + (r.i + 1) + ', ' + items[r.i].title + '</span><b>' + (r.due ? 'Came due ' + MB.cash(-r.cost) : 'Never surfaced') + '</b></li>';
+        ? '<ul class="reckon">' + res.reckon.map(function (r, k) {
+          return '<li class="' + (r.due ? 'due' : 'quiet') + '" style="animation-delay:' + (0.5 + k * 0.45) + 's"><span>Item ' + (r.i + 1) + ', ' + (r.what || 'the loose end') + '</span><b>' + (r.due ? 'Came due ' + MB.cash(-r.cost) : 'Never surfaced') + '</b></li>';
         }).join('') + '</ul>'
         : '<p class="note">No loose ends. Nothing came back.</p>';
       money = '<h2 class="section">The reckoning</h2>' + reck +
         '<dl class="ledger"><div><dt>Taken at the table</dt><dd>' + plus(res.gross) + '</dd></div><div><dt>Came due</dt><dd>' + MB.cash(-res.losses) + '</dd></div>' +
         '<div class="total"><dt>Net for the meeting</dt><dd>' + plus(res.net) + '</dd></div>' +
-        (run.practice ? '' : '<div><dt>Your equity</dt><dd>' + MB.cash(equity()) + '</dd></div>') + '</dl>';
+        (run.practice ? '' : '<div><dt>Your equity</dt><dd>' + MB.cash(equity()) + '</dd></div>') +
+        '<div><dt>Goodwill this meeting</dt><dd>' + (res.gw >= 0 ? '+' : MINUS) + Math.abs(res.gw) + '</dd></div></dl>';
       if (!run.practice && L.n === MB.levels.length && passedCount() === MB.levels.length) {
         sub += ' Your career closes at <b>' + MB.cash(equity()) + '</b>.';
       }
@@ -434,6 +525,8 @@
       '<h2 class="section">Money</h2>' +
       '<p>You start with ' + MB.cash(SEED_EQUITY) + '. Every motion shows what it pays today. ' + chip('s') + ' motions pay and nothing follows you. ' + chip('g') + ' motions leave a loose end: about one in three comes due, at two and a half times what you took. ' + chip('p') + ' motions leave a liability: most come due, at four times. You are not told which is which until you choose.</p>' +
       '<p>The reckoning happens when the meeting adjourns. The stakes grow with every meeting.</p>' +
+      '<h2 class="section">Goodwill and the ask</h2>' +
+      '<p>Doing the right thing bluntly can cost goodwill with the people across the table. After some sound choices an opening appears, and you choose what to ask for. A fair ask pays a little and builds goodwill. A strong ask pays well but can be refused, and lands more often when goodwill is high. An overreach pays most and comes back on you. Sometimes there is no deal to be had, and the right ask is none.</p>' +
       '<h2 class="section">Standing</h2>' +
       '<p>Standing is the quality of the sittings on your record. The better it is, the more your sound work pays, up to a quarter more. Trust compounds.</p>' +
       '<h2 class="section">Passing</h2>' +
@@ -454,10 +547,12 @@
 
   function renderStanding() {
     var st = standing(), label = !passedCount() ? 'Unproven' : st >= 85 ? 'Relied upon' : 'Trusted';
+    var gwv = S.run && S.run.phase !== 'done' && !S.run.practice ? liveGoodwill(S.run) : goodwill();
     standingEl.innerHTML =
       '<div class="who"><span class="label">Seat</span><b>' + rank() + '</b></div>' +
       '<div class="who"><span class="label">Equity</span><b class="eq">' + MB.cash(equity()) + '</b></div>' +
-      '<div class="meter"><span class="label">Standing</span><span class="bar"><i style="width:' + st + '%"></i></span><span class="meter-v">' + label + ' · sound work pays ×' + MB.fix(trustOf(st), 2) + '</span></div>';
+      '<div class="meter"><span class="label">Standing</span><span class="bar"><i style="width:' + st + '%"></i></span><span class="meter-v">' + label + ' ' + DOT + ' pays ' + TIMES + MB.fix(trustOf(st), 2) + '</span></div>' +
+      '<div class="meter goodwill"><span class="label">Goodwill</span><span class="bar"><i style="width:' + gwv + '%"></i></span><span class="meter-v">' + gwv + ' ' + DOT + ' ' + (gwv >= 70 ? 'doors open' : gwv >= 40 ? 'on speaking terms' : 'bridges smoking') + '</span></div>';
   }
 
   function route() {
@@ -495,10 +590,24 @@
     if (act === 'order' && run) { run.phase = 'play'; save(); render(); }
     else if (act === 'choose' && run && run.phase === 'play' && !run.answers[run.step]) {
       var i = parseInt(el.getAttribute('data-i'), 10), o = buildItems(run)[run.step].options[i];
-      run.answers[run.step] = { pick: i, g: o.g, cash: o.cash, risk: o.risk };
+      run.answers[run.step] = { pick: i, g: o.g, cash: o.cash, risk: o.risk, gw: o.gw };
+      save(); render('outcome');
+    }
+    else if (act === 'ask' && run && run.phase === 'play' && run.sub === 'ask' && run.answers[run.step] && !run.answers[run.step].ask) {
+      var d = buildItems(run)[run.step].deal, k = parseInt(el.getAttribute('data-i'), 10), a = d.asks[k], R = ASK[a.k];
+      var res = { pick: k, k: a.k, ok: true, cash: 0, risk: 0, gw: R.gw, p: reachOdds(liveGoodwill(run)) };
+      if (a.k === 'm' || a.k === 'v') res.cash = a.cash;
+      else if (a.k === 'x') { res.cash = a.cash; res.risk = a.risk; }
+      else if (a.k === 't') res.ok = false;
+      else if (a.k === 'n') res.gw = d.none ? R.gwRight : R.gw;
+      else if (a.k === 'r') { res.ok = d.roll < res.p; res.cash = res.ok ? a.cash : 0; res.gw = res.ok ? R.gw : R.gwNo; }
+      run.answers[run.step].ask = res;
       save(); render('outcome');
     }
     else if (act === 'next' && run && run.answers[run.step]) {
+      var cur = buildItems(run)[run.step], an = run.answers[run.step];
+      if (cur.deal && an.g === 's' && !an.ask && run.sub !== 'ask') { run.sub = 'ask'; save(); render(); return; }
+      run.sub = null;
       if (run.step >= buildItems(run).length - 1) finishRun(); else { run.step++; save(); }
       render();
     }
@@ -533,7 +642,7 @@
       return;
     }
     var cash = res.g === 's' ? it.stake : res.g === 'g' ? round2(it.stake / 2) : -round2(it.stake / 2);
-    run.answers[run.step] = { value: res.value, g: res.g, cash: cash, risk: 0 };
+    run.answers[run.step] = { value: res.value, g: res.g, cash: cash, risk: 0, gw: 0 };
     save(); render('review');
   }
 
@@ -542,7 +651,7 @@
     standingEl = document.getElementById('standing');
     MB.levels.sort(function (a, b) { return a.n - b.n; });
     if (data && data.state) S = Object.assign(fresh(), data.state); else load();
-    if (S.run && (!level(S.run.n) || !S.run.trust)) S.run = null;
+    if (S.run && (!level(S.run.n) || S.run.v !== RUN_V)) S.run = null;
     document.addEventListener('click', onClick);
     document.addEventListener('submit', onSubmit);
     window.addEventListener('hashchange', function () { render(); });
@@ -551,6 +660,7 @@
 
   MB._state = function () { return S; };
   MB._equity = equity;
+  MB._goodwill = goodwill;
 
   /* Called once, after every content script has registered its level. */
   MB.start = function () {

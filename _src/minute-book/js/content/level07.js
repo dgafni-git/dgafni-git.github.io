@@ -25,12 +25,22 @@ MB.level({
             ['g', `Email ${b.first} to confirm "same terms as before."`, `It shows an understanding. It does not show consent or that anyone took on the obligations.`],
             ['p', `Leave it. The work is being done.`, `Fine until there is a claim. Then nobody can say who is party to what.`]
           ],
+          deal: {
+            setup: `${b.first} is relieved to get a real contract and asks what terms you want. The work has been good.`,
+            asks: [
+              ['m', `Ask for a 30-day termination right and proof of insurance.`, `Standard protections ${b.first} will happily give.`],
+              ['r', `Ask for a 10% lower fee in return for a three-year term.`, `A fair trade of price for certainty. ${b.first} may not need the certainty.`],
+              ['x', `Demand a refund of six months of fees, since no contract covered them.`, `The work was done and accepted. Using your own paperwork gap as a weapon is bad faith.`],
+              ['n', `Paper the existing terms as they are.`, `Clean, and nothing more.`]
+            ],
+            rule: `A gap in the paper is a chance to improve terms going forward, not to claw back the past.`
+          },
           rule: `A contract does not follow the work. Assign it, get consent, and have the new party sign.`
         };
       }
     },
     {
-      id: 'l7-release', title: 'The fee that was never released',
+      id: 'l7-release', burn: 0, title: 'The fee that was never released',
       make: function (g) {
         var a = g.person(), fee = g.m(0.25, 0.9, 0.05);
         return {
@@ -40,6 +50,16 @@ MB.level({
             ['g', `Assume the friendly exit settled it, and note the file.`, `Probably the understanding. An assumption in a file binds nobody.`],
             ['p', `Leave it out. No claim in this long means no claim.`, `Limitation periods run for years, and omitting a known liability misleads the lender.`]
           ],
+          deal: {
+            setup: `${a.first} had forgotten the fee. "Honestly? I would rather settle it than argue. What did you have in mind?"`,
+            asks: [
+              ['m', `Offer 80% now for a full release.`, `A quick, fair discount for certainty on both sides.`],
+              ['r', `Offer half, pointing to the friendly early exit.`, `Aggressive but honest. ${a.first} knows what the contract says.`],
+              ['x', `Say the fee lapsed when ${a.first} left without claiming it.`, `Asserting a waiver you know is not there is a misrepresentation.`],
+              ['n', `Pay it in full against a release.`, `The contract honoured to the dollar. ${a.first} tells people.`]
+            ],
+            rule: `Settle a real debt for less by offering speed and certainty, never by misstating the contract.`
+          },
           rule: `When a relationship ends, close it in writing: what was paid, what was waived, a release.`
         };
       }
@@ -56,6 +76,16 @@ MB.level({
             ['g', `${a.first} negotiates the terms, then abstains from the vote.`, `The terms were set by the person who benefits. The vote only blessed them.`],
             ['p', `Award it. Everyone knows ${a.first} owns the firm.`, `General awareness is not disclosure, and nobody tested the price.`]
           ],
+          deal: {
+            setup: `The independent quotes are in. ${a.first}'s firm is the best qualified and not the cheapest. The disinterested directors ask how to handle it.`,
+            asks: [
+              ['m', `Have them ask the firm to match the lowest quote.`, `The quotes did their job. The price is now a market price.`],
+              ['r', `Have them ask for 10% below the lowest quote, with part of the fee tied to schedule.`, `Hard bargaining with an insider, done by the right people. The firm may walk.`],
+              ['x', `Show the firm its rivals' bids so it can undercut them.`, `Leaking sealed bids to a favoured bidder corrupts the tender you just ran.`],
+              ['n', `Award it at the firm's quoted price.`, `Defensible if the directors record why quality justified the premium.`]
+            ],
+            rule: `Use the market to price an insider. Do not hand the insider the market's secrets.`
+          },
           rule: `An insider can be a vendor, with disclosure, no role in the decision, and market-tested terms.`
         };
       }
@@ -87,6 +117,16 @@ MB.level({
             ['g', `Note it privately and suggest they keep it to themselves.`, `You now know of a hidden related-party interest, and your note proves it.`],
             ['p', `Forget it. Partners' interests are their own business.`, `Not under this agreement, and not when the hidden owner is a paid vendor.`]
           ],
+          deal: {
+            none: true,
+            setup: `Before the disclosure goes in, ${b.first} takes you aside. "It is a good interest. I could let you in on a piece. No need to make this formal."`,
+            asks: [
+              ['x', `Accept a piece and let the disclosure drop.`, `That is taking a benefit to conceal a related-party interest.`],
+              ['t', `Decline, but ask for first refusal if ${b.first} ever sells.`, `You are an officer bargaining for yourself in the middle of a disclosure.`],
+              ['n', `Decline and proceed with the disclosure.`, `There was never a deal here, only an offer to share the problem.`]
+            ],
+            rule: `An offer made to keep you quiet is not an opening. It is the next thing to report.`
+          },
           rule: `Hidden ownership by someone the entity pays is a related-party problem from the day it exists.`,
           us: `Federal ownership reporting has been narrowed, but lenders, title insurers and banks still ask at closing.`,
           ca: `Federal and most provincial corporations must keep a register of individuals with significant control.`

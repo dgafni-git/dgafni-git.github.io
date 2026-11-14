@@ -13,7 +13,7 @@ MB.level({
   ],
   scenarios: [
     {
-      id: 'l12-insider-first', title: 'Pay the parent first',
+      id: 'l12-insider-first', burn: 2, title: 'Pay the parent first',
       builds: ['Duty of loyalty'],
       make: function (g) {
         var a = g.person(), cash = g.m(0.6, 1.8, 0.1), trade = g.m(0.9, 2.4, 0.1);
@@ -83,7 +83,7 @@ MB.level({
       }
     },
     {
-      id: 'l12-hold', title: 'Cleaning up the inbox',
+      id: 'l12-hold', burn: 0, title: 'Cleaning up the inbox',
       make: function (g) {
         var a = g.person();
         return {

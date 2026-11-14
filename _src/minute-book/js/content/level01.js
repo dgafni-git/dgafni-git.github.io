@@ -62,7 +62,7 @@ MB.level({
       }
     },
     {
-      id: 'l1-type', title: 'Which kind of entity?',
+      id: 'l1-type', burn: 0, title: 'Which kind of entity?',
       make: function (g) {
         var n = g.int(6, 14);
         return {
@@ -79,7 +79,7 @@ MB.level({
       }
     },
     {
-      id: 'l1-standing', title: 'The filing nobody made',
+      id: 'l1-standing', burn: 0, title: 'The filing nobody made',
       make: function (g) {
         var spe = g.spe(), a = g.person();
         return {

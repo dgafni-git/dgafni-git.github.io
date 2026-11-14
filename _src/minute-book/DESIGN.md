@@ -27,6 +27,25 @@ sat for practice. A better score needs a new career. The best finished career is
 **Standing.** The average quality of the sittings on record. It multiplies what sound work
 pays, from 1.0 up to 1.25. Trust compounds.
 
+**Goodwill.** What the people across the table think of dealing with you. It starts at 50. A
+blunt sound choice costs a little, more when someone pushed hard. Passing a meeting earns some
+back. A loose end that comes due costs a lot.
+
+**The ask.** After a sound choice on some decisions, a second beat opens: what do you ask for?
+
+- **Fair ask**: always agreed, pays a little, builds goodwill.
+- **Strong ask**: pays well, can be refused. The odds rise with goodwill, from about 30% at 20
+  to about 80% at 80. A refusal costs goodwill.
+- **Overreach**: shows the biggest number, crosses a legal line, leaves a liability, and costs
+  the item a governance point.
+- **A gift**: costs money and buys goodwill.
+- **Tone-deaf**: legal, refused, and remembered.
+- **No ask**: always available. In beats marked `none`, every other ask is a mistake.
+
+The number of legitimate asks varies, so the player cannot count their way to the answer. The
+fixed rule for writers: price, time, security and upside can be traded. A notice, an approval
+or a disclosure never can. Deal beats exist so far in Meetings IV, VI, VII, IX and X.
+
 **Stakes.** About $20,000 a decision in Meeting I, growing 40% a meeting. Starting equity is
 $100,000.
 
@@ -110,6 +129,16 @@ To remove the lock later, publish `dev.html` and the `css` and `js` folders as `
         ['g', `The grey motion.`, `One sentence on why.`],
         ['p', `The poor motion.`, `One sentence on why.`]
       ],
+      deal: {                   // optional second beat, shown after a sound choice
+        none: false,            // true when there is no deal to be had
+        setup: `One or two sentences on the opening.`,
+        asks: [                 // m fair, r strong, x overreach, v gift, t tone-deaf, n none
+          ['m', `The ask.`, `One line on why.`],
+          ['x', `The ask.`, `One line on why.`],
+          ['n', `Ask for nothing.`, `One line on why.`]
+        ],
+        rule: `One sentence on where the line is.`
+      },
       rule: `One sentence.`,
       us: `Optional United States note.`,
       ca: `Optional Canada note.`
@@ -117,6 +146,9 @@ To remove the lock later, publish `dev.html` and the `css` and `js` folders as `
   }
 }
 ```
+
+Add `burn: 0` to a scenario where the sound choice upsets nobody, or `burn: 2` where it
+upsets someone powerful. The default is 1.
 
 Helpers: `g.person()`, `g.city('us' | 'ca')`, `g.spe('LP' | 'LLC' | 'Inc.')`, `g.asset()`,
 `g.fund`, `g.m(lo, hi, step)` for dollars in $ millions, `g.pick([...])`, `g.int(lo, hi)`.
@@ -129,6 +161,8 @@ Helpers: `g.person()`, `g.city('us' | 'ca')`, `g.spe('LP' | 'LLC' | 'Inc.')`, `g
 
 ## Ideas not yet built
 
+- Deal beats for the remaining meetings.
+- Deal flow that depends on goodwill, and a deal table for investing equity between meetings.
 - Per-motion payouts written to fit each scenario, in place of generated ones.
 - Loose ends that stay buried and resurface in later meetings.
 - Consequences that carry forward, so an unreleased fee in Meeting VII returns in Meeting XII.
